@@ -103,7 +103,7 @@ def upload_rates(file: UploadFile = File(...), session: Session = Depends(get_se
     missing = required_cols - set(df.columns.str.lower())
     # Note: we are lenient with job/ideal_units if we can derive them or they are optional
     if "part_number" not in df.columns: # Critical one
-         raise HTTPException(status_code=400, detail=f"Missing required column: Part Number")
+        raise HTTPException(status_code=400, detail=f"Missing required column: Part Number")
 
     # Save to DB
     count = 0
