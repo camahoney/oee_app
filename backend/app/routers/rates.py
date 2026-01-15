@@ -80,10 +80,50 @@ def upload_rates(file: UploadFile = File(...), session: Session = Depends(get_se
         df = pd.read_csv(io.BytesIO(contents))
     else:
         df = pd.read_excel(io.BytesIO(contents))
-    required_cols = {"operator", "machine", "part_number", "job", "ideal_units_per_hour", "start_date"}
+    # Column mapping for user's specific format
+    # user_col: db_col
+    col_map = {
+        "PartNumber": "part_number",
+        "Workstation": "machine",
+        "StandardRatePPH": "ideal_units_per_hour",
+        "IdealCycleTimeSeconds": "ideal_cycle_time_seconds"
+    }
+    df.rename(columns=col_map, inplace=True)
+    
+    # Normalize defaults
+    if "operator" not in df.columns:
+        df["operator"] = "Any"
+    if "start_date" not in df.columns:
+        df["start_date"] = datetime.today().date()
+    if "active" not in df.columns:
+        df["active"] = True
+    
+    # Required columns check (after mapping)
+    required_cols = {"operator", "machine", "part_number"}
     missing = required_cols - set(df.columns.str.lower())
-    if missing:
-        raise HTTPException(status_code=400, detail=f"Missing required columns: {', '.join(missing)}")
-    # Return preview (first 5 rows) to frontend for confirmation
-    preview = df.head().to_dict(orient="records")
-    return {"preview": preview, "message": "File parsed successfully. Confirm to apply."}
+    # Note: we are lenient with job/ideal_units if we can derive them or they are optional
+    if "part_number" not in df.columns: # Critical one
+         raise HTTPException(status_code=400, detail=f"Missing required column: Part Number")
+
+    # Save to DB
+    count = 0
+    for _, row in df.iterrows():
+        # Basic validation
+        if pd.isna(row.get('part_number')): continue
+        
+        rate = RateEntry(
+            operator=str(row.get('operator', 'Any')),
+            machine=str(row.get('machine', 'Unknown')),
+            part_number=str(row['part_number']),
+            job=str(row.get('job', '')),
+            ideal_units_per_hour=float(row.get('ideal_units_per_hour')) if pd.notna(row.get('ideal_units_per_hour')) else None,
+            ideal_cycle_time_seconds=float(row.get('ideal_cycle_time_seconds')) if pd.notna(row.get('ideal_cycle_time_seconds')) else None,
+            start_date=pd.to_datetime(row.get('start_date')).date(),
+            active=bool(row.get('active', True)),
+            notes="Bulk Upload"
+        )
+        session.add(rate)
+        count += 1
+    
+    session.commit()
+    return {"message": f"Successfully uploaded {count} rates."}
