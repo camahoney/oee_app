@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 // Create an Axios instance with base URL pointing to the backend
+const API_URL = import.meta.env.PROD
+    ? 'https://oee-app.onrender.com'
+    : 'http://localhost:8000';
+
 const api = axios.create({
-    baseURL: 'http://localhost:8000', // Update this if backend runs elsewhere
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
