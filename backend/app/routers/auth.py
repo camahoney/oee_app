@@ -6,7 +6,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 
-from ..db import User, get_session
+from ..db import User
+from ..database import get_session
 
 router = APIRouter()
 

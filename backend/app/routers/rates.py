@@ -5,7 +5,8 @@ import pandas as pd
 import io
 from datetime import datetime
 
-from ..db import RateEntry, RateAudit, get_session
+from ..db import RateEntry, RateAudit
+from ..database import get_session
 
 router = APIRouter()
 
