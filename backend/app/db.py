@@ -16,7 +16,7 @@ class RateEntry(SQLModel, table=True):
     machine: Optional[str] = Field(default=None, index=True)
     part_number: Optional[str] = Field(default=None, index=True)
     job: Optional[str] = Field(default=None, index=True)
-    ideal_units_per_hour: float
+    ideal_units_per_hour: Optional[float] = None
     ideal_cycle_time_seconds: Optional[float] = None
     start_date: date
     end_date: Optional[date] = None
