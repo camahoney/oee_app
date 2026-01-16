@@ -26,6 +26,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     # if file.content_type not in ... (removed to allow diverse browser MIME types)
     
     contents = file.file.read()
+    raw_data_debug = "No raw content read"
     if file.filename.lower().endswith('.csv'):
         try:
             # utf-8-sig handles BOM if present, and plain utf-8 if not
@@ -214,10 +215,12 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         contents = file.file.read()
         if file.filename.endswith('.csv'):
              raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
+             raw_data_debug = str(raw_df.head(5).values.tolist())
              df = process_raw_report(raw_df)
         else:
              # Try first sheet first
              raw_df = pd.read_excel(io.BytesIO(contents), header=None)
+             raw_data_debug = str(raw_df.head(5).values.tolist())
              df = process_raw_report(raw_df)
              
              # If first sheet yielded no results, try ALL sheets
@@ -226,6 +229,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                  all_sheets = pd.read_excel(io.BytesIO(contents), sheet_name=None, header=None)
                  for sheet_name, sheet_df in all_sheets.items():
                      print(f"Scanning sheet: {sheet_name}")
+                     raw_data_debug = f"Sheet {sheet_name}: " + str(sheet_df.head(5).values.tolist())
                      candidate_df = process_raw_report(sheet_df)
                      if not candidate_df.empty:
                          print(f"Found valid data in sheet: {sheet_name}")
@@ -278,7 +282,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
              if not df.empty:
                  snippet = df.head(3).to_dict(orient="records")
              
-             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}")
+             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}. Raw Dump: {raw_data_debug}")
 
         # Store the report metadata
         report = ProductionReport(filename=file.filename, uploaded_at=datetime.utcnow())
