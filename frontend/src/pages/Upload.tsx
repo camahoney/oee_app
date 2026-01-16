@@ -23,7 +23,7 @@ const Upload: React.FC = () => {
             onSuccess(result, file);
         } catch (err: any) {
             const errorMsg = err.response?.data?.detail || 'Upload failed';
-            message.error(errorMsg);
+            message.error(errorMsg, 10);
             onError(err);
         } finally {
             setUploading(false);

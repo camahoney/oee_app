@@ -28,7 +28,10 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         raise HTTPException(status_code=400, detail="Unsupported file type")
     contents = file.file.read()
     if file.filename.endswith('.csv'):
-        df = pd.read_csv(io.BytesIO(contents))
+        try:
+            df = pd.read_csv(io.BytesIO(contents), encoding='utf-8')
+        except UnicodeDecodeError:
+            df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
     else:
         df = pd.read_excel(io.BytesIO(contents))
     # Rename columns using a map for flexibility
