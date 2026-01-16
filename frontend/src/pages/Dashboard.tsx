@@ -44,36 +44,38 @@ const Dashboard: React.FC = () => {
 
     return (
         <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-            <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '24px', width: '100%' }}>
                     <img
                         src="/logo.png"
                         alt="Vibracoustic Logo"
-                        style={{ height: '50px', marginRight: '20px', objectFit: 'contain' }}
+                        style={{ height: '70px', objectFit: 'contain' }}
                         onError={(e) => {
-                            // Fallback if logo fails to load (dev environment quirk safety)
                             (e.target as HTMLImageElement).style.display = 'none';
                         }}
                     />
-                    <div>
-                        <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE }}>
-                            {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
-                        </Title>
-                        <Text type="secondary" style={{ fontSize: '16px' }}>
-                            {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
-                        </Text>
-                    </div>
+                    <div style={{ flex: 1 }}></div>
+                    {reportId && (
+                        <Button
+                            type="primary"
+                            ghost
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate('/reports')}
+                            size="large"
+                            style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                        >
+                            Back to Reports
+                        </Button>
+                    )}
                 </div>
-                {reportId && (
-                    <Button
-                        type="default"
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => navigate('/reports')}
-                        size="large"
-                    >
-                        Back to Reports
-                    </Button>
-                )}
+                <div style={{ marginTop: '16px' }}>
+                    <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '32px' }}>
+                        {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '18px' }}>
+                        {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
+                    </Text>
+                </div>
             </div>
 
             <Row gutter={[24, 24]}>
@@ -145,7 +147,7 @@ const Dashboard: React.FC = () => {
                         renderItem={(item: any) => (
                             <List.Item
                                 key={item.id}
-                                style={{ padding: '20px 0', borderBottom: '1px solid #f0f0f0' }}
+                                style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}
                                 extra={
                                     <div style={{ textAlign: 'right', minWidth: '150px' }}>
                                         <div style={{ fontSize: '24px', fontWeight: 'bold', color: BRAND_BLUE }}>
@@ -169,39 +171,35 @@ const Dashboard: React.FC = () => {
                                     }
                                     description={
                                         <div>
-                                            <div style={{ fontSize: '14px', marginBottom: '12px', color: '#595959' }}>
+                                            <div style={{ fontSize: '14px', marginBottom: '16px', color: '#595959' }}>
                                                 <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date}
                                             </div>
 
                                             <div style={{
                                                 display: 'grid',
                                                 gridTemplateColumns: 'repeat(5, 1fr)',
-                                                gap: '12px',
-                                                background: '#fafafa',
-                                                padding: '12px',
-                                                borderRadius: '8px',
-                                                border: '1px solid #f0f0f0',
-                                                maxWidth: '750px'
+                                                gap: '24px',
+                                                maxWidth: '800px'
                                             }}>
                                                 <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>⏱️ Run Time</Text>
-                                                    <div style={{ fontWeight: '600' }}>{((item.run_time_min || 0) / 60).toFixed(1)} hrs</div>
+                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Run Time</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>{((item.run_time_min || 0) / 60).toFixed(1)} hrs</div>
                                                 </div>
                                                 <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>🛑 Downtime</Text>
-                                                    <div style={{ fontWeight: '600' }}>{item.downtime_min || 0} min</div>
+                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Downtime</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>{item.downtime_min || 0} min</div>
                                                 </div>
                                                 <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>✅ Good Pts</Text>
-                                                    <div style={{ fontWeight: '600', color: '#52c41a' }}>{item.good_count || 0}</div>
+                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Good Pts</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: '#52c41a' }}>{item.good_count || 0}</div>
                                                 </div>
                                                 <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>❌ Rejects</Text>
-                                                    <div style={{ fontWeight: '600', color: '#ff4d4f' }}>{item.reject_count || 0}</div>
+                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejects</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: '#ff4d4f' }}>{item.reject_count || 0}</div>
                                                 </div>
                                                 <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>🎯 Target</Text>
-                                                    <div style={{ fontWeight: '600', color: BRAND_BLUE }}>
+                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Target</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: BRAND_BLUE }}>
                                                         {item.target_count || '-'}
                                                     </div>
                                                 </div>
