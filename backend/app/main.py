@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import create_db_and_tables
+from sqlmodel import Session, select
+from .database import create_db_and_tables, engine
+from .db import RateEntry
+from .seeds import get_seed_rates
 
 from .routers import rates, reports, metrics, auth, settings
 
@@ -9,6 +12,15 @@ app = FastAPI(title="OEE Analytics API", version="0.1.0")
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    # Seed data if empty
+    with Session(engine) as session:
+        if not session.exec(select(RateEntry)).first():
+            print("Seeding database with default rates...")
+            rates = get_seed_rates()
+            for r in rates:
+                session.add(r)
+            session.commit()
+            print(f"Seeding complete: Added {len(rates)} rates.")
 
 # CORS (allow all for demo; tighten in production)
 app.add_middleware(
