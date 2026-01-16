@@ -12,6 +12,7 @@ from ..db import (
     ReportEntry,
     Oeemetric,
     ProductionReport,
+    Setting,
 )
 from ..database import get_session
 
@@ -110,6 +111,15 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=500, detail=f"Aggregation Error: {str(e)}")
         
     # Calculation Phase
+    # Fetch Settings for Logic
+    perf_threshold_setting = session.get(Setting, "performance_threshold")
+    perf_threshold_pct = float(perf_threshold_setting.value) if perf_threshold_setting else 25.0
+    perf_threshold = perf_threshold_pct / 100.0
+    
+    # OEE > 100 Warning Flag (default to True)
+    oee_warning_setting = session.get(Setting, "show_oee_over_100_warning")
+    show_oee_warning = (oee_warning_setting.value.lower() == 'true') if oee_warning_setting else True
+
     for key, data in aggregated.items():
 
         # Find applicable rate
@@ -173,8 +183,13 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             diagnostics["warning"] = missing_rate_warning
         else:
             diagnostics["matched_rate_machine"] = rate.machine
-            
-        # Manager Insights Logic (Re-calculate raw performance here as we don't have it from compute_oee return)
+        
+        # Warn if OEE > 100% (if enabled)
+        if show_oee_warning and oee_vals["oee"] > 1.0:
+            if "warning" not in diagnostics: # Don't overwrite missing rate warning
+                 diagnostics["warning"] = "OEE > 100%: Check Standard Rate"
+
+        # Manager Insights Logic
         ideal_cycle = rate.ideal_cycle_time_seconds or 0
         if not ideal_cycle and rate.ideal_units_per_hour:
              ideal_cycle = 3600.0 / rate.ideal_units_per_hour
@@ -182,16 +197,20 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         run_sec = data["run_time_min"] * 60
         perf_raw = (ideal_cycle * data["total_count"]) / run_sec if run_sec > 0 else 0
         
-        # Calculate Target Count based on actual Run Time (net of downtime)
+        # Calculate Target Count based on actual Run Time
         target_count = int(run_sec / ideal_cycle) if ideal_cycle > 0 else 0
         diagnostics["target_count"] = target_count
         
-        if perf_raw > 1.2:
-             diagnostics["insight"] = "High Output: Verify Standard Rate vs. Operator Speed"
-        elif perf_raw < 0.5:
-             diagnostics["insight"] = "Low Output: Verify Standard Rate vs. Operator Speed"
+        # Performance Threshold Logic (1.0 +/- threshold)
+        high_limit = 1.0 + perf_threshold
+        low_limit = max(0.0, 1.0 - perf_threshold) # safety floor
         
-        # Add detailed stats to diagnostics for dashboard display
+        if perf_raw > high_limit:
+             diagnostics["insight"] = f"High Output (>{int(high_limit*100)}%): Verify Std vs Speed"
+        elif perf_raw < low_limit:
+             diagnostics["insight"] = f"Low Output (<{int(low_limit*100)}%): Verify Std vs Speed"
+        
+        # Add detailed stats to diagnostics
         diagnostics["run_time_min"] = data["run_time_min"]
         diagnostics["downtime_min"] = data["downtime_min"]
         diagnostics["good_count"] = data["good_count"]

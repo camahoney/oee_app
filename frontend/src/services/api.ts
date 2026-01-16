@@ -45,7 +45,7 @@ export const reportService = {
         return response.data;
     },
     async getDashboardStats(reportId?: number) {
-        const url = reportId ? `/reports/${reportId}/metrics` : '/dashboard/stats';
+        const url = reportId ? `/metrics/stats?report_id=${reportId}` : '/metrics/stats';
         const response = await api.get(url);
         return response.data;
     },
@@ -57,6 +57,7 @@ export const reportService = {
         });
         return response.data;
     },
+
     getReports: async () => {
         const response = await api.get('/reports/');
         return response.data;
@@ -70,6 +71,29 @@ export const reportService = {
     },
     updateReportEntry: async (entryId: number, data: any) => {
         const response = await api.put(`/reports/entries/${entryId}`, data);
+        return response.data;
+    }
+};
+
+export interface Setting {
+    key: string;
+    value: string;
+    description?: string;
+}
+
+export const settingsService = {
+    getAll: async () => {
+        const response = await api.get<Setting[]>('/settings/');
+        return response.data;
+    },
+    get: async (key: string) => {
+        const response = await api.get<Setting>(`/settings/${key}`);
+        return response.data;
+    },
+    update: async (key: string, value: string, description?: string) => {
+        const response = await api.put(`/settings/${key}`, null, {
+            params: { value, description }
+        });
         return response.data;
     }
 };
