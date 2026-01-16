@@ -104,10 +104,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                     # If ws_idx is 3, then shifts are standard.
                     offset = ws_idx - 3
                     
-                    clean_rows.append({
-                        "part_number": vals[4 + offset],
-                        "operator": vals[15 + offset],
-                        "machine": vals[18 + offset],
+
                     raw_shift = str(vals[17 + offset])
                     shift_val = raw_shift.replace('.0', '').strip()
                     if shift_val.lower() == 'nan' or not shift_val:
