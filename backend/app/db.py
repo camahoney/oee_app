@@ -45,7 +45,7 @@ class RateAudit(SQLModel, table=True):
 class ProductionReport(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     filename: str
-    uploaded_by: int = Field(foreign_key="user.id")
+    uploaded_by: Optional[int] = Field(default=None, foreign_key="user.id")
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
 
 class ReportEntry(SQLModel, table=True):
