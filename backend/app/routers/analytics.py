@@ -140,19 +140,39 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
             "reject_rate": round(reject_rate * 100, 2)
         })
         
-@router.get("/debug", response_model=List[Dict[str, Any]])
+@router.get("/debug", response_model=Dict[str, Any])
 def debug_analytics(session: Session = Depends(get_session)):
-    """Directly dump OEE metrics to verify DB content."""
+    """Debug Quality Logic trace."""
     metrics = session.exec(select(Oeemetric).limit(50)).all()
-    results = []
+    
+    trace = {
+        "total_rows": len(metrics),
+        "sample_json": None,
+        "part_stats": {},
+        "raw_json_errors": []
+    }
+    
+    if metrics:
+        trace["sample_json"] = metrics[0].diagnostics_json
+        
     for m in metrics:
-        results.append({
-            "id": m.id,
-            "shift": m.shift,
-            "part": m.part_number,
-            "oee": m.oee,
-            "date": m.date
-        })
-    if not results:
-        return [{"message": "NO DATA FOUND IN DB", "count": 0}]
-    return results
+        part = m.part_number or "Unknown"
+        run_good = 0
+        run_reject = 0
+        
+        if m.diagnostics_json:
+            try:
+                import json
+                diag = json.loads(m.diagnostics_json)
+                run_good = diag.get("good_count", 0)
+                run_reject = diag.get("reject_count", 0)
+            except Exception as e:
+                trace["raw_json_errors"].append(str(e))
+                
+        if part not in trace["part_stats"]:
+            trace["part_stats"][part] = {"good": 0, "reject": 0}
+            
+        trace["part_stats"][part]["good"] += run_good
+        trace["part_stats"][part]["reject"] += run_reject
+        
+    return trace
