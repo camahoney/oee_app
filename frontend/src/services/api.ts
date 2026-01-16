@@ -54,7 +54,22 @@ export const reportService = {
         return response.data;
     },
     deleteReport: async (reportId: number) => {
-        await api.delete(`/reports/${reportId}`);
+        await axios.delete(`${API_URL}/reports/${reportId}`);
+    }
+};
+
+export const analyticsService = {
+    getComparison: async (groupBy: string = 'shift') => {
+        const response = await axios.get(`${API_URL}/analytics/compare`, {
+            params: { group_by: groupBy }
+        });
+        return response.data;
+    },
+    getQualityAnalysis: async (limit: number = 10) => {
+        const response = await axios.get(`${API_URL}/analytics/quality`, {
+            params: { limit }
+        });
+        return response.data;
     }
 };
 

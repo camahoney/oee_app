@@ -7,6 +7,7 @@ import {
     TableOutlined,
     FileTextOutlined,
     SettingOutlined,
+    BarChartOutlined
 } from '@ant-design/icons';
 
 import Dashboard from './pages/Dashboard';
@@ -14,6 +15,7 @@ import Upload from './pages/Upload';
 import Rates from './pages/Rates';
 import Reports from './pages/Reports';
 import SettingsPage from './pages/Settings';
+import Analytics from './pages/Analytics';
 
 const { Header, Content, Sider } = Layout;
 
@@ -34,13 +36,13 @@ const App: React.FC = () => {
                 <Layout style={{ minHeight: '100vh' }}>
                     <Sider collapsible theme="light" width={250} style={{ boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)' }}>
                         <div style={{
-                            height: '120px',
+                            height: '140px',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            marginBottom: '0px',
+                            padding: '0',
+                            margin: '0',
                             overflow: 'hidden',
-                            padding: '20px'
                         }}>
                             <img
                                 src="/logo.png"
@@ -49,7 +51,7 @@ const App: React.FC = () => {
                                     width: '100%',
                                     height: '100%',
                                     objectFit: 'contain',
-                                    transform: 'scale(1.3)'  // Slight zoom to maximize visual size/crop whitespace
+                                    transform: 'scale(1.1)'
                                 }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
@@ -61,6 +63,7 @@ const App: React.FC = () => {
                             style={{ borderRight: 0 }}
                         >
                             <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
+                            <Menu.Item key="analytics" icon={<BarChartOutlined />}> <a href="/analytics">Analytics</a> </Menu.Item>
                             <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>
                             <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>
                             <Menu.Item key="reports" icon={<FileTextOutlined />}> <a href="/reports">Reports</a> </Menu.Item>
@@ -72,6 +75,7 @@ const App: React.FC = () => {
                             <Routes>
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/analytics" element={<Analytics />} />
                                 <Route path="/upload" element={<Upload />} />
                                 <Route path="/rates" element={<Rates />} />
                                 <Route path="/reports" element={<Reports />} />
