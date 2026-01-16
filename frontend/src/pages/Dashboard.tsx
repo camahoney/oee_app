@@ -93,9 +93,27 @@ const Dashboard: React.FC = () => {
                         <List.Item>
                             <List.Item.Meta
                                 title={<Text strong>Operator: {item.operator || 'Unknown'}</Text>}
-                                description={`Part: ${item.part_number || 'N/A'} | Machine: ${item.machine || 'Unknown'} | Date: ${item.date}`}
+                                description={
+                                    <div>
+                                        <div>Part: {item.part_number || 'N/A'} | Machine: {item.machine || 'Unknown'} | Date: {item.date}</div>
+                                        <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
+                                            ⏱️ Run: {((item.run_time_min || 0) / 60).toFixed(1)} hrs |
+                                            🛑 Down: {item.downtime_min || 0} min |
+                                            ✅ Good: {item.good_count || 0} |
+                                            ❌ Reject: {item.reject_count || 0}
+                                        </div>
+                                    </div>
+                                }
                             />
-                            <Tag color="blue">OEE: {(item.oee * 100).toFixed(1)}%</Tag>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                {item.warning && <Tag color="warning">Missing Rate</Tag>}
+                                {item.insight && (
+                                    <Tag color={item.insight.includes("High") ? "red" : "orange"}>
+                                        {item.insight}
+                                    </Tag>
+                                )}
+                                <Tag color="blue">OEE: {(item.oee * 100).toFixed(1)}%</Tag>
+                            </div>
                         </List.Item>
                     )}
                 />

@@ -184,6 +184,12 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
              diagnostics["insight"] = "High Output: Check for delayed clock-in?"
         elif perf_raw < 0.5:
              diagnostics["insight"] = "Low Output: Rate adjustment needed?"
+        
+        # Add detailed stats to diagnostics for dashboard display
+        diagnostics["run_time_min"] = data["run_time_min"]
+        diagnostics["downtime_min"] = data["downtime_min"]
+        diagnostics["good_count"] = data["good_count"]
+        diagnostics["reject_count"] = data["reject_count"]
             
         import json
         metric = Oeemetric(
@@ -261,7 +267,11 @@ def get_dashboard_stats(session: Session = Depends(get_session)):
             "part_number": m.part_number,
             "date": m.date,
             "oee": m.oee,
-            "insight": diag.get("insight")
+            "insight": diag.get("insight"),
+            "run_time_min": diag.get("run_time_min"),
+            "downtime_min": diag.get("downtime_min"),
+            "good_count": diag.get("good_count"),
+            "reject_count": diag.get("reject_count")
         })
 
     return {
