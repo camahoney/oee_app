@@ -75,32 +75,64 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     metrics_to_save = []
     missing_rates_info = set()
     
+    # Aggregate entries by (Date, Operator, Machine, Part, Shift, Job)
+    # This combines split entries (e.g. clock out/in) into one logical shift record
+    aggregated = {}
+    
     for entry in entries:
+        # Create a unique key for the "logical job"
+        key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job)
+        
+        if key not in aggregated:
+            aggregated[key] = {
+                "date": entry.date,
+                "operator": entry.operator,
+                "machine": entry.machine,
+                "part_number": entry.part_number,
+                "shift": entry.shift,
+                "job": entry.job,
+                "planned_production_time_min": 0.0,
+                "run_time_min": 0.0,
+                "downtime_min": 0.0,
+                "total_count": 0,
+                "good_count": 0,
+                "reject_count": 0,
+            }
+            
+        # Accumulate values
+        agg = aggregated[key]
+        agg["planned_production_time_min"] += (entry.planned_production_time_min or 0)
+        agg["run_time_min"] += (entry.run_time_min or 0)
+        agg["downtime_min"] += (entry.downtime_min or 0)
+        agg["total_count"] += (entry.total_count or 0)
+        agg["good_count"] += (entry.good_count or 0)
+        agg["reject_count"] += (entry.reject_count or 0)
+
+    # Now calculate metrics for the aggregated entries
+    for key, data in aggregated.items():
         # Find applicable rate
         # Strategy: Fetch all active rates for this Part Number, then find the best fit.
         stmt = select(RateEntry).where(
-            (RateEntry.part_number == entry.part_number),
+            (RateEntry.part_number == data["part_number"]),
             (RateEntry.active == True),
         )
         candidates = session.exec(stmt).all()
         
         rate = None
         if not candidates:
-            # No rates for this part
             pass
         elif len(candidates) == 1:
             rate = candidates[0]
         else:
-            # Multiple rates (e.g. Molding vs Assembly). Try to match Machine.
-            report_machine_norm = (entry.machine or "").strip().lower()
+            # Multiple rates logic
+            report_machine_norm = (data["machine"] or "").strip().lower()
             
-            # 1. Try Exact Case-Insensitive Match
+            # 1. Exact Match
             for c in candidates:
                 if (c.machine or "").strip().lower() == report_machine_norm:
                     rate = c
                     break
-            
-            # 2. Try "Type" Match (Assembly vs Molding)
+            # 2. Type Match
             if not rate:
                 is_assy = "asy" in report_machine_norm or "assembly" in report_machine_norm
                 for c in candidates:
@@ -109,22 +141,30 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
                     if is_assy == c_is_assy:
                         rate = c
                         break
-            
-            # 3. Fallback: First one
+            # 3. Fallback
             if not rate:
                 rate = candidates[0]
         
         missing_rate_warning = None
         if not rate:
-            # Create a dummy rate to allow calculation (result will range 0)
             rate = RateEntry(ideal_units_per_hour=0, ideal_cycle_time_seconds=0)
-            # Log the specific combination missing
-            identifier = f"{entry.part_number} (Machine: {entry.machine})"
+            identifier = f"{data['part_number']} (Machine: {data['machine']})"
             missing_rate_warning = f"No Rate found for {identifier}"
             missing_rates_info.add(identifier)
             skipped_count += 1
+        
+        # Create a temporary pseudo-entry object for computation
+        # (This avoids changing the compute_oee signature)
+        pseudo_entry = ReportEntry(
+            planned_production_time_min=data["planned_production_time_min"],
+            run_time_min=data["run_time_min"],
+            downtime_min=data["downtime_min"],
+            total_count=data["total_count"],
+            good_count=data["good_count"],
+            reject_count=data["reject_count"]
+        )
             
-        oee_vals = compute_oee(rate, entry)
+        oee_vals = compute_oee(rate, pseudo_entry)
         
         diagnostics = {}
         if missing_rate_warning:
@@ -132,15 +172,28 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         else:
             diagnostics["matched_rate_machine"] = rate.machine
             
+        # Manager Insights Logic (Re-calculate raw performance here as we don't have it from compute_oee return)
+        ideal_cycle = rate.ideal_cycle_time_seconds or 0
+        if not ideal_cycle and rate.ideal_units_per_hour:
+             ideal_cycle = 3600.0 / rate.ideal_units_per_hour
+        
+        run_sec = data["run_time_min"] * 60
+        perf_raw = (ideal_cycle * data["total_count"]) / run_sec if run_sec > 0 else 0
+        
+        if perf_raw > 1.2:
+             diagnostics["insight"] = "High Output: Check for delayed clock-in?"
+        elif perf_raw < 0.5:
+             diagnostics["insight"] = "Low Output: Rate adjustment needed?"
+            
         import json
         metric = Oeemetric(
             report_id=report_id,
-            operator=entry.operator,
-            machine=entry.machine,
-            part_number=entry.part_number,
-            job=entry.job,
-            shift=entry.shift,
-            date=entry.date,
+            operator=data["operator"],
+            machine=data["machine"],
+            part_number=data["part_number"],
+            job=data["job"],
+            shift=data["shift"],
+            date=data["date"],
             availability=oee_vals["availability"],
             performance=oee_vals["performance"],
             quality=oee_vals["quality"],
@@ -191,17 +244,25 @@ def get_dashboard_stats(session: Session = Depends(get_session)):
     # Get recent reports for activity feed
     # This assumes ReportEntry or ProductionReport has dates, but Oeemetric has report_id
     # Simpler: just return recent OEE metrics
-    recent = [
-        {
+    recent = []
+    for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:500]:
+        diag = {}
+        if m.diagnostics_json:
+            try:
+                import json
+                diag = json.loads(m.diagnostics_json)
+            except:
+                pass
+                
+        recent.append({
             "id": m.id,
             "operator": m.operator,
             "machine": m.machine,
-            "part_number": m.part_number, # Added this field
+            "part_number": m.part_number,
             "date": m.date,
-            "oee": m.oee
-        }
-        for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:500]
-    ]
+            "oee": m.oee,
+            "insight": diag.get("insight")
+        })
 
     return {
         "oee": round(avg_oee * 100, 1),
