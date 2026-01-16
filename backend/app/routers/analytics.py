@@ -119,15 +119,17 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
         part_stats[part]["reject"] += run_reject
         
     results = []
-        if total_rows == 0 or not part_stats:
-             results.append({
-                "part_number": f"DEBUG: Row Count {total_rows}",
-                "total_produced": 100,
-                "total_rejects": 5,
-                "reject_rate": 5.0
-             })
-             
-        for part, stats in part_stats.items():
+    # DEBUG PROBE
+    total_rows = len(metrics)
+    if total_rows == 0 or not part_stats:
+         results.append({
+            "part_number": f"DEBUG: Row Count {total_rows}",
+            "total_produced": 100,
+            "total_rejects": 5,
+            "reject_rate": 5.0
+         })
+         
+    for part, stats in part_stats.items():
         total = stats["good"] + stats["reject"]
         reject_rate = (stats["reject"] / total) if total > 0 else 0
         
