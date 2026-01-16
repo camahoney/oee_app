@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, create_engine, Session
 from pathlib import Path
 
-DATABASE_URL = "sqlite:///./oee_app.db"
+DATABASE_URL = "sqlite:///./oee_app_v2.db"
 
 engine = create_engine(DATABASE_URL, echo=False)
 
