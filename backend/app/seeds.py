@@ -272,6 +272,16 @@ def get_seed_rates():
                 ideal_sec = float(ideal_sec_str)
             except ValueError:
                 ideal_sec = 0.0
+
+            cavities_str = row.get("Cavities", "1").strip()
+            try:
+                cavities = float(cavities_str)
+            except ValueError:
+                cavities = 1.0
+                
+            # Adjust Ideal Cycle Time to be Per Part (Machine Cycle / Cavities)
+            if cavities > 1 and ideal_sec > 0:
+                ideal_sec = ideal_sec / cavities
                 
             # Helper logic: calculate units per hour
             if ideal_sec > 0:

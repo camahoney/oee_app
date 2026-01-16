@@ -163,7 +163,7 @@ def get_dashboard_stats(session: Session = Depends(get_session)):
             "date": m.date,
             "oee": m.oee
         }
-        for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:5]
+        for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:500]
     ]
 
     return {
