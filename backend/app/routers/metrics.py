@@ -76,40 +76,43 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     missing_rates_info = set()
     
     # Aggregate entries by (Date, Operator, Machine, Part, Shift, Job)
-    # This combines split entries (e.g. clock out/in) into one logical shift record
-    aggregated = {}
-    
-    for entry in entries:
-        # Create a unique key for the "logical job"
-        key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job)
-        
-        if key not in aggregated:
-            aggregated[key] = {
-                "date": entry.date,
-                "operator": entry.operator,
-                "machine": entry.machine,
-                "part_number": entry.part_number,
-                "shift": entry.shift,
-                "job": entry.job,
-                "planned_production_time_min": 0.0,
-                "run_time_min": 0.0,
-                "downtime_min": 0.0,
-                "total_count": 0,
-                "good_count": 0,
-                "reject_count": 0,
-            }
+    try:
+        # Aggregation Phase
+        aggregated = {}
+        for entry in entries:
+            key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job)
+            if key not in aggregated:
+                aggregated[key] = {
+                    "date": entry.date,
+                    "operator": entry.operator,
+                    "machine": entry.machine,
+                    "part_number": entry.part_number,
+                    "shift": entry.shift,
+                    "job": entry.job,
+                    "planned_production_time_min": 0.0,
+                    "run_time_min": 0.0,
+                    "downtime_min": 0.0,
+                    "total_count": 0,
+                    "good_count": 0,
+                    "reject_count": 0,
+                }
+            agg = aggregated[key]
+            agg["planned_production_time_min"] += (entry.planned_production_time_min or 0)
+            agg["run_time_min"] += (entry.run_time_min or 0)
+            agg["downtime_min"] += (entry.downtime_min or 0)
+            agg["total_count"] += (entry.total_count or 0)
+            agg["good_count"] += (entry.good_count or 0)
+            agg["reject_count"] += (entry.reject_count or 0)
             
-        # Accumulate values
-        agg = aggregated[key]
-        agg["planned_production_time_min"] += (entry.planned_production_time_min or 0)
-        agg["run_time_min"] += (entry.run_time_min or 0)
-        agg["downtime_min"] += (entry.downtime_min or 0)
-        agg["total_count"] += (entry.total_count or 0)
-        agg["good_count"] += (entry.good_count or 0)
-        agg["reject_count"] += (entry.reject_count or 0)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Aggregation Error: {str(e)}")
+        
+    # Calculation Phase
+    try:
+        for key, data in aggregated.items():
 
-    # Now calculate metrics for the aggregated entries
-    for key, data in aggregated.items():
         # Find applicable rate
         # Strategy: Fetch all active rates for this Part Number, then find the best fit.
         stmt = select(RateEntry).where(
