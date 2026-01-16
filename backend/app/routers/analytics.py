@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select, func
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, date
 
 from ..db import Oeemetric
 from ..database import get_session
@@ -12,36 +12,30 @@ router = APIRouter(tags=["analytics"])
 def compare_metrics(
     group_by: str = Query(..., regex="^(shift|part|machine|operator)$"), 
     limit: int = 20,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
     session: Session = Depends(get_session)
 ):
     """
     Compare OEE metrics grouped by a specific dimension (e.g., Shift, Part).
     Returns average OEE, Availability, Performance, Quality for each group.
     """
-    # Dynamic grouping using SQLModel/SQLAlchemy
-    # Note: SQLite might have limitations with complex aggregations, doing simple grouping here.
     
-    # Map input string to column
-    if group_by == "shift":
-        col = Oeemetric.shift
-    elif group_by == "part":
-        col = Oeemetric.part_number
-    elif group_by == "machine":
-        col = Oeemetric.machine
-    else:
-        col = Oeemetric.operator
-
-    # Select Group, Avg(OEE), Avg(Avail), Avg(Perf), Avg(Qual), Sum(Good), Sum(Reject)
-    # We load all and aggregate in python if SQLModel grouping is tricky, 
-    # but let's try direct SQL first for efficiency. Or simpler: Fetch all and aggregate in Pandas-style python list.
-    # Given dataset size is small-ish, Python aggregation is safe and flexible.
+    stmt = select(Oeemetric)
+    if start_date:
+        stmt = stmt.where(Oeemetric.date >= start_date)
+    if end_date:
+        stmt = stmt.where(Oeemetric.date <= end_date)
+        
+    met_list = session.exec(stmt).all()
     
-    met_list = session.exec(select(Oeemetric)).all()
+    # ... aggregation logic ...
     try:
         grouped_data = {}
         for m in met_list:
             # Safe attribute access
-            metric_val = getattr(m, group_by == "part" and "part_number" or group_by)
+            col_name = "part_number" if group_by == "part" else group_by
+            metric_val = getattr(m, col_name)
             key = metric_val if metric_val else "Unknown"
             
             if key not in grouped_data:
@@ -61,7 +55,6 @@ def compare_metrics(
             grouped_data[key]["count"] += 1
             
         results = []
-        # DEBUG PROBE REMOVED
         
         for key, data in grouped_data.items():
             count = data["count"]
@@ -82,23 +75,28 @@ def compare_metrics(
 
 
 @router.get("/quality", response_model=List[Dict[str, Any]])
-def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
+def quality_analysis(
+    limit: int = 10, 
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    session: Session = Depends(get_session)
+):
     """
     Analyze Quality/Rejects by Part Number.
     Returns Total Good, Total Rejects, Reject Rate %.
     """
-    metrics = session.exec(select(Oeemetric)).all()
+    stmt = select(Oeemetric)
+    if start_date:
+        stmt = stmt.where(Oeemetric.date >= start_date)
+    if end_date:
+        stmt = stmt.where(Oeemetric.date <= end_date)
+        
+    metrics = session.exec(stmt).all()
     
     part_stats = {}
     
     for m in metrics:
         part = m.part_number or "Unknown"
-        
-        # Parse diagnostics for raw counts (since Oeemetric only has percentages usually)
-        # But wait, we added detailed stats to diagnostics_json in previous steps.
-        # And usually Oeemetric objects don't have raw counts columns directly unless we added them?
-        # Actually we didn't add columns to Oeemetric, just the JSON.
-        # So we must parse the JSON.
         
         run_good = 0
         run_reject = 0
@@ -119,15 +117,6 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
         part_stats[part]["reject"] += run_reject
         
     results = []
-    # DEBUG PROBE
-    total_rows = len(metrics)
-    if total_rows == 0 or not part_stats:
-         results.append({
-            "part_number": f"DEBUG: Row Count {total_rows}",
-            "total_produced": 100,
-            "total_rejects": 5,
-            "reject_rate": 5.0
-         })
          
     for part, stats in part_stats.items():
         total = stats["good"] + stats["reject"]
@@ -141,6 +130,57 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
         })
         
     return sorted(results, key=lambda x: x["total_rejects"], reverse=True)[:limit]
+
+
+@router.get("/downtime", response_model=List[Dict[str, Any]])
+def downtime_analysis(
+    limit: int = 10,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    session: Session = Depends(get_session)
+):
+    """
+    Analyze Downtime by Machine.
+    Returns Total Downtime Minutes.
+    """
+    stmt = select(Oeemetric)
+    if start_date:
+        stmt = stmt.where(Oeemetric.date >= start_date)
+    if end_date:
+        stmt = stmt.where(Oeemetric.date <= end_date)
+        
+    metrics = session.exec(stmt).all()
+    
+    machine_stats = {}
+    
+    for m in metrics:
+        machine = m.machine or "Unknown"
+        
+        downtime = 0
+        
+        if m.diagnostics_json:
+            try:
+                import json
+                diag = json.loads(m.diagnostics_json)
+                downtime = diag.get("downtime_min", 0)
+            except:
+                pass
+                
+        if machine not in machine_stats:
+            machine_stats[machine] = {"downtime": 0, "count": 0}
+            
+        machine_stats[machine]["downtime"] += downtime
+        machine_stats[machine]["count"] += 1
+        
+    results = []
+    for machine, stats in machine_stats.items():
+        results.append({
+            "machine": machine,
+            "total_downtime": round(stats["downtime"], 1),
+            "event_count": stats["count"]
+        })
+        
+    return sorted(results, key=lambda x: x["total_downtime"], reverse=True)[:limit]
         
 @router.get("/debug", response_model=Dict[str, Any])
 def debug_analytics(session: Session = Depends(get_session)):

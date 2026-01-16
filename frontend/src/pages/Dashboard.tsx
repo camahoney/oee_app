@@ -94,12 +94,12 @@ const Dashboard: React.FC = () => {
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '28px', lineHeight: '1.2' }}>
-                            {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
+                            {reportId ? `Report Details (ID: ${reportId})` : 'Latest Production Report'}
                         </Title>
-                        {stats && <Tag color="blue">{stats.db_row_count || 0} Records</Tag>}
+                        {stats && <Tag color="blue">{stats.report_date || 'No Date'} | {stats.db_row_count || 0} Records</Tag>}
                     </div>
                     <Text type="secondary" style={{ fontSize: '16px' }}>
-                        {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
+                        {reportId ? 'Historical Analysis View' : (stats?.report_date ? `Showing data from upload on ${stats.report_date}` : 'Most recent production data')}
                         {reportId && <span className="print-only" style={{ marginLeft: 16 }}>Generated at {new Date().toLocaleString()}</span>}
                     </Text>
                 </div>
@@ -262,7 +262,7 @@ const Dashboard: React.FC = () => {
                                                 <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
                                                     <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Run/Down</Text>
                                                     <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
-                                                        {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{item.downtime_min || 0}m</span>
+                                                        {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
                                                     </div>
                                                 </div>
                                                 <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
@@ -336,7 +336,7 @@ const Dashboard: React.FC = () => {
                                                     <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
                                                         <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Run / Down</Text>
                                                         <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
-                                                            {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{item.downtime_min || 0}m</span>
+                                                            {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
                                                         </div>
                                                     </div>
 

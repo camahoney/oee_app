@@ -254,11 +254,35 @@ def get_metrics(report_id: int, session: Session = Depends(get_session)):
 
 @router.get("/stats", response_model=Dict[str, Any])
 def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
-    """Aggregate metrics for the dashboard. Optional: filter by report_id."""
+    """Aggregate metrics for the dashboard. Default: Latest Report."""
     stmt = select(Oeemetric)
+    
+    current_report_date = None
+    
     if report_id:
         stmt = stmt.where(Oeemetric.report_id == report_id)
-        
+        # Fetch report date for context if needed
+        report = session.get(ProductionReport, report_id)
+        if report and report.uploaded_at:
+             current_report_date = report.uploaded_at.strftime("%Y-%m-%d")
+    else:
+        # Default to Latest Report
+        latest_report = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc()).limit(1)).first()
+        if latest_report:
+            stmt = stmt.where(Oeemetric.report_id == latest_report.id)
+            if latest_report.uploaded_at:
+                 current_report_date = latest_report.uploaded_at.strftime("%Y-%m-%d")
+        else:
+            # No reports exists
+            return {
+                "oee": 0,
+                "availability": 0,
+                "performance": 0,
+                "quality": 0,
+                "recent_activity": [],
+                "db_row_count": 0
+            }
+
     metrics = session.exec(stmt).all()
     if not metrics:
         return {
@@ -312,5 +336,6 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         "performance": round(avg_perf * 100, 1),
         "quality": round(avg_qual * 100, 1),
         "recent_activity": recent,
-        "db_row_count": count
+        "db_row_count": count,
+        "report_date": current_report_date
     }

@@ -99,15 +99,33 @@ export const settingsService = {
 };
 
 export const analyticsService = {
-    getComparison: async (groupBy: string = 'shift') => {
+    getComparison: async (groupBy: string = 'shift', startDate?: string, endDate?: string) => {
         const response = await axios.get(`${API_URL}/analytics/compare`, {
-            params: { group_by: groupBy }
+            params: {
+                group_by: groupBy,
+                start_date: startDate,
+                end_date: endDate
+            }
         });
         return response.data;
     },
-    getQualityAnalysis: async (limit: number = 10) => {
+    getQualityAnalysis: async (limit: number = 10, startDate?: string, endDate?: string) => {
         const response = await axios.get(`${API_URL}/analytics/quality`, {
-            params: { limit }
+            params: {
+                limit,
+                start_date: startDate,
+                end_date: endDate
+            }
+        });
+        return response.data;
+    },
+    getDowntimeAnalysis: async (limit: number = 10, startDate?: string, endDate?: string) => {
+        const response = await axios.get(`${API_URL}/analytics/downtime`, {
+            params: {
+                limit,
+                start_date: startDate,
+                end_date: endDate
+            }
         });
         return response.data;
     }
