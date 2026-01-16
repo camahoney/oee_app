@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip } from 'antd';
-import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu } from 'antd';
+import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -34,6 +34,47 @@ const Dashboard: React.FC = () => {
     const handlePrint = () => {
         window.print();
     };
+
+    const handleExport = async (format: 'csv' | 'xlsx') => {
+        if (!reportId) return;
+        try {
+            message.loading({ content: `Exporting ${format.toUpperCase()}...`, key: 'exportMsg' });
+            const blob = await reportService.exportReport(Number(reportId), format);
+
+            // Create download link
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `report_${reportId}_export.${format}`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+
+            message.success({ content: 'Export successful!', key: 'exportMsg' });
+        } catch (error) {
+            console.error("Export failed:", error);
+            message.error({ content: 'Failed to export report.', key: 'exportMsg' });
+        }
+    };
+
+    const exportMenu = (
+        <Menu
+            items={[
+                {
+                    key: 'csv',
+                    label: 'Export as CSV',
+                    icon: <FileTextOutlined />,
+                    onClick: () => handleExport('csv')
+                },
+                {
+                    key: 'xlsx',
+                    label: 'Export as Excel',
+                    icon: <FileExcelOutlined />,
+                    onClick: () => handleExport('xlsx')
+                }
+            ]}
+        />
+    );
 
     if (loading) {
         return <div style={{ textAlign: 'center', marginTop: 50 }}><Spin size="large" /></div>;
@@ -75,6 +116,13 @@ const Dashboard: React.FC = () => {
                             onClick={() => setViewMode('grid')}
                         />
                     </div>
+                    {reportId && (
+                        <Dropdown overlay={exportMenu} placement="bottomRight" className="no-print">
+                            <Button icon={<DownloadOutlined />}>
+                                Export <DownOutlined />
+                            </Button>
+                        </Dropdown>
+                    )}
                     <Button
                         icon={<PrinterOutlined />}
                         onClick={handlePrint}

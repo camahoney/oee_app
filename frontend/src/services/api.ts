@@ -44,9 +44,17 @@ export const reportService = {
         const response = await api.get(`/metrics/report/${reportId}`);
         return response.data;
     },
-    getDashboardStats: async (reportId?: number) => {
-        const url = reportId ? `/metrics/stats?report_id=${reportId}` : '/metrics/stats';
+    async getDashboardStats(reportId?: number) {
+        const url = reportId ? `/reports/${reportId}/metrics` : '/dashboard/stats';
         const response = await api.get(url);
+        return response.data;
+    },
+
+    async exportReport(reportId: number, format: 'csv' | 'xlsx') {
+        const response = await api.get(`/reports/${reportId}/export`, {
+            params: { format },
+            responseType: 'blob'
+        });
         return response.data;
     },
     getReports: async () => {

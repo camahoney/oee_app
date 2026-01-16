@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Form, BackgroundTasks
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session, select
 from typing import List, Dict, Any, Optional
 import pandas as pd
 import io
 from datetime import datetime, date
 from pydantic import BaseModel
+
 
 from ..db import ProductionReport, ReportEntry, Oeemetric
 from ..database import get_session
@@ -329,3 +331,64 @@ def delete_report(report_id: int, session: Session = Depends(get_session)):
          raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
     
     return None
+
+@router.get("/{report_id}/export")
+def export_report(
+    report_id: int,
+    format: str = "csv",
+    session: Session = Depends(get_session)
+):
+    """
+    Export report data and metrics to CSV or XLSX.
+    """
+    # 1. Fetch Report Entries + Metrics
+    results = session.exec(
+        select(ReportEntry, Oeemetric)
+        .outerjoin(Oeemetric, (Oeemetric.report_id == ReportEntry.report_id) & 
+                              (Oeemetric.part_number == ReportEntry.part_number) & 
+                              (Oeemetric.machine == ReportEntry.machine) &
+                              (Oeemetric.shift == ReportEntry.shift))
+        .where(ReportEntry.report_id == report_id)
+    ).all()
+    
+    if not results:
+        raise HTTPException(status_code=404, detail="Report not found or empty")
+
+    # 2. Flatten Data for Export
+    data_rows = []
+    for entry, metric in results:
+        row = entry.dict()
+        if metric:
+            row.update({
+                "oee": metric.oee,
+                "availability": metric.availability,
+                "performance": metric.performance,
+                "quality": metric.quality,
+                "target_count": metric.target_count,
+                 # "diagnostics": metric.diagnostics_json # Optional: exclude or parse
+            })
+        data_rows.append(row)
+
+    df = pd.DataFrame(data_rows)
+    
+    # 3. Export
+    stream = io.BytesIO()
+    filename = f"report_{report_id}_export.{format}"
+    media_type = ""
+
+    if format == "csv":
+        df.to_csv(stream, index=False)
+        media_type = "text/csv"
+    elif format == "xlsx":
+        df.to_excel(stream, index=False, engine='openpyxl')
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'csv' or 'xlsx'")
+        
+    stream.seek(0)
+    
+    return StreamingResponse(
+        stream, 
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
