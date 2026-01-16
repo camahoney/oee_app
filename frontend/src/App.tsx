@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, ConfigProvider } from 'antd';
 import {
     DashboardOutlined,
     UploadOutlined,
@@ -17,35 +17,58 @@ import SettingsPage from './pages/Settings';
 
 const { Header, Content, Sider } = Layout;
 
+// Vibracoustic Brand Colors
+const BRAND_BLUE = '#003366';
+
 const App: React.FC = () => {
     return (
-        <Router>
-            <Layout style={{ minHeight: '100vh' }}>
-                <Sider collapsible>
-                    <div style={{ height: 32, margin: 16, background: 'rgba(255,255,255,0.2)' }} />
-                    <Menu theme="dark" mode="inline" defaultSelectedKeys={["dashboard"]}>
-                        <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
-                        <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>
-                        <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>
-                        <Menu.Item key="reports" icon={<FileTextOutlined />}> <a href="/reports">Reports</a> </Menu.Item>
-                        <Menu.Item key="settings" icon={<SettingOutlined />}> <a href="/settings">Settings</a> </Menu.Item>
-                    </Menu>
-                </Sider>
-                <Layout>
-                    <Header style={{ background: '#fff', padding: 0 }} />
-                    <Content style={{ margin: '16px' }}>
-                        <Routes>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/upload" element={<Upload />} />
-                            <Route path="/rates" element={<Rates />} />
-                            <Route path="/reports" element={<Reports />} />
-                            <Route path="/settings" element={<SettingsPage />} />
-                        </Routes>
-                    </Content>
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary: BRAND_BLUE,
+                    fontFamily: 'Roboto, sans-serif',
+                },
+            }}
+        >
+            <Router>
+                <Layout style={{ minHeight: '100vh' }}>
+                    <Sider collapsible theme="light" width={250} style={{ boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)' }}>
+                        <div style={{ padding: '24px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '16px' }}>
+                            <img
+                                src="/logo.png"
+                                alt="Vibracoustic"
+                                style={{ width: '90%', height: 'auto', objectFit: 'contain' }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                        </div>
+                        <Menu
+                            theme="light"
+                            mode="inline"
+                            defaultSelectedKeys={["dashboard"]}
+                            style={{ borderRight: 0 }}
+                        >
+                            <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
+                            <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>
+                            <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>
+                            <Menu.Item key="reports" icon={<FileTextOutlined />}> <a href="/reports">Reports</a> </Menu.Item>
+                            <Menu.Item key="settings" icon={<SettingOutlined />}> <a href="/settings">Settings</a> </Menu.Item>
+                        </Menu>
+                    </Sider>
+                    <Layout>
+                        <Content style={{ margin: '24px', minHeight: 280 }}>
+                            <Routes>
+                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/upload" element={<Upload />} />
+                                <Route path="/rates" element={<Rates />} />
+                                <Route path="/reports" element={<Reports />} />
+                                <Route path="/settings" element={<SettingsPage />} />
+                            </Routes>
+                        </Content>
+                    </Layout>
                 </Layout>
-            </Layout>
-        </Router>
+            </Router>
+        </ConfigProvider>
     );
 };
 
