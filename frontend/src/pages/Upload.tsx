@@ -46,8 +46,9 @@ const Upload: React.FC = () => {
                 message.success({ content: 'Calculation complete!', key: 'calc' });
                 navigate('/dashboard');
             }
-        } catch (err) {
-            message.error({ content: 'Calculation failed', key: 'calc' });
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.detail || 'Calculation failed';
+            message.error({ content: errorMsg, key: 'calc', duration: 10 });
         }
     };
 
