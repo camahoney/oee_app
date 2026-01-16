@@ -36,41 +36,47 @@ def compare_metrics(
     # but let's try direct SQL first for efficiency. Or simpler: Fetch all and aggregate in Pandas-style python list.
     # Given dataset size is small-ish, Python aggregation is safe and flexible.
     
-    metrics = session.exec(select(Oeemetric)).all()
-    
-    grouped_data = {}
-    
-    for m in metrics:
-        key = getattr(m, group_by == "part" and "part_number" or group_by) or "Unknown"
-        if key not in grouped_data:
-            grouped_data[key] = {
+    met_list = session.exec(select(Oeemetric)).all()
+    try:
+        grouped_data = {}
+        for m in met_list:
+            # Safe attribute access
+            metric_val = getattr(m, group_by == "part" and "part_number" or group_by)
+            key = metric_val if metric_val else "Unknown"
+            
+            if key not in grouped_data:
+                grouped_data[key] = {
+                    "name": key,
+                    "oee_sum": 0.0,
+                    "avail_sum": 0.0,
+                    "perf_sum": 0.0,
+                    "qual_sum": 0.0,
+                    "count": 0
+                }
+            
+            grouped_data[key]["oee_sum"] += (m.oee or 0)
+            grouped_data[key]["avail_sum"] += (m.availability or 0)
+            grouped_data[key]["perf_sum"] += (m.performance or 0)
+            grouped_data[key]["qual_sum"] += (m.quality or 0)
+            grouped_data[key]["count"] += 1
+            
+        results = []
+        for key, data in grouped_data.items():
+            count = data["count"]
+            results.append({
                 "name": key,
-                "oee_sum": 0.0,
-                "avail_sum": 0.0,
-                "perf_sum": 0.0,
-                "qual_sum": 0.0,
-                "count": 0
-            }
-        
-        grouped_data[key]["oee_sum"] += (m.oee or 0)
-        grouped_data[key]["avail_sum"] += (m.availability or 0)
-        grouped_data[key]["perf_sum"] += (m.performance or 0)
-        grouped_data[key]["qual_sum"] += (m.quality or 0)
-        grouped_data[key]["count"] += 1
-        
-    results = []
-    for key, data in grouped_data.items():
-        count = data["count"]
-        results.append({
-            "name": key,
-            "oee": round(data["oee_sum"] / count, 4),
-            "availability": round(data["avail_sum"] / count, 4),
-            "performance": round(data["perf_sum"] / count, 4),
-            "quality": round(data["qual_sum"] / count, 4),
-            "sample_size": count
-        })
-        
-    return sorted(results, key=lambda x: x["oee"], reverse=True)[:limit]
+                "oee": round(data["oee_sum"] / count, 4),
+                "availability": round(data["avail_sum"] / count, 4),
+                "performance": round(data["perf_sum"] / count, 4),
+                "quality": round(data["qual_sum"] / count, 4),
+                "sample_size": count
+            })
+            
+        return sorted(results, key=lambda x: x["oee"], reverse=True)[:limit]
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Analytics Error: {str(e)}")
 
 
 @router.get("/quality", response_model=List[Dict[str, Any]])
