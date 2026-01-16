@@ -55,6 +55,14 @@ export const reportService = {
     },
     deleteReport: async (reportId: number) => {
         await axios.delete(`${API_URL}/reports/${reportId}`);
+    },
+    getReportEntries: async (reportId: number) => {
+        const response = await api.get(`/reports/${reportId}/entries`);
+        return response.data;
+    },
+    updateReportEntry: async (entryId: number, data: any) => {
+        const response = await api.put(`/reports/entries/${entryId}`, data);
+        return response.data;
     }
 };
 

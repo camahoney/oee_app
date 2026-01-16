@@ -1,14 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from sqlmodel import Session, select
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import pandas as pd
 import io
 from datetime import datetime, date
+from pydantic import BaseModel
 
 from ..db import ProductionReport, ReportEntry, Oeemetric
 from ..database import get_session
 
 router = APIRouter()
+
+# Schema for updating a report entry
+class ReportEntryUpdate(BaseModel):
+    operator: Optional[str] = None
+    machine: Optional[str] = None
+    part_number: Optional[str] = None
+    job: Optional[str] = None
+    shift: Optional[str] = None
+    good_count: Optional[int] = None
+    reject_count: Optional[int] = None
+    run_time_min: Optional[float] = None
+    downtime_min: Optional[float] = None
 
 # Helper to parse dates safely
 def parse_date(value) -> date:
@@ -244,9 +257,10 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                 
         session.bulk_save_objects(entries)
         session.commit()
-        # Return a simple preview of first few rows
+        # Return a simple preview of first few rows (DEPRECATED for frontend display, but kept for legacy compat)
+        # Frontend should now use GET /reports/{id}/entries
         preview = df.head().to_dict(orient="records")
-        return {"report_id": report.id, "preview": preview, "message": "Report uploaded and stored."}
+        return {"report_id": report.id, "preview": preview, "message": "Report uploaded. Review entries before calculation."}
         
     except HTTPException as he:
         raise he
@@ -256,6 +270,37 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
     return report
+
+@router.get("/{report_id}/entries", response_model=List[ReportEntry])
+def get_report_entries(report_id: int, session: Session = Depends(get_session)):
+    """Fetch all entries for a report to allow editing/review."""
+    entries = session.exec(select(ReportEntry).where(ReportEntry.report_id == report_id)).all()
+    return entries
+
+@router.put("/entries/{entry_id}", response_model=ReportEntry)
+def update_report_entry(entry_id: int, update_data: ReportEntryUpdate, session: Session = Depends(get_session)):
+    """Update a specific report entry."""
+    entry = session.get(ReportEntry, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+        
+    # Update fields if provided
+    update_dict = update_data.dict(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(entry, key, value)
+        
+    # Re-calculate basics if counts changed
+    if "good_count" in update_dict or "reject_count" in update_dict:
+        entry.total_count = (entry.good_count or 0) + (entry.reject_count or 0)
+        
+    # Re-calculate planned time if run/down changed
+    if "run_time_min" in update_dict or "downtime_min" in update_dict:
+        entry.planned_production_time_min = (entry.run_time_min or 0) + (entry.downtime_min or 0)
+        
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return entry
 
 @router.get("/", response_model=List[ProductionReport])
 def list_reports(session: Session = Depends(get_session)):
@@ -271,13 +316,8 @@ def delete_report(report_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Report not found")
         
     # Cascade delete is handled by database usually, but explicit here for safety if not set up
-    # Delete metrics
     session.exec(select(Oeemetric).where(Oeemetric.report_id == report_id)).all()
-    # Actually, bulk delete via statement is better
-    # But SQLModel doesn't support bulk delete easily on some versions without session.exec
-    
-    # Simple approach: delete report object, let FK cascade if enabled or manual delete
-    # Manually deleting robustly:
+
     try:
         from sqlmodel import delete
         session.exec(delete(Oeemetric).where(Oeemetric.report_id == report_id))
