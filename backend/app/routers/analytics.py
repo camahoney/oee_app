@@ -6,7 +6,7 @@ from datetime import datetime
 from ..db import Oeemetric
 from ..database import get_session
 
-router = APIRouter(prefix="/analytics", tags=["analytics"])
+router = APIRouter(tags=["analytics"])
 
 @router.get("/compare", response_model=List[Dict[str, Any]])
 def compare_metrics(
