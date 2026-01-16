@@ -181,9 +181,9 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         perf_raw = (ideal_cycle * data["total_count"]) / run_sec if run_sec > 0 else 0
         
         if perf_raw > 1.2:
-             diagnostics["insight"] = "High Output: Check for delayed clock-in?"
+             diagnostics["insight"] = "High Output: Verify Standard Rate vs. Operator Speed"
         elif perf_raw < 0.5:
-             diagnostics["insight"] = "Low Output: Rate adjustment needed?"
+             diagnostics["insight"] = "Low Output: Verify Standard Rate vs. Operator Speed"
         
         # Add detailed stats to diagnostics for dashboard display
         diagnostics["run_time_min"] = data["run_time_min"]

@@ -34,89 +34,144 @@ const Dashboard: React.FC = () => {
     }
 
     return (
-        <div>
-            <Title level={2}><DashboardOutlined /> Dashboard</Title>
+        <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+            <div style={{ marginBottom: '32px' }}>
+                <Title level={2} style={{ marginBottom: 0 }}>
+                    <DashboardOutlined style={{ marginRight: 12, color: '#1890ff' }} />
+                    Production Dashboard
+                </Title>
+                <Text type="secondary" style={{ fontSize: '16px' }}>Real-time OEE Analytics & Insights</Text>
+            </div>
 
-            <Row gutter={[16, 16]}>
+            <Row gutter={[24, 24]}>
                 <Col span={6}>
-                    <Card bordered={false}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <Statistic
-                            title="OEE"
+                            title={<Text type="secondary">OEE Score</Text>}
                             value={stats.oee}
                             precision={1}
                             suffix="%"
-                            valueStyle={{ color: stats.oee >= 85 ? '#3f8600' : '#cf1322' }}
+                            valueStyle={{ color: stats.oee >= 85 ? '#52c41a' : '#f5222d', fontWeight: 'bold' }}
+                            prefix={<span style={{ fontSize: '24px', marginRight: '8px' }}>🚀</span>}
                         />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card bordered={false}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <Statistic
-                            title="Availability"
+                            title={<Text type="secondary">Availability</Text>}
                             value={stats.availability}
                             precision={1}
                             suffix="%"
-                            prefix={<FieldTimeOutlined />}
+                            prefix={<FieldTimeOutlined style={{ color: '#1890ff' }} />}
+                            valueStyle={{ fontWeight: 'bold' }}
                         />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card bordered={false}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <Statistic
-                            title="Performance"
+                            title={<Text type="secondary">Performance</Text>}
                             value={stats.performance}
                             precision={1}
                             suffix="%"
-                            prefix={<ThunderboltOutlined />}
+                            prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
+                            valueStyle={{ fontWeight: 'bold' }}
                         />
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card bordered={false}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         <Statistic
-                            title="Quality"
+                            title={<Text type="secondary">Quality</Text>}
                             value={stats.quality}
                             precision={1}
                             suffix="%"
-                            prefix={<SafetyCertificateOutlined />}
+                            prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
+                            valueStyle={{ fontWeight: 'bold' }}
                         />
                     </Card>
                 </Col>
             </Row>
 
-            <div style={{ marginTop: 24 }}>
-                <Title level={4}>Recent Activity</Title>
-                <List
-                    bordered
-                    dataSource={stats.recent_activity || []}
-                    renderItem={(item: any) => (
-                        <List.Item>
-                            <List.Item.Meta
-                                title={<Text strong>Operator: {item.operator || 'Unknown'}</Text>}
-                                description={
-                                    <div>
-                                        <div>Part: {item.part_number || 'N/A'} | Machine: {item.machine || 'Unknown'} | Date: {item.date}</div>
-                                        <div style={{ marginTop: 4, fontSize: '12px', color: '#666' }}>
-                                            ⏱️ Run: {((item.run_time_min || 0) / 60).toFixed(1)} hrs |
-                                            🛑 Down: {item.downtime_min || 0} min |
-                                            ✅ Good: {item.good_count || 0} |
-                                            ❌ Reject: {item.reject_count || 0}
+            <div style={{ marginTop: 32 }}>
+                <Card
+                    title={<Title level={4} style={{ margin: 0 }}>Recent Activity Log</Title>}
+                    bordered={false}
+                    style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                >
+                    <List
+                        itemLayout="vertical"
+                        size="large"
+                        pagination={{
+                            pageSize: 10,
+                        }}
+                        dataSource={stats.recent_activity || []}
+                        renderItem={(item: any) => (
+                            <List.Item
+                                key={item.id}
+                                style={{ padding: '20px 0', borderBottom: '1px solid #f0f0f0' }}
+                                extra={
+                                    <div style={{ textAlign: 'right', minWidth: '150px' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                                            {(item.oee * 100).toFixed(1)}%
                                         </div>
+                                        <Text type="secondary">OEE Score</Text>
                                     </div>
                                 }
-                            />
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                {item.warning && <Tag color="warning">Missing Rate</Tag>}
-                                {item.insight && (
-                                    <Tag color={item.insight.includes("High") ? "red" : "orange"}>
-                                        {item.insight}
-                                    </Tag>
-                                )}
-                                <Tag color="blue">OEE: {(item.oee * 100).toFixed(1)}%</Tag>
-                            </div>
-                        </List.Item>
-                    )}
-                />
+                            >
+                                <List.Item.Meta
+                                    title={
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '18px', fontWeight: '600' }}>{item.operator || 'Unknown Operator'}</span>
+                                            {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
+                                            {item.insight && (
+                                                <Tag color={item.insight.includes("High") ? "red" : "orange"} style={{ borderRadius: '4px', fontWeight: '500' }}>
+                                                    {item.insight}
+                                                </Tag>
+                                            )}
+                                        </div>
+                                    }
+                                    description={
+                                        <div>
+                                            <div style={{ fontSize: '14px', marginBottom: '12px', color: '#595959' }}>
+                                                <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date}
+                                            </div>
+
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                                gap: '12px',
+                                                background: '#fafafa',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #f0f0f0',
+                                                maxWidth: '600px'
+                                            }}>
+                                                <div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>⏱️ Run Time</Text>
+                                                    <div style={{ fontWeight: '600' }}>{((item.run_time_min || 0) / 60).toFixed(1)} hrs</div>
+                                                </div>
+                                                <div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>🛑 Downtime</Text>
+                                                    <div style={{ fontWeight: '600' }}>{item.downtime_min || 0} min</div>
+                                                </div>
+                                                <div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>✅ Good Pts</Text>
+                                                    <div style={{ fontWeight: '600', color: '#52c41a' }}>{item.good_count || 0}</div>
+                                                </div>
+                                                <div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>❌ Rejects</Text>
+                                                    <div style={{ fontWeight: '600', color: '#ff4d4f' }}>{item.reject_count || 0}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </Card>
             </div>
         </div>
     );
