@@ -12,12 +12,11 @@ router = APIRouter()
 
 # Helper to parse dates safely
 def parse_date(value) -> date:
-    if isinstance(value, datetime):
-        return value.date()
-    if isinstance(value, date):
-        return value
     try:
-        return datetime.strptime(str(value), "%Y-%m-%d").date()
+        if isinstance(value, (datetime, date)):
+            return value if isinstance(value, date) else value.date()
+        # Use pandas for robust parsing (handles "2026-01-05 00:00:00", etc)
+        return pd.to_datetime(value).date()
     except Exception:
         raise HTTPException(status_code=400, detail=f"Invalid date format: {value}")
 
