@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
                         <List.Item>
                             <List.Item.Meta
                                 title={<Text strong>Operator: {item.operator || 'Unknown'}</Text>}
-                                description={`Machine: ${item.machine || 'Unknown'} | Date: ${item.date}`}
+                                description={`Part: ${item.part_number || 'N/A'} | Machine: ${item.machine || 'Unknown'} | Date: ${item.date}`}
                             />
                             <Tag color="blue">OEE: {(item.oee * 100).toFixed(1)}%</Tag>
                         </List.Item>

@@ -73,12 +73,42 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     
     for entry in entries:
         # Find applicable rate
-        # Strict match by Part Number only (Machine/Press allocation varies)
+        # Strategy: Fetch all active rates for this Part Number, then find the best fit.
         stmt = select(RateEntry).where(
             (RateEntry.part_number == entry.part_number),
             (RateEntry.active == True),
         )
-        rate = session.exec(stmt).first()
+        candidates = session.exec(stmt).all()
+        
+        rate = None
+        if not candidates:
+            # No rates for this part
+            pass
+        elif len(candidates) == 1:
+            rate = candidates[0]
+        else:
+            # Multiple rates (e.g. Molding vs Assembly). Try to match Machine.
+            report_machine_norm = (entry.machine or "").strip().lower()
+            
+            # 1. Try Exact Case-Insensitive Match
+            for c in candidates:
+                if (c.machine or "").strip().lower() == report_machine_norm:
+                    rate = c
+                    break
+            
+            # 2. Try "Type" Match (Assembly vs Molding)
+            if not rate:
+                is_assy = "asy" in report_machine_norm or "assembly" in report_machine_norm
+                for c in candidates:
+                    c_machine_norm = (c.machine or "").strip().lower()
+                    c_is_assy = "asy" in c_machine_norm or "assembly" in c_machine_norm
+                    if is_assy == c_is_assy:
+                        rate = c
+                        break
+            
+            # 3. Fallback: First one
+            if not rate:
+                rate = candidates[0]
         
         missing_rate_warning = None
         if not rate:
@@ -95,6 +125,8 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         diagnostics = {}
         if missing_rate_warning:
             diagnostics["warning"] = missing_rate_warning
+        else:
+            diagnostics["matched_rate_machine"] = rate.machine
             
         import json
         metric = Oeemetric(
@@ -113,7 +145,7 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             diagnostics_json=json.dumps(diagnostics),
         )
         metrics_to_save.append(metric)
-        
+
     session.bulk_save_objects(metrics_to_save)
     session.commit()
     
@@ -160,6 +192,7 @@ def get_dashboard_stats(session: Session = Depends(get_session)):
             "id": m.id,
             "operator": m.operator,
             "machine": m.machine,
+            "part_number": m.part_number, # Added this field
             "date": m.date,
             "oee": m.oee
         }
