@@ -43,39 +43,28 @@ const Dashboard: React.FC = () => {
     // const BRAND_GREY_BLUE = '#8FAABB';
 
     return (
-        <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-            <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '24px', width: '100%' }}>
-                    <img
-                        src="/logo.png"
-                        alt="Vibracoustic Logo"
-                        style={{ height: '70px', objectFit: 'contain' }}
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                    />
-                    <div style={{ flex: 1 }}></div>
-                    {reportId && (
-                        <Button
-                            type="primary"
-                            ghost
-                            icon={<ArrowLeftOutlined />}
-                            onClick={() => navigate('/reports')}
-                            size="large"
-                            style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
-                        >
-                            Back to Reports
-                        </Button>
-                    )}
-                </div>
-                <div style={{ marginTop: '16px' }}>
-                    <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '32px' }}>
+        <div style={{ padding: '16px 24px', background: '#f0f2f5', minHeight: '100vh' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '28px', lineHeight: '1.2' }}>
                         {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
                     </Title>
-                    <Text type="secondary" style={{ fontSize: '18px' }}>
+                    <Text type="secondary" style={{ fontSize: '16px' }}>
                         {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
                     </Text>
                 </div>
+                {reportId && (
+                    <Button
+                        type="primary"
+                        ghost
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate('/reports')}
+                        size="middle"
+                        style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                    >
+                        Back
+                    </Button>
+                )}
             </div>
 
             <Row gutter={[24, 24]}>

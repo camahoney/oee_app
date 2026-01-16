@@ -33,11 +33,24 @@ const App: React.FC = () => {
             <Router>
                 <Layout style={{ minHeight: '100vh' }}>
                     <Sider collapsible theme="light" width={250} style={{ boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)' }}>
-                        <div style={{ padding: '24px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '16px' }}>
+                        <div style={{
+                            height: '120px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: '0px',
+                            overflow: 'hidden',
+                            padding: '20px'
+                        }}>
                             <img
                                 src="/logo.png"
                                 alt="Vibracoustic"
-                                style={{ width: '90%', height: 'auto', objectFit: 'contain' }}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain',
+                                    transform: 'scale(1.3)'  // Slight zoom to maximize visual size/crop whitespace
+                                }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
                         </div>
