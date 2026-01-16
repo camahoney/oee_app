@@ -147,34 +147,29 @@ def debug_analytics(session: Session = Depends(get_session)):
     """Debug Quality Logic trace."""
     metrics = session.exec(select(Oeemetric).limit(50)).all()
     
-    trace = {
-        "total_rows": len(metrics),
-        "sample_json": None,
-        "part_stats": {},
-        "raw_json_errors": []
-    }
+    details = []
     
-    if metrics:
-        trace["sample_json"] = metrics[0].diagnostics_json
-        
     for m in metrics:
-        part = m.part_number or "Unknown"
-        run_good = 0
-        run_reject = 0
-        
+        diag = {}
         if m.diagnostics_json:
             try:
                 import json
                 diag = json.loads(m.diagnostics_json)
-                run_good = diag.get("good_count", 0)
-                run_reject = diag.get("reject_count", 0)
-            except Exception as e:
-                trace["raw_json_errors"].append(str(e))
-                
-        if part not in trace["part_stats"]:
-            trace["part_stats"][part] = {"good": 0, "reject": 0}
-            
-        trace["part_stats"][part]["good"] += run_good
-        trace["part_stats"][part]["reject"] += run_reject
+            except:
+                pass
         
-    return trace
+        details.append({
+            "id": m.id,
+            "part": m.part_number,
+            "machine": m.machine,
+            "oee": m.oee,
+            "availability": m.availability,
+            "performance": m.performance,
+            "quality": m.quality,
+            "run_time_min": diag.get("run_time_min"),
+            "downtime_min": diag.get("downtime_min"),
+            "good": diag.get("good_count"),
+            "reject": diag.get("reject_count")
+        })
+        
+    return {"count": len(metrics), "details": details}
