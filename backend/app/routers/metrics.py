@@ -110,8 +110,7 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=500, detail=f"Aggregation Error: {str(e)}")
         
     # Calculation Phase
-    try:
-        for key, data in aggregated.items():
+    for key, data in aggregated.items():
 
         # Find applicable rate
         # Strategy: Fetch all active rates for this Part Number, then find the best fit.
