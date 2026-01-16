@@ -21,8 +21,9 @@ const Upload: React.FC = () => {
             setReportId(result.report_id);
             setPreviewData(result.preview || []);
             onSuccess(result, file);
-        } catch (err) {
-            message.error('Upload failed');
+        } catch (err: any) {
+            const errorMsg = err.response?.data?.detail || 'Upload failed';
+            message.error(errorMsg);
             onError(err);
         } finally {
             setUploading(false);

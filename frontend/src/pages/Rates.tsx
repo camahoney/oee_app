@@ -41,8 +41,9 @@ const Rates: React.FC = () => {
                 message.success('Rates uploaded successfully');
                 fetchRates(); // Refresh table
                 onSuccess(result, file);
-            } catch (err) {
-                message.error('Upload failed');
+            } catch (err: any) {
+                const errorMsg = err.response?.data?.detail || 'Upload failed';
+                message.error(errorMsg);
                 onError(err);
             }
         },
