@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button } from 'antd';
-import { DashboardOutlined, FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -38,17 +38,31 @@ const Dashboard: React.FC = () => {
         return <div>No data available.</div>;
     }
 
+    // Vibracoustic Branding Colors
+    const BRAND_BLUE = '#003366';
+    // const BRAND_GREY_BLUE = '#8FAABB';
+
     return (
         <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
             <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <Title level={2} style={{ marginBottom: 0 }}>
-                        <DashboardOutlined style={{ marginRight: 12, color: '#1890ff' }} />
-                        {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
-                    </Title>
-                    <Text type="secondary" style={{ fontSize: '16px' }}>
-                        {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
-                    </Text>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img
+                        src="/logo.png"
+                        alt="Vibracoustic Logo"
+                        style={{ height: '50px', marginRight: '20px', objectFit: 'contain' }}
+                        onError={(e) => {
+                            // Fallback if logo fails to load (dev environment quirk safety)
+                            (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                    />
+                    <div>
+                        <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE }}>
+                            {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
+                        </Title>
+                        <Text type="secondary" style={{ fontSize: '16px' }}>
+                            {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
+                        </Text>
+                    </div>
                 </div>
                 {reportId && (
                     <Button
@@ -64,7 +78,7 @@ const Dashboard: React.FC = () => {
 
             <Row gutter={[24, 24]}>
                 <Col span={6}>
-                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <Statistic
                             title={<Text type="secondary">OEE Score</Text>}
                             value={stats.oee}
@@ -76,7 +90,7 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <Statistic
                             title={<Text type="secondary">Availability</Text>}
                             value={stats.availability}
@@ -88,7 +102,7 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <Statistic
                             title={<Text type="secondary">Performance</Text>}
                             value={stats.performance}
@@ -100,7 +114,7 @@ const Dashboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col span={6}>
-                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <Statistic
                             title={<Text type="secondary">Quality</Text>}
                             value={stats.quality}
@@ -115,7 +129,7 @@ const Dashboard: React.FC = () => {
 
             <div style={{ marginTop: 32 }}>
                 <Card
-                    title={<Title level={4} style={{ margin: 0 }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
+                    title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
                     bordered={false}
                     style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                 >
@@ -134,7 +148,7 @@ const Dashboard: React.FC = () => {
                                 style={{ padding: '20px 0', borderBottom: '1px solid #f0f0f0' }}
                                 extra={
                                     <div style={{ textAlign: 'right', minWidth: '150px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: BRAND_BLUE }}>
                                             {(item.oee * 100).toFixed(1)}%
                                         </div>
                                         <Text type="secondary">OEE Score</Text>
@@ -144,7 +158,7 @@ const Dashboard: React.FC = () => {
                                 <List.Item.Meta
                                     title={
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                            <span style={{ fontSize: '18px', fontWeight: '600' }}>{item.operator || 'Unknown Operator'}</span>
+                                            <span style={{ fontSize: '18px', fontWeight: '600', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</span>
                                             {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
                                             {item.insight && (
                                                 <Tag color={item.insight.includes("High") ? "red" : "orange"} style={{ borderRadius: '4px', fontWeight: '500' }}>
@@ -161,13 +175,13 @@ const Dashboard: React.FC = () => {
 
                                             <div style={{
                                                 display: 'grid',
-                                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                                gridTemplateColumns: 'repeat(5, 1fr)',
                                                 gap: '12px',
                                                 background: '#fafafa',
                                                 padding: '12px',
                                                 borderRadius: '8px',
                                                 border: '1px solid #f0f0f0',
-                                                maxWidth: '600px'
+                                                maxWidth: '750px'
                                             }}>
                                                 <div>
                                                     <Text type="secondary" style={{ fontSize: '12px' }}>⏱️ Run Time</Text>
@@ -184,6 +198,12 @@ const Dashboard: React.FC = () => {
                                                 <div>
                                                     <Text type="secondary" style={{ fontSize: '12px' }}>❌ Rejects</Text>
                                                     <div style={{ fontWeight: '600', color: '#ff4d4f' }}>{item.reject_count || 0}</div>
+                                                </div>
+                                                <div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>🎯 Target</Text>
+                                                    <div style={{ fontWeight: '600', color: BRAND_BLUE }}>
+                                                        {item.target_count || '-'}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

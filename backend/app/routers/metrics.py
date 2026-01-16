@@ -180,6 +180,10 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         run_sec = data["run_time_min"] * 60
         perf_raw = (ideal_cycle * data["total_count"]) / run_sec if run_sec > 0 else 0
         
+        # Calculate Target Count based on actual Run Time (net of downtime)
+        target_count = int(run_sec / ideal_cycle) if ideal_cycle > 0 else 0
+        diagnostics["target_count"] = target_count
+        
         if perf_raw > 1.2:
              diagnostics["insight"] = "High Output: Verify Standard Rate vs. Operator Speed"
         elif perf_raw < 0.5:
@@ -275,7 +279,9 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "run_time_min": diag.get("run_time_min"),
             "downtime_min": diag.get("downtime_min"),
             "good_count": diag.get("good_count"),
-            "reject_count": diag.get("reject_count")
+            "good_count": diag.get("good_count"),
+            "reject_count": diag.get("reject_count"),
+            "target_count": diag.get("target_count")
         })
 
     return {
