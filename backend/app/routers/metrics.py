@@ -67,23 +67,37 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     entries = session.exec(select(ReportEntry).where(ReportEntry.report_id == report_id)).all()
     if not entries:
         raise HTTPException(status_code=400, detail="No entries found for this report")
+    skipped_count = 0
     metrics_to_save = []
+    missing_rates_info = set()
+    
     for entry in entries:
-        # Find applicable rate (first match) based on keys and effective date
+        # Find applicable rate
         stmt = select(RateEntry).where(
             (RateEntry.operator == entry.operator) | (RateEntry.operator.is_(None)),
             (RateEntry.machine == entry.machine) | (RateEntry.machine.is_(None)),
             (RateEntry.part_number == entry.part_number) | (RateEntry.part_number.is_(None)),
-            (RateEntry.job == entry.job) | (RateEntry.job.is_(None)),
-            RateEntry.start_date <= entry.date,
-            (RateEntry.end_date.is_(None)) | (RateEntry.end_date >= entry.date),
-            RateEntry.active == True,
+            (RateEntry.active == True),
         )
         rate = session.exec(stmt).first()
+        
+        missing_rate_warning = None
         if not rate:
-            # No matching rate – skip but could flag later
-            continue
+            # Create a dummy rate to allow calculation (result will range 0)
+            rate = RateEntry(ideal_units_per_hour=0, ideal_cycle_time_seconds=0)
+            # Log the specific combination missing
+            identifier = f"{entry.part_number} (Machine: {entry.machine})"
+            missing_rate_warning = f"No Rate found for {identifier}"
+            missing_rates_info.add(identifier)
+            skipped_count += 1
+            
         oee_vals = compute_oee(rate, entry)
+        
+        diagnostics = {}
+        if missing_rate_warning:
+            diagnostics["warning"] = missing_rate_warning
+            
+        import json
         metric = Oeemetric(
             report_id=report_id,
             operator=entry.operator,
@@ -96,13 +110,23 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             performance=oee_vals["performance"],
             quality=oee_vals["quality"],
             oee=oee_vals["oee"],
-            confidence="high" if (entry.planned_production_time_min and entry.run_time_min) else "medium",
-            diagnostics_json="{}",
+            confidence="low" if missing_rate_warning else "high",
+            diagnostics_json=json.dumps(diagnostics),
         )
         metrics_to_save.append(metric)
+        
     session.bulk_save_objects(metrics_to_save)
     session.commit()
-    return {"calculated": len(metrics_to_save), "message": "Metrics calculated and stored."}
+    
+    msg = f"Metrics calculated for {len(metrics_to_save)} rows."
+    if skipped_count > 0:
+        msg += f" Warning: {skipped_count} rows used missing rate data."
+        
+    return {
+        "calculated": len(metrics_to_save), 
+        "message": msg,
+        "missing_rates": sorted(list(missing_rates_info))
+    }
 
 @router.get("/report/{report_id}", response_model=List[Oeemetric])
 def get_metrics(report_id: int, session: Session = Depends(get_session)):
