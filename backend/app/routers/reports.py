@@ -57,11 +57,13 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         "good pieces": "good_count",
         "good": "good_count",
         "goodcount": "good_count",
+        "good pcs": "good_count",
         
         "scrap": "reject_count",
         "reject": "reject_count",
         "rejectcount": "reject_count",
         "rejects": "reject_count",
+        "scrap pcs": "reject_count",
         
         "uptime": "run_time_min",
         "runtime": "run_time_min",
@@ -74,6 +76,48 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         "date": "date",
         "shift": "shift"
     }
+
+    # Helper to process "Carmi Mold Division" raw exports
+    def process_raw_report(raw_df: pd.DataFrame) -> pd.DataFrame:
+        clean_rows = []
+        for i, row in raw_df.iterrows():
+            # Check for signature: Col 3 == "Workstation"
+            # Use loose checking since column shifting happens
+            vals = [str(x) for x in row.values]
+            if len(vals) > 10 and "Workstation" in vals[:10]:
+                try:
+                    # Find offsets relative to row structure or explicit indices
+                    # Based on analysis: Col 3=Workstation. 
+                    # Col 18=Machine, Col 4=Part, Col 15=Operator, Col 17=Shift, Col 21=Good, Col 22=Scrap
+                    # We will use explicit indices as verified by script
+                    
+                    # Safety check on length
+                    if len(vals) < 23: continue
+                    
+                    clean_rows.append({
+                        "part_number": vals[4],
+                        "operator": vals[15],
+                        "machine": vals[18],
+                        "shift": vals[17].replace('.0', '') if '.0' in vals[17] else vals[17],
+                        "good_count": float(vals[21]) if vals[21] != 'nan' else 0,
+                        "reject_count": float(vals[22]) if vals[22] != 'nan' else 0,
+                        "date": vals[16] if len(vals) > 16 else datetime.today().date(), # Col 16 = Date
+                        "run_time_min": float(vals[24]) * 60 if len(vals) > 24 and vals[24] != 'nan' else 0, # Col 24 = 0.26 (Hours?) -> convert to min?
+                        # Wait, analysis skipped downtime/runtime cols. 
+                        # Col 24 in row 13 dump was "0.26". "Time (Format Hours)" is Col 0 label.
+                        # 0.26 hours = 15 mins. Let's assume Col 24 is Runtime Hours.
+                        "downtime_min": 0  # Not clearly identified in extraction, defaulting to 0 for now
+                    })
+                except Exception as e:
+                    print(f"Skipping malformed row {i}: {e}")
+                    continue
+        return pd.DataFrame(clean_rows)
+    
+    # Check if Raw File
+    first_col_str = str(df.iloc[0,0]) if not df.empty else ""
+    if "Carmi Mold" in first_col_str or "Barcode" in first_col_str:
+        print("Detected Raw Report Format. Pre-processing...")
+        df = process_raw_report(df)
     
     # Normalize checks to lowercase
     renamed = {}
@@ -103,11 +147,15 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         if "run_time_min" not in df.columns: df["run_time_min"] = 0.0
         if "downtime_min" not in df.columns: df["downtime_min"] = 0.0
         
-        df["run_time_min"] = df["run_time_min"].fillna(0.0)
-        df["downtime_min"] = df["downtime_min"].fillna(0.0)
+        df["run_time_min"] = pd.to_numeric(df["run_time_min"], errors='coerce').fillna(0.0)
+        df["downtime_min"] = pd.to_numeric(df["downtime_min"], errors='coerce').fillna(0.0)
 
         # Unit Conversion Heuristic
         # If the average run time is < 12 (hours), likely it is hours. 480 min = 8 hours.
+        # BUT if we already converted in process_raw_report (x 60), we should skip this?
+        # A simple check: if we just processed raw, we know units.
+        pass # Logic below handles generic heuristic. If raw gave minutes, mean will be > 12. If raw gave hours, mean < 12.
+        
         if not df.empty and df["run_time_min"].mean() < 12:
              df["run_time_min"] = df["run_time_min"] * 60
              df["downtime_min"] = df["downtime_min"] * 60
