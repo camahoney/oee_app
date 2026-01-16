@@ -166,9 +166,36 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
-@router.get("/{report_id}", response_model=ProductionReport)
-def get_report(report_id: int, session: Session = Depends(get_session)):
+    return report
+
+@router.get("/", response_model=List[ProductionReport])
+def list_reports(session: Session = Depends(get_session)):
+    """List all available production reports."""
+    reports = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc())).all()
+    return reports
+
+@router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_report(report_id: int, session: Session = Depends(get_session)):
+    """Delete a report and all associated entries and metrics."""
     report = session.get(ProductionReport, report_id)
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-    return report
+        
+    # Cascade delete is handled by database usually, but explicit here for safety if not set up
+    # Delete metrics
+    session.exec(select(Oeemetric).where(Oeemetric.report_id == report_id)).all()
+    # Actually, bulk delete via statement is better
+    # But SQLModel doesn't support bulk delete easily on some versions without session.exec
+    
+    # Simple approach: delete report object, let FK cascade if enabled or manual delete
+    # Manually deleting robustly:
+    try:
+        from sqlmodel import delete
+        session.exec(delete(Oeemetric).where(Oeemetric.report_id == report_id))
+        session.exec(delete(ReportEntry).where(ReportEntry.report_id == report_id))
+        session.delete(report)
+        session.commit()
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"Failed to delete: {str(e)}")
+    
+    return None

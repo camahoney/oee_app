@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message } from 'antd';
-import { DashboardOutlined, FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button } from 'antd';
+import { DashboardOutlined, FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const reportId = searchParams.get('reportId');
 
     const fetchStats = async () => {
         try {
-            const data = await reportService.getDashboardStats();
+            setLoading(true);
+            const data = await reportService.getDashboardStats(reportId ? Number(reportId) : undefined);
             setStats(data);
         } catch (error) {
             console.error("Dashboard fetch error:", error);
@@ -23,7 +28,7 @@ const Dashboard: React.FC = () => {
 
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [reportId]);
 
     if (loading) {
         return <div style={{ textAlign: 'center', marginTop: 50 }}><Spin size="large" /></div>;
@@ -35,12 +40,26 @@ const Dashboard: React.FC = () => {
 
     return (
         <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-            <div style={{ marginBottom: '32px' }}>
-                <Title level={2} style={{ marginBottom: 0 }}>
-                    <DashboardOutlined style={{ marginRight: 12, color: '#1890ff' }} />
-                    Production Dashboard
-                </Title>
-                <Text type="secondary" style={{ fontSize: '16px' }}>Real-time OEE Analytics & Insights</Text>
+            <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <Title level={2} style={{ marginBottom: 0 }}>
+                        <DashboardOutlined style={{ marginRight: 12, color: '#1890ff' }} />
+                        {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '16px' }}>
+                        {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
+                    </Text>
+                </div>
+                {reportId && (
+                    <Button
+                        type="default"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate('/reports')}
+                        size="large"
+                    >
+                        Back to Reports
+                    </Button>
+                )}
             </div>
 
             <Row gutter={[24, 24]}>
@@ -96,7 +115,7 @@ const Dashboard: React.FC = () => {
 
             <div style={{ marginTop: 32 }}>
                 <Card
-                    title={<Title level={4} style={{ margin: 0 }}>Recent Activity Log</Title>}
+                    title={<Title level={4} style={{ margin: 0 }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
                     bordered={false}
                     style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
                 >
@@ -104,7 +123,9 @@ const Dashboard: React.FC = () => {
                         itemLayout="vertical"
                         size="large"
                         pagination={{
-                            pageSize: 10,
+                            pageSize: 500, // Show all operators in one page as requested
+                            position: 'bottom',
+                            showSizeChanger: false
                         }}
                         dataSource={stats.recent_activity || []}
                         renderItem={(item: any) => (

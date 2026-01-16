@@ -44,9 +44,17 @@ export const reportService = {
         const response = await api.get(`/metrics/report/${reportId}`);
         return response.data;
     },
-    getDashboardStats: async () => {
-        const response = await api.get('/metrics/stats');
+    getDashboardStats: async (reportId?: number) => {
+        const url = reportId ? `/metrics/stats?report_id=${reportId}` : '/metrics/stats';
+        const response = await api.get(url);
         return response.data;
+    },
+    getReports: async () => {
+        const response = await api.get('/reports/');
+        return response.data;
+    },
+    deleteReport: async (reportId: number) => {
+        await api.delete(`/reports/${reportId}`);
     }
 };
 

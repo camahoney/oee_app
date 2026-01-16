@@ -228,9 +228,13 @@ def get_metrics(report_id: int, session: Session = Depends(get_session)):
     return metrics
 
 @router.get("/stats", response_model=Dict[str, Any])
-def get_dashboard_stats(session: Session = Depends(get_session)):
-    """Aggregate metrics for the dashboard."""
-    metrics = session.exec(select(Oeemetric)).all()
+def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
+    """Aggregate metrics for the dashboard. Optional: filter by report_id."""
+    stmt = select(Oeemetric)
+    if report_id:
+        stmt = stmt.where(Oeemetric.report_id == report_id)
+        
+    metrics = session.exec(stmt).all()
     if not metrics:
         return {
             "oee": 0,
