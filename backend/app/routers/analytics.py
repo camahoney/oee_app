@@ -61,6 +61,18 @@ def compare_metrics(
             grouped_data[key]["count"] += 1
             
         results = []
+        # DEBUG PROBE
+        total_rows = len(met_list)
+        if total_rows == 0 or not grouped_data:
+             results.append({
+                "name": f"DEBUG: Row Count {total_rows}",
+                "oee": 0.5,
+                "availability": 0.5,
+                "performance": 0.5,
+                "quality": 0.5,
+                "sample_size": 100
+             })
+             
         for key, data in grouped_data.items():
             count = data["count"]
             results.append({
