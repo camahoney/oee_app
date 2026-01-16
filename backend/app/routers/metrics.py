@@ -44,7 +44,11 @@ def compute_oee(
     total_count = entry.total_count or 0
     good_count = entry.good_count or 0
     # Performance (ideal_cycle * total_count) / run_time
-    performance = (ideal_cycle * total_count) / run_sec if run_sec > 0 else 0
+    performance_raw = (ideal_cycle * total_count) / run_sec if run_sec > 0 else 0
+    
+    # Cap Performance at 1.1 (110%) to account for minor speedups but filter bad data
+    performance = min(performance_raw, 1.1)
+
     # Quality (good / total)
     quality = good_count / total_count if total_count > 0 else 0
     oee = availability * performance * quality
