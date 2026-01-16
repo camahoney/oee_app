@@ -61,18 +61,8 @@ def compare_metrics(
             grouped_data[key]["count"] += 1
             
         results = []
-        # DEBUG PROBE
-        total_rows = len(met_list)
-        if total_rows == 0 or not grouped_data:
-             results.append({
-                "name": f"DEBUG: Row Count {total_rows}",
-                "oee": 0.5,
-                "availability": 0.5,
-                "performance": 0.5,
-                "quality": 0.5,
-                "sample_size": 100
-             })
-             
+        # DEBUG PROBE REMOVED
+        
         for key, data in grouped_data.items():
             count = data["count"]
             results.append({
@@ -129,7 +119,15 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
         part_stats[part]["reject"] += run_reject
         
     results = []
-    for part, stats in part_stats.items():
+        if total_rows == 0 or not part_stats:
+             results.append({
+                "part_number": f"DEBUG: Row Count {total_rows}",
+                "total_produced": 100,
+                "total_rejects": 5,
+                "reject_rate": 5.0
+             })
+             
+        for part, stats in part_stats.items():
         total = stats["good"] + stats["reject"]
         reject_rate = (stats["reject"] / total) if total > 0 else 0
         
