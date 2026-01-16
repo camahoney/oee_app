@@ -71,6 +71,7 @@ class Oeemetric(SQLModel, table=True):
     operator: Optional[str] = None
     machine: Optional[str] = None
     part_number: Optional[str] = None
+    job: Optional[str] = None
     shift: Optional[str] = None
     date: date
     availability: Optional[float] = None

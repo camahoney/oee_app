@@ -51,7 +51,7 @@ const App: React.FC = () => {
                                     width: '100%',
                                     height: '100%',
                                     objectFit: 'contain',
-                                    transform: 'scale(1.8)' // Dramatically bigger as requested
+                                    transform: 'scale(1.3)'
                                 }}
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
