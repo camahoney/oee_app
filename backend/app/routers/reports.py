@@ -121,7 +121,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         except: continue
                 
                 # If we found enough critical columns (Part, Machine, Good), assume this is header
-                if matches >= 3 and "part" in temp_map:
+                if matches >= 2 and "part" in temp_map:
                     header_map = temp_map
                     header_found = True
                     print(f"Header detected at row {i}: {header_map}")
@@ -170,6 +170,14 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                 # print(f"Skipping row {i}: {e}")
                 continue
                 
+        if not header_found and clean_rows == []:
+             # DEBUG: Return a DF with a special column that triggers an informative error
+             # Or just print to logs. The caller handles the empty DF.
+             # Let's create a single-row DF with "DEBUG_INFO" to pass the snippet back.
+             print("DEBUG: No header found. Snippet of raw data:")
+             for r in raw_df.head(5).values:
+                 print(r)
+                 
         return pd.DataFrame(clean_rows)
     
     # Check if Raw File
@@ -265,7 +273,12 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         missing = required_db_cols - set(df.columns)
         if missing:
              found_cols = df.columns.tolist()
-             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}")
+             # Create debug snippet of what WAS found (up to 3 rows) to help user debug
+             snippet = "No Data Scanned"
+             if not df.empty:
+                 snippet = df.head(3).to_dict(orient="records")
+             
+             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}")
 
         # Store the report metadata
         report = ProductionReport(filename=file.filename, uploaded_at=datetime.utcnow())
