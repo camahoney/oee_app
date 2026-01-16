@@ -79,51 +79,97 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     # Helper to process "Carmi Mold Division" raw exports
     def process_raw_report(raw_df: pd.DataFrame) -> pd.DataFrame:
         clean_rows = []
-        # Find offsets relative to row structure or explicit indices
-        # Based on analysis: Col 3=Workstation. 
-        # Col 18=Machine, Col 4=Part, Col 15=Operator, Col 17=Shift, Col 21=Good, Col 22=Scrap
+        header_map = {}
+        header_found = False
+        
+        # Keywords to identify the header row
+        # User screenshot has: Part #s, Operator, Shift, Position, Uptime, Downtime
+        target_headers = {
+            "part": ["part #", "part_number", "part", "part number", "part #s"],
+            "operator": ["operator", "oper"],
+            "machine": ["workstation", "machine", "position", "mach"],
+            "shift": ["shift"],
+            "good": ["good", "good pieces", "good count", "good_count"],
+            "reject": ["scrap", "reject", "rejects", "reject count", "bad"],
+            "run_time": ["uptime", "run time", "runtime", "run_time_min", "total runtime"],
+            "downtime": ["downtime", "down time", "downtime_min"],
+            "date": ["date", "prod date"]
+        }
         
         for i, row in raw_df.iterrows():
-            # Check for signature: Col 3 == "Workstation"
-            # Use loose checking since column shifting happens
-            vals = [str(x) for x in row.values]
-            if len(vals) > 10 and "Workstation" in vals[:10]:
-                try:
-                     # Safety check on length
-                    if len(vals) < 23: continue
-                    
-                    # We need to find the specific indices. If the file was read with header=None, indices should be stable.
-                    # Workstation at 3. Matches analysis.
-                    
-                    # Find Workstation index to be safe?
-                    try:
-                        ws_idx = vals.index("Workstation")
-                    except ValueError:
-                        continue 
-                        
-                    # If ws_idx is 3, then shifts are standard.
-                    offset = ws_idx - 3
-                    
+            vals = [str(x).strip() for x in row.values]
+            
+            # 1. Attempt to detect header
+            if not header_found:
+                # Count matches against our targets
+                lower_vals = [v.lower() for v in vals]
+                matches = 0
+                temp_map = {}
+                
+                for key, candidates in target_headers.items():
+                    for cand in candidates:
+                        try:
+                            # partial match check? or exact?
+                            # Use exact or "starts with" for safety
+                            # Let's try to find the index of a matching column
+                            for idx, cell_val in enumerate(lower_vals):
+                                if cand in cell_val: # "Part #s" contains "part #"
+                                    temp_map[key] = idx
+                                    matches += 1
+                                    break
+                            if key in temp_map: break
+                        except: continue
+                
+                # If we found enough critical columns (Part, Machine, Good), assume this is header
+                if matches >= 3 and "part" in temp_map:
+                    header_map = temp_map
+                    header_found = True
+                    print(f"Header detected at row {i}: {header_map}")
+                continue
+            
+            # 2. Process Data Rows (only after header is found)
+            # Ensure row has data
+            if len(vals) < 5 or vals[0] == 'nan': continue
+            
+            try:
+                # Helper to safe extraction
+                def get_val(key, default=None):
+                    if key in header_map and header_map[key] < len(vals):
+                        val = vals[header_map[key]]
+                        return val if val.lower() != 'nan' else default
+                    return default
 
-                    raw_shift = str(vals[17 + offset])
-                    shift_val = raw_shift.replace('.0', '').strip()
-                    if shift_val.lower() == 'nan' or not shift_val:
-                        shift_val = "Unknown"
-                        
-                    clean_rows.append({
-                        "part_number": vals[4 + offset],
-                        "operator": vals[15 + offset],
-                        "machine": vals[18 + offset],
-                        "shift": shift_val,
-                        "good_count": float(vals[21 + offset]) if vals[21 + offset] != 'nan' else 0,
-                        "reject_count": float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
-                        "date": vals[16 + offset] if len(vals) > 16 + offset else datetime.today().date(), 
-                        "run_time_min": float(vals[24 + offset]) * 60 if len(vals) > 24 + offset and vals[24 + offset] != 'nan' else 0,
-                        "downtime_min": 0
-                    })
-                except Exception as e:
-                    print(f"Skipping malformed row {i}: {e}")
-                    continue
+                part_val = get_val("part", "Unknown")
+                # Skip totals/summary rows if any
+                if "total" in str(part_val).lower(): continue
+                
+                shift_val = str(get_val("shift", "Unknown")).replace('.0', '').strip()
+                if not shift_val or shift_val.lower() == 'nan': shift_val = "Unknown"
+                
+                # Extract numeric values
+                def parse_float(v):
+                    try: return float(v)
+                    except: return 0.0
+
+                clean_rows.append({
+                    "part_number": part_val,
+                    "operator": get_val("operator", "Unknown"),
+                    "machine": get_val("machine", "Unknown"),
+                    "shift": shift_val,
+                    "good_count": parse_float(get_val("good")),
+                    "reject_count": parse_float(get_val("reject")),
+                    "date": get_val("date", datetime.today().date()),
+                    # Note: Don't auto-convert * 60 here. Let the generic heuristic handle it later 
+                    # unless we are sure. But "Uptime" in user sheet is 4.32 (hours).
+                    # We will output as-is and let the logic below detect < 12 and multiply by 60.
+                    "run_time_min": parse_float(get_val("run_time")), 
+                    "downtime_min": parse_float(get_val("downtime"))
+                })
+
+            except Exception as e:
+                # print(f"Skipping row {i}: {e}")
+                continue
+                
         return pd.DataFrame(clean_rows)
     
     # Check if Raw File
