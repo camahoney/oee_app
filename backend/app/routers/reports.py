@@ -124,6 +124,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         "part_number": vals[4 + offset],
                         "operator": vals[15 + offset],
                         "machine": vals[18 + offset],
+                        "job": str(vals[19 + offset]).replace('nan', '') if len(vals) > 19 + offset else '',
                         "shift": shift_val,
                         "good_count": safe_float(vals[21 + offset]) if vals[21 + offset] != 'nan' else 0,
                         "reject_count": safe_float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
