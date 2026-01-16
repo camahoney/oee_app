@@ -227,9 +227,11 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
              if df.empty:
                  print("First sheet empty/invalid. Scanning all sheets...")
                  all_sheets = pd.read_excel(io.BytesIO(contents), sheet_name=None, header=None)
+                 raw_data_debug += f" All Sheets: {list(all_sheets.keys())}. "
+                 
                  for sheet_name, sheet_df in all_sheets.items():
                      print(f"Scanning sheet: {sheet_name}")
-                     raw_data_debug = f"Sheet {sheet_name}: " + str(sheet_df.head(5).values.tolist())
+                     raw_data_debug += f" [Scanning {sheet_name}]: " + str(sheet_df.head(3).values.tolist())
                      candidate_df = process_raw_report(sheet_df)
                      if not candidate_df.empty:
                          print(f"Found valid data in sheet: {sheet_name}")
