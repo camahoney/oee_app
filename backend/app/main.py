@@ -11,6 +11,26 @@ app = FastAPI(title="OEE Analytics API", version="0.1.0")
 
 @app.on_event("startup")
 def on_startup():
+    # Schema Migration Check for "job" column
+    from sqlalchemy import inspect, text
+    try:
+        insp = inspect(engine)
+        if insp.has_table("reportentry"):
+            cols = [c["name"] for c in insp.get_columns("reportentry")]
+            if "job" not in cols:
+                print("DETECTED OLD SCHEMA (Missing 'job'). Dropping tables to rebuild...")
+                with Session(engine) as session:
+                    # Drop in dependency order (metrics -> entries -> reports) usually,
+                    # but sqlite foreign keys might be off or cascading.
+                    # Safest to just hammer them.
+                    session.exec(text("DROP TABLE IF EXISTS oeemetric"))
+                    session.exec(text("DROP TABLE IF EXISTS reportentry"))
+                    session.exec(text("DROP TABLE IF EXISTS productionreport"))
+                    session.commit()
+                print("Tables dropped. Re-creating...")
+    except Exception as e:
+        print(f"Migration check failed: {e}")
+
     create_db_and_tables()
     # Seed data if empty
     with Session(engine) as session:
