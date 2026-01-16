@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Table, Button, Space, Upload as AntUpload, message } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Typography, Table, Button, Space, Upload as AntUpload, message, Popconfirm, Tooltip } from 'antd';
+import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { rateService } from '../services/api';
 
 const { Title } = Typography;
@@ -26,6 +26,16 @@ const Rates: React.FC = () => {
         fetchRates();
     }, []);
 
+    const handleDelete = (id: number) => {
+        message.info("Delete functionality coming soon!");
+        // TODO: Implement delete API call
+    };
+
+    const handleEdit = (record: any) => {
+        message.info("Edit functionality coming soon!");
+        // TODO: Implement edit modal
+    };
+
     const uploadProps = {
         beforeUpload: (file: File) => {
             const isCSV = file.type === 'text/csv' || file.name.endsWith('.csv');
@@ -50,19 +60,44 @@ const Rates: React.FC = () => {
         showUploadList: false,
     };
 
-    const columns = [
-        { title: 'Operator', dataIndex: 'operator', key: 'operator' },
-        { title: 'Machine', dataIndex: 'machine', key: 'machine' },
+    const columns: any = [
+        { title: 'Job / SO#', dataIndex: 'job', key: 'job' },
         { title: 'Part Number', dataIndex: 'part_number', key: 'part_number' },
-        { title: 'Ideal Units/Hr', dataIndex: 'ideal_units_per_hour', key: 'ideal_units_per_hour' },
-        { title: 'Start Date', dataIndex: 'start_date', key: 'start_date' },
-        { title: 'Active', dataIndex: 'active', key: 'active', render: (text: boolean) => text ? 'Yes' : 'No' },
+        { title: 'Machine', dataIndex: 'machine', key: 'machine' },
+        {
+            title: 'Ideal Cycle (s)',
+            dataIndex: 'ideal_cycle_time_seconds',
+            key: 'ideal_cycle_time_seconds',
+            render: (val: number) => val ? val.toFixed(2) : '-'
+        },
+        {
+            title: 'Units/Hr',
+            dataIndex: 'ideal_units_per_hour',
+            key: 'ideal_units_per_hour',
+            render: (val: number) => val ? val.toFixed(1) : '-'
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (_: any, record: any) => (
+                <Space size="middle">
+                    <Tooltip title="Edit">
+                        <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+                    </Tooltip>
+                    <Popconfirm title="Are you sure delete this rate?" onConfirm={() => handleDelete(record.id)}>
+                        <Tooltip title="Delete">
+                            <Button type="text" danger icon={<DeleteOutlined />} />
+                        </Tooltip>
+                    </Popconfirm>
+                </Space>
+            ),
+        },
     ];
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <Title level={2}>Master Rate Table</Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Title level={2} style={{ margin: 0 }}>Master Rate Table</Title>
                 <Space>
                     <AntUpload {...uploadProps}>
                         <Button icon={<UploadOutlined />}>Upload Rates</Button>
@@ -75,6 +110,10 @@ const Rates: React.FC = () => {
                 dataSource={rates}
                 rowKey="id"
                 loading={loading}
+                pagination={{ pageSize: 500, hideOnSinglePage: true }}
+                scroll={{ y: 600 }}
+                size="middle"
+                bordered
             />
         </div>
     );
