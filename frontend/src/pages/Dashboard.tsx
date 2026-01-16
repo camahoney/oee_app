@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button } from 'antd';
-import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip } from 'antd';
+import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ const { Title, Text } = Typography;
 const Dashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const reportId = searchParams.get('reportId');
@@ -29,6 +30,10 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         fetchStats();
     }, [reportId]);
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     if (loading) {
         return <div style={{ textAlign: 'center', marginTop: 50 }}><Spin size="large" /></div>;
@@ -54,20 +59,44 @@ const Dashboard: React.FC = () => {
                     </div>
                     <Text type="secondary" style={{ fontSize: '16px' }}>
                         {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
+                        {reportId && <span className="print-only" style={{ marginLeft: 16 }}>Generated at {new Date().toLocaleString()}</span>}
                     </Text>
                 </div>
-                {reportId && (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="no-print" style={{ marginRight: '8px' }}>
+                        <Button
+                            icon={<BarsOutlined />}
+                            type={viewMode === 'list' ? 'primary' : 'default'}
+                            onClick={() => setViewMode('list')}
+                        />
+                        <Button
+                            icon={<AppstoreOutlined />}
+                            type={viewMode === 'grid' ? 'primary' : 'default'}
+                            onClick={() => setViewMode('grid')}
+                        />
+                    </div>
                     <Button
-                        type="primary"
-                        ghost
-                        icon={<ArrowLeftOutlined />}
-                        onClick={() => navigate('/reports')}
+                        icon={<PrinterOutlined />}
+                        onClick={handlePrint}
                         size="middle"
-                        style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                        className="no-print"
                     >
-                        Back
+                        Print Report
                     </Button>
-                )}
+                    {reportId && (
+                        <Button
+                            type="primary"
+                            ghost
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate('/reports')}
+                            size="middle"
+                            style={{ borderColor: BRAND_BLUE, color: BRAND_BLUE }}
+                            className="no-print"
+                        >
+                            Back
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <Row gutter={[24, 24]}>
@@ -136,71 +165,168 @@ const Dashboard: React.FC = () => {
                             showSizeChanger: false
                         }}
                         dataSource={stats.recent_activity || []}
-                        renderItem={(item: any) => (
-                            <List.Item
-                                key={item.id}
-                                style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}
-                                extra={
-                                    <div style={{ textAlign: 'right', minWidth: '150px' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: BRAND_BLUE }}>
-                                            {(item.oee * 100).toFixed(1)}%
-                                        </div>
-                                        <Text type="secondary">OEE Score</Text>
-                                    </div>
-                                }
-                            >
-                                <List.Item.Meta
-                                    title={
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                            <span style={{ fontSize: '18px', fontWeight: '600', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</span>
-                                            {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
-                                            {item.insight && (
-                                                <Tag color={item.insight.includes("High") ? "red" : "orange"} style={{ borderRadius: '4px', fontWeight: '500' }}>
-                                                    {item.insight}
-                                                </Tag>
-                                            )}
-                                        </div>
-                                    }
-                                    description={
-                                        <div>
-                                            <div style={{ fontSize: '14px', marginBottom: '16px', color: '#595959' }}>
-                                                <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date}
+                        renderItem={(item: any) => {
+                            // 3. Metric Drivers Logic
+                            const metrics = [
+                                { name: 'A', val: item.availability || 0, label: 'Availability' },
+                                { name: 'P', val: item.performance || 0, label: 'Performance' },
+                                { name: 'Q', val: item.quality || 0, label: 'Quality' }
+                            ];
+                            // Find lowest metric to highlight as the "Driver"
+                            const lowest = metrics.reduce((prev, curr) => prev.val < curr.val ? prev : curr);
+
+                            // 2. Target vs Actual Logic
+                            const target = item.target_count || 0;
+                            const good = item.good_count || 0;
+                            const isOnTrack = target > 0 ? (good >= target * 0.9) : true;
+
+                            if (viewMode === 'grid') {
+                                return (
+                                    <List.Item>
+                                        <Card
+                                            hoverable
+                                            style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}
+                                            bodyStyle={{ padding: '16px' }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                <div>
+                                                    <Text strong style={{ fontSize: '16px', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</Text>
+                                                    {item.warning && <Tag color="warning" style={{ marginLeft: '8px', borderRadius: '4px' }}>Missing Rate</Tag>}
+                                                    {item.good_count === 0 && <Tag color="default" style={{ marginLeft: '8px' }}>No Production</Tag>}
+                                                    <div style={{ fontSize: '12px', color: '#595959', marginTop: '4px' }}>
+                                                        {item.part_number} &bull; {item.machine}
+                                                    </div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
+                                                        {(item.oee * 100).toFixed(1)}%
+                                                        {item.oee > 1.0 && (
+                                                            <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
+                                                                <WarningOutlined style={{ fontSize: '14px', marginLeft: '4px', color: '#faad14' }} />
+                                                            </Tooltip>
+                                                        )}
+                                                    </div>
+                                                    <Text type="secondary" style={{ fontSize: '12px' }}>OEE</Text>
+                                                </div>
                                             </div>
 
-                                            <div style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: 'repeat(5, 1fr)',
-                                                gap: '24px',
-                                                maxWidth: '800px'
-                                            }}>
-                                                <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Run Time</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>{((item.run_time_min || 0) / 60).toFixed(1)} hrs</div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                                                <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Run/Down</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
+                                                        {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{item.downtime_min || 0}m</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Downtime</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>{item.downtime_min || 0} min</div>
+                                                <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Perf.</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
+                                                        {((item.performance || 0) * 100).toFixed(0)}%
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Good Pts</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: '#52c41a' }}>{item.good_count || 0}</div>
-                                                </div>
-                                                <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rejects</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: '#ff4d4f' }}>{item.reject_count || 0}</div>
-                                                </div>
-                                                <div>
-                                                    <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Target</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: BRAND_BLUE }}>
-                                                        {item.target_count || '-'}
+                                                <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Qual.</Text>
+                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
+                                                        {((item.quality || 0) * 100).toFixed(1)}%
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div style={{ marginTop: '12px', borderTop: '1px solid #f0f0f0', paddingTop: '12px' }}>
+                                                <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Actual / Target</Text>
+                                                <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
+                                                    <span style={{ color: isOnTrack ? '#52c41a' : '#faad14' }}>{item.good_count}</span>
+                                                    <span style={{ color: '#bfbfbf', margin: '0 4px' }}>/</span>
+                                                    <span>{item.target_count > 0 ? item.target_count : '-'}</span>
+                                                    {item.target_count > 0 && item.reject_count > 0 && (
+                                                        <span style={{ fontSize: '10px', color: '#ff4d4f', marginLeft: '4px' }}>({item.reject_count} Rejects)</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </List.Item>
+                                );
+                            }
+
+                            return (
+                                <List.Item
+                                    key={item.id}
+                                    style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}
+                                    extra={
+                                        <div style={{ textAlign: 'right', minWidth: '150px' }}>
+                                            <div style={{ fontSize: '24px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
+                                                {(item.oee * 100).toFixed(1)}%
+                                                {item.oee > 1.0 && (
+                                                    <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
+                                                        <WarningOutlined style={{ fontSize: '16px', marginLeft: '8px', color: '#faad14' }} />
+                                                    </Tooltip>
+                                                )}
+                                            </div>
+                                            <Text type="secondary">OEE Score</Text>
                                         </div>
                                     }
-                                />
-                            </List.Item>
-                        )}
+                                >
+                                    <List.Item.Meta
+                                        title={
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                                <span style={{ fontSize: '18px', fontWeight: '600', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</span>
+                                                {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
+                                                {item.good_count === 0 && <Tag color="default">No Production</Tag>}
+                                            </div>
+                                        }
+                                        description={
+                                            <div>
+                                                <div style={{ fontSize: '14px', marginBottom: '16px', color: '#595959' }}>
+                                                    <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date} &bull; <strong>Shift:</strong> {item.shift}
+                                                </div>
+
+                                                <div style={{
+                                                    display: 'grid',
+                                                    gridTemplateColumns: 'repeat(5, 1fr)',
+                                                    gap: '24px',
+                                                    maxWidth: '900px'
+                                                }}>
+                                                    {/* Availability */}
+                                                    <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Run / Down</Text>
+                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
+                                                            {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{item.downtime_min || 0}m</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Performance */}
+                                                    <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Performance</Text>
+                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
+                                                            {((item.performance || 0) * 100).toFixed(0)}%
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quality */}
+                                                    <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Quality</Text>
+                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
+                                                            {((item.quality || 0) * 100).toFixed(1)}%
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Actual vs Target */}
+                                                    <div style={{ gridColumn: 'span 2' }}>
+                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Actual / Target</Text>
+                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
+                                                            <span style={{ color: isOnTrack ? '#52c41a' : '#faad14' }}>{item.good_count}</span>
+                                                            <span style={{ color: '#bfbfbf', margin: '0 8px' }}>/</span>
+                                                            <span>{item.target_count > 0 ? item.target_count : '-'}</span>
+                                                            {item.target_count > 0 && item.reject_count > 0 && (
+                                                                <span style={{ fontSize: '12px', color: '#ff4d4f', marginLeft: '8px' }}>({item.reject_count} Rejects)</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    />
+                                </List.Item>
+                            )
+                        }}
                     />
                 </Card>
             </div>
