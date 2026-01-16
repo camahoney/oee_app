@@ -197,6 +197,21 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
             renamed[col] = col_map[norm]
     df.rename(columns=renamed, inplace=True)
     
+    # FALLBACK STRATEGY: 
+    # If "part_number" is missing relative to standard read, implied that headers weren't found at Row 0.
+    # Trigger the Dynamic Raw Parser to hunt for headers.
+    if "part_number" not in df.columns:
+        print("Standard parse failed (Part Number missing). Retrying with Dynamic Raw Parser...")
+        file.file.seek(0)
+        contents = file.file.read()
+        if file.filename.endswith('.csv'):
+             raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
+        else:
+             raw_df = pd.read_excel(io.BytesIO(contents), header=None)
+        
+        # This returns a DF with normalized columns
+        df = process_raw_report(raw_df)
+    
     try:
         # Defaults and Calculations
         # 1. Date: If missing, default to today
