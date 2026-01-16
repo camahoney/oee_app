@@ -23,20 +23,23 @@ const Analytics: React.FC = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
+        // Fetch independently so one failure doesn't break everything
         try {
-            const [shifts, quality, parts] = await Promise.all([
-                analyticsService.getComparison('shift'),
-                analyticsService.getQualityAnalysis(10),
-                analyticsService.getComparison('part')
-            ]);
+            const shifts = await analyticsService.getComparison('shift');
             setShiftData(shifts);
+        } catch (e) { console.error("Shift fetch failed", e); }
+
+        try {
+            const quality = await analyticsService.getQualityAnalysis(10);
             setQualityData(quality);
+        } catch (e) { console.error("Quality fetch failed", e); }
+
+        try {
+            const parts = await analyticsService.getComparison('part');
             setPartData(parts);
-        } catch (error) {
-            console.error("Failed to fetch analytics:", error);
-        } finally {
-            setLoading(false);
-        }
+        } catch (e) { console.error("Part fetch failed", e); }
+
+        setLoading(false);
     };
 
     // Columns for Part Analysis Table

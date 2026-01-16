@@ -108,7 +108,16 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         "part_number": vals[4 + offset],
                         "operator": vals[15 + offset],
                         "machine": vals[18 + offset],
-                        "shift": vals[17 + offset].replace('.0', '') if '.0' in vals[17 + offset] else vals[17 + offset],
+                    raw_shift = str(vals[17 + offset])
+                    shift_val = raw_shift.replace('.0', '').strip()
+                    if shift_val.lower() == 'nan' or not shift_val:
+                        shift_val = "Unknown"
+                        
+                    clean_rows.append({
+                        "part_number": vals[4 + offset],
+                        "operator": vals[15 + offset],
+                        "machine": vals[18 + offset],
+                        "shift": shift_val,
                         "good_count": float(vals[21 + offset]) if vals[21 + offset] != 'nan' else 0,
                         "reject_count": float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
                         "date": vals[16 + offset] if len(vals) > 16 + offset else datetime.today().date(), 
