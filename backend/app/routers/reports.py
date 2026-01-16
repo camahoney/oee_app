@@ -23,13 +23,14 @@ def parse_date(value) -> date:
 
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 def upload_report(file: UploadFile = File(...), session: Session = Depends(get_session)):
-    # Validate file type
-    if file.content_type not in ["text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"]:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+    # Relaxed validation - rely on extension
+    # if file.content_type not in ... (removed to allow diverse browser MIME types)
+    
     contents = file.file.read()
-    if file.filename.endswith('.csv'):
+    if file.filename.lower().endswith('.csv'):
         try:
-            df = pd.read_csv(io.BytesIO(contents), encoding='utf-8')
+            # utf-8-sig handles BOM if present, and plain utf-8 if not
+            df = pd.read_csv(io.BytesIO(contents), encoding='utf-8-sig')
         except UnicodeDecodeError:
             df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
     else:
