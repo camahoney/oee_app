@@ -206,11 +206,23 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         contents = file.file.read()
         if file.filename.endswith('.csv'):
              raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
+             df = process_raw_report(raw_df)
         else:
+             # Try first sheet first
              raw_df = pd.read_excel(io.BytesIO(contents), header=None)
-        
-        # This returns a DF with normalized columns
-        df = process_raw_report(raw_df)
+             df = process_raw_report(raw_df)
+             
+             # If first sheet yielded no results, try ALL sheets
+             if df.empty:
+                 print("First sheet empty/invalid. Scanning all sheets...")
+                 all_sheets = pd.read_excel(io.BytesIO(contents), sheet_name=None, header=None)
+                 for sheet_name, sheet_df in all_sheets.items():
+                     print(f"Scanning sheet: {sheet_name}")
+                     candidate_df = process_raw_report(sheet_df)
+                     if not candidate_df.empty:
+                         print(f"Found valid data in sheet: {sheet_name}")
+                         df = candidate_df
+                         break
     
     try:
         # Defaults and Calculations
