@@ -217,8 +217,10 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                 )
                  entries.append(entry)
             except Exception as e:
-                print(f"Row error: {e}")
-                continue
+                import traceback
+                traceback.print_exc()
+                # Stop immediately and report the error so fixing is enforced
+                raise HTTPException(status_code=500, detail=f"Failed to process row {row}: {str(e)}")
                 
         session.bulk_save_objects(entries)
         session.commit()
