@@ -46,9 +46,12 @@ const Dashboard: React.FC = () => {
         <div style={{ padding: '16px 24px', background: '#f0f2f5', minHeight: '100vh' }}>
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                    <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '28px', lineHeight: '1.2' }}>
-                        {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
-                    </Title>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '28px', lineHeight: '1.2' }}>
+                            {reportId ? `Report Details (ID: ${reportId})` : 'Production Dashboard'}
+                        </Title>
+                        {stats && <Tag color="blue">{stats.db_row_count || 0} Records</Tag>}
+                    </div>
                     <Text type="secondary" style={{ fontSize: '16px' }}>
                         {reportId ? 'Historical Analysis View' : 'Real-time OEE Analytics & Insights'}
                     </Text>

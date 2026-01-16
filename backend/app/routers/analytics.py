@@ -140,5 +140,19 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
             "reject_rate": round(reject_rate * 100, 2)
         })
         
-    # Sort by Total Rejects (descending) to show "Problem Parts"
-    return sorted(results, key=lambda x: x["total_rejects"], reverse=True)[:limit]
+@router.get("/debug", response_model=List[Dict[str, Any]])
+def debug_analytics(session: Session = Depends(get_session)):
+    """Directly dump OEE metrics to verify DB content."""
+    metrics = session.exec(select(Oeemetric).limit(50)).all()
+    results = []
+    for m in metrics:
+        results.append({
+            "id": m.id,
+            "shift": m.shift,
+            "part": m.part_number,
+            "oee": m.oee,
+            "date": m.date
+        })
+    if not results:
+        return [{"message": "NO DATA FOUND IN DB", "count": 0}]
+    return results

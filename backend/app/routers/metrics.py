@@ -247,7 +247,8 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "availability": 0,
             "performance": 0,
             "quality": 0,
-            "recent_activity": []
+            "recent_activity": [],
+            "db_row_count": 0
         }
     
     # Calculate averages
@@ -291,5 +292,6 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         "availability": round(avg_avail * 100, 1),
         "performance": round(avg_perf * 100, 1),
         "quality": round(avg_qual * 100, 1),
-        "recent_activity": recent
+        "recent_activity": recent,
+        "db_row_count": count
     }
