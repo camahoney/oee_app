@@ -140,6 +140,8 @@ def quality_analysis(limit: int = 10, session: Session = Depends(get_session)):
             "reject_rate": round(reject_rate * 100, 2)
         })
         
+    return sorted(results, key=lambda x: x["total_rejects"], reverse=True)[:limit]
+        
 @router.get("/debug", response_model=Dict[str, Any])
 def debug_analytics(session: Session = Depends(get_session)):
     """Debug Quality Logic trace."""
