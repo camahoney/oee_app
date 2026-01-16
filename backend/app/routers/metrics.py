@@ -73,10 +73,9 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     
     for entry in entries:
         # Find applicable rate
+        # Strict match by Part Number only (Machine/Press allocation varies)
         stmt = select(RateEntry).where(
-            (RateEntry.operator == entry.operator) | (RateEntry.operator.is_(None)),
-            (RateEntry.machine == entry.machine) | (RateEntry.machine.is_(None)),
-            (RateEntry.part_number == entry.part_number) | (RateEntry.part_number.is_(None)),
+            (RateEntry.part_number == entry.part_number),
             (RateEntry.active == True),
         )
         rate = session.exec(stmt).first()
