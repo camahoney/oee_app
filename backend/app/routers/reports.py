@@ -80,33 +80,41 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     # Helper to process "Carmi Mold Division" raw exports
     def process_raw_report(raw_df: pd.DataFrame) -> pd.DataFrame:
         clean_rows = []
+        # Find offsets relative to row structure or explicit indices
+        # Based on analysis: Col 3=Workstation. 
+        # Col 18=Machine, Col 4=Part, Col 15=Operator, Col 17=Shift, Col 21=Good, Col 22=Scrap
+        
         for i, row in raw_df.iterrows():
             # Check for signature: Col 3 == "Workstation"
             # Use loose checking since column shifting happens
             vals = [str(x) for x in row.values]
             if len(vals) > 10 and "Workstation" in vals[:10]:
                 try:
-                    # Find offsets relative to row structure or explicit indices
-                    # Based on analysis: Col 3=Workstation. 
-                    # Col 18=Machine, Col 4=Part, Col 15=Operator, Col 17=Shift, Col 21=Good, Col 22=Scrap
-                    # We will use explicit indices as verified by script
-                    
-                    # Safety check on length
+                     # Safety check on length
                     if len(vals) < 23: continue
                     
+                    # We need to find the specific indices. If the file was read with header=None, indices should be stable.
+                    # Workstation at 3. Matches analysis.
+                    
+                    # Find Workstation index to be safe?
+                    try:
+                        ws_idx = vals.index("Workstation")
+                    except ValueError:
+                        continue 
+                        
+                    # If ws_idx is 3, then shifts are standard.
+                    offset = ws_idx - 3
+                    
                     clean_rows.append({
-                        "part_number": vals[4],
-                        "operator": vals[15],
-                        "machine": vals[18],
-                        "shift": vals[17].replace('.0', '') if '.0' in vals[17] else vals[17],
-                        "good_count": float(vals[21]) if vals[21] != 'nan' else 0,
-                        "reject_count": float(vals[22]) if vals[22] != 'nan' else 0,
-                        "date": vals[16] if len(vals) > 16 else datetime.today().date(), # Col 16 = Date
-                        "run_time_min": float(vals[24]) * 60 if len(vals) > 24 and vals[24] != 'nan' else 0, # Col 24 = 0.26 (Hours?) -> convert to min?
-                        # Wait, analysis skipped downtime/runtime cols. 
-                        # Col 24 in row 13 dump was "0.26". "Time (Format Hours)" is Col 0 label.
-                        # 0.26 hours = 15 mins. Let's assume Col 24 is Runtime Hours.
-                        "downtime_min": 0  # Not clearly identified in extraction, defaulting to 0 for now
+                        "part_number": vals[4 + offset],
+                        "operator": vals[15 + offset],
+                        "machine": vals[18 + offset],
+                        "shift": vals[17 + offset].replace('.0', '') if '.0' in vals[17 + offset] else vals[17 + offset],
+                        "good_count": float(vals[21 + offset]) if vals[21 + offset] != 'nan' else 0,
+                        "reject_count": float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
+                        "date": vals[16 + offset] if len(vals) > 16 + offset else datetime.today().date(), 
+                        "run_time_min": float(vals[24 + offset]) * 60 if len(vals) > 24 + offset and vals[24 + offset] != 'nan' else 0,
+                        "downtime_min": 0
                     })
                 except Exception as e:
                     print(f"Skipping malformed row {i}: {e}")
@@ -114,10 +122,21 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         return pd.DataFrame(clean_rows)
     
     # Check if Raw File
-    first_col_str = str(df.iloc[0,0]) if not df.empty else ""
-    if "Carmi Mold" in first_col_str or "Barcode" in first_col_str:
-        print("Detected Raw Report Format. Pre-processing...")
-        df = process_raw_report(df)
+    # Signatures might be in the first column name OR the first cell
+    first_col_name = str(df.columns[0]) if not df.empty else ""
+    first_cell_val = str(df.iloc[0,0]) if not df.empty else ""
+    
+    if "Carmi Mold" in first_col_name or "Barcode" in first_col_name or "Carmi Mold" in first_cell_val:
+        print("Detected Raw Report Format. Re-reading with header=None and Pre-processing...")
+        # Re-read to ensure we get all rows without header interference
+        file.file.seek(0)
+        contents = file.file.read()
+        if file.filename.endswith('.csv'):
+             raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig') # Fallback handling needed?
+        else:
+             raw_df = pd.read_excel(io.BytesIO(contents), header=None)
+             
+        df = process_raw_report(raw_df)
     
     # Normalize checks to lowercase
     renamed = {}
