@@ -180,18 +180,36 @@ const Upload: React.FC = () => {
     };
 
     const columns = [
-        { title: 'Date', dataIndex: 'date', key: 'date', editable: false, width: 110 },
-        { title: 'Shift', dataIndex: 'shift', key: 'shift', editable: true, width: 100 },
-        { title: 'Machine', dataIndex: 'machine', key: 'machine', editable: true, width: 100 },
-        { title: 'Part Number', dataIndex: 'part_number', key: 'part_number', editable: true, width: 150 },
-        { title: 'Job', dataIndex: 'job', key: 'job', editable: true },
-        { title: 'Good', dataIndex: 'good_count', key: 'good_count', editable: true, inputType: 'number', width: 90 },
-        { title: 'Reject', dataIndex: 'reject_count', key: 'reject_count', editable: true, inputType: 'number', width: 90 },
-        { title: 'Run (min)', dataIndex: 'run_time_min', key: 'run_time_min', editable: true, inputType: 'number', width: 100 },
-        { title: 'Down (min)', dataIndex: 'downtime_min', key: 'downtime_min', editable: true, inputType: 'number', width: 110 },
+        { title: 'Date', dataIndex: 'date', key: 'date', editable: false, width: 100 },
+        { title: 'Shift', dataIndex: 'shift', key: 'shift', editable: true, width: 90 },
+        { title: 'Operator', dataIndex: 'operator', key: 'operator', editable: true, width: 140 },
+        { title: 'Machine', dataIndex: 'machine', key: 'machine', editable: true, width: 90 },
+        { title: 'Part Number', dataIndex: 'part_number', key: 'part_number', editable: true, width: 140 },
+        { title: 'SO#', dataIndex: 'job', key: 'job', editable: true, width: 120 },
+        { title: 'Good', dataIndex: 'good_count', key: 'good_count', editable: true, inputType: 'number', width: 80 },
+        { title: 'Reject', dataIndex: 'reject_count', key: 'reject_count', editable: true, inputType: 'number', width: 80 },
+        {
+            title: 'Run (min)',
+            dataIndex: 'run_time_min',
+            key: 'run_time_min',
+            editable: true,
+            inputType: 'number',
+            width: 100,
+            render: (val: number) => val ? Number(val).toFixed(1) : '0.0'
+        },
+        {
+            title: 'Down (min)',
+            dataIndex: 'downtime_min',
+            key: 'downtime_min',
+            editable: true,
+            inputType: 'number',
+            width: 100,
+            render: (val: number) => val ? Number(val).toFixed(1) : '0.0'
+        },
         {
             title: 'Action',
             dataIndex: 'operation',
+            width: 90,
             render: (_: any, record: any) => {
                 const editable = isEditing(record);
                 return editable ? (
