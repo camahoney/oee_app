@@ -22,11 +22,8 @@ def parse_date(value) -> date:
 
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 def upload_report(file: UploadFile = File(...), session: Session = Depends(get_session)):
-    # Relaxed validation - rely on extension
-    # if file.content_type not in ... (removed to allow diverse browser MIME types)
     
     contents = file.file.read()
-    raw_data_debug = "No raw content read"
     if file.filename.lower().endswith('.csv'):
         try:
             # utf-8-sig handles BOM if present, and plain utf-8 if not
@@ -35,9 +32,8 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
             df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
     else:
         df = pd.read_excel(io.BytesIO(contents))
+        
     # Rename columns using a map for flexibility
-    # keys = lower case user columns, values = db columns
-    # Note: User has "Part #s", "Position", "SO#s", "Pay Code", "Good Pieces", "Scrap", "Lab", "Uptime", "Downtime"
     col_map = {
         "part #s": "part_number",
         "part #": "part_number",
@@ -58,6 +54,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         "good": "good_count",
         "goodcount": "good_count",
         "good pcs": "good_count",
+        "good_pcs": "good_count",
         
         "scrap": "reject_count",
         "reject": "reject_count",
@@ -77,125 +74,68 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         "shift": "shift"
     }
 
-    # Helper to process "Carmi Mold Division" raw exports
+    # Helper to process "Carmi Mold Division" raw exports (Legacy Offset Logic)
     def process_raw_report(raw_df: pd.DataFrame) -> pd.DataFrame:
         clean_rows = []
-        header_map = {}
-        header_found = False
-        
-        # Keywords to identify the header row
-        # User screenshot has: Part #s, Operator, Shift, Position, Uptime, Downtime
-        target_headers = {
-            "part": ["part #", "part_number", "part", "part number", "part #s"],
-            "operator": ["operator", "oper"],
-            "machine": ["workstation", "machine", "position", "mach"],
-            "shift": ["shift"],
-            "good": ["good", "good pieces", "good count", "good_count"],
-            "reject": ["scrap", "reject", "rejects", "reject count", "bad"],
-            "run_time": ["uptime", "run time", "runtime", "run_time_min", "total runtime"],
-            "downtime": ["downtime", "down time", "downtime_min"],
-            "date": ["date", "prod date"]
-        }
+        # Find offsets relative to row structure.
+        # Analysis of "01-05-2025" file shows:
+        # Col 3=Workstation. Offset = WS_Index - 3.
+        # Col 18=Machine, Col 4=Part, Col 15=Operator.
+        # Col 21=Good, Col 22=Reject.
+        # Col 24=Run Time, Col 25=Downtime.
         
         for i, row in raw_df.iterrows():
-            vals = [str(x).strip() for x in row.values]
-            
-            # 1. Attempt to detect header
-            if not header_found:
-                # Count matches against our targets
-                lower_vals = [v.lower() for v in vals]
-                matches = 0
-                temp_map = {}
-                
-                for key, candidates in target_headers.items():
-                    for cand in candidates:
-                        try:
-                            # partial match check? or exact?
-                            # Use exact or "starts with" for safety
-                            # Let's try to find the index of a matching column
-                            for idx, cell_val in enumerate(lower_vals):
-                                if cand in cell_val: # "Part #s" contains "part #"
-                                    temp_map[key] = idx
-                                    matches += 1
-                                    break
-                            if key in temp_map: break
-                        except: continue
-                
-                # If we found enough critical columns (Part, Machine, Good), assume this is header
-                if matches >= 2 and "part" in temp_map:
-                    header_map = temp_map
-                    header_found = True
-                    print(f"Header detected at row {i}: {header_map}")
-                continue
-            
-            # 2. Process Data Rows (only after header is found)
-            # Ensure row has data
-            if len(vals) < 5 or vals[0] == 'nan': continue
-            
-            try:
-                # Helper to safe extraction
-                def get_val(key, default=None):
-                    if key in header_map and header_map[key] < len(vals):
-                        val = vals[header_map[key]]
-                        return val if val.lower() != 'nan' else default
-                    return default
+            vals = [str(x) for x in row.values]
+            # Signature check: "Workstation" usually at index 3
+            if len(vals) > 5 and "Workstation" in vals[:10]:
+                try:
+                    if len(vals) < 26: continue
+                    
+                    try:
+                        ws_idx = vals.index("Workstation")
+                    except ValueError:
+                        continue 
+                        
+                    offset = ws_idx - 3
+                    
+                    raw_shift = str(vals[17 + offset])
+                    shift_val = raw_shift.replace('.0', '').strip()
+                    if shift_val.lower() == 'nan' or not shift_val:
+                        shift_val = "Unknown"
+                        
+                    def safe_float(v):
+                        try: return float(v)
+                        except: return 0.0
 
-                part_val = get_val("part", "Unknown")
-                # Skip totals/summary rows if any
-                if "total" in str(part_val).lower(): continue
-                
-                shift_val = str(get_val("shift", "Unknown")).replace('.0', '').strip()
-                if not shift_val or shift_val.lower() == 'nan': shift_val = "Unknown"
-                
-                # Extract numeric values
-                def parse_float(v):
-                    try: return float(v)
-                    except: return 0.0
-
-                clean_rows.append({
-                    "part_number": part_val,
-                    "operator": get_val("operator", "Unknown"),
-                    "machine": get_val("machine", "Unknown"),
-                    "shift": shift_val,
-                    "good_count": parse_float(get_val("good")),
-                    "reject_count": parse_float(get_val("reject")),
-                    "date": get_val("date", datetime.today().date()),
-                    # Note: Don't auto-convert * 60 here. Let the generic heuristic handle it later 
-                    # unless we are sure. But "Uptime" in user sheet is 4.32 (hours).
-                    # We will output as-is and let the logic below detect < 12 and multiply by 60.
-                    "run_time_min": parse_float(get_val("run_time")), 
-                    "downtime_min": parse_float(get_val("downtime"))
-                })
-
-            except Exception as e:
-                # print(f"Skipping row {i}: {e}")
-                continue
-                
-        if not header_found and clean_rows == []:
-             # DEBUG: Return a DF with a special column that triggers an informative error
-             # Or just print to logs. The caller handles the empty DF.
-             # Let's create a single-row DF with "DEBUG_INFO" to pass the snippet back.
-             print("DEBUG: No header found. Snippet of raw data:")
-             for r in raw_df.head(5).values:
-                 print(r)
-                 
+                    clean_rows.append({
+                        "part_number": vals[4 + offset],
+                        "operator": vals[15 + offset],
+                        "machine": vals[18 + offset],
+                        "shift": shift_val,
+                        "good_count": safe_float(vals[21 + offset]) if vals[21 + offset] != 'nan' else 0,
+                        "reject_count": safe_float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
+                        "date": vals[16 + offset] if len(vals) > 16 + offset else datetime.today().date(), 
+                        "run_time_min": safe_float(vals[24 + offset]) * 60 if len(vals) > 24 + offset and vals[24 + offset] != 'nan' else 0,
+                        # FIX: Downtime is at offset 25 (Col Z if offset 0)
+                        "downtime_min": safe_float(vals[25 + offset]) * 60 if len(vals) > 25 + offset and vals[25 + offset] != 'nan' else 0
+                    })
+                except Exception as e:
+                    print(f"Skipping malformed row {i}: {e}")
+                    continue
         return pd.DataFrame(clean_rows)
     
     # Check if Raw File
-    # Signatures might be in the first column name OR the first cell
     first_col_name = str(df.columns[0]) if not df.empty else ""
     first_cell_val = str(df.iloc[0,0]) if not df.empty else ""
     
     if "Carmi Mold" in first_col_name or "Barcode" in first_col_name or "Carmi Mold" in first_cell_val:
-        print("Detected Raw Report Format. Re-reading with header=None and Pre-processing...")
-        # Re-read to ensure we get all rows without header interference
+        print("Detected Raw Report Format. Re-reading with header=None...")
         file.file.seek(0)
         contents = file.file.read()
         if file.filename.endswith('.csv'):
-             raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig') # Fallback handling needed?
+             raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
         else:
-             raw_df = pd.read_excel(io.BytesIO(contents), header=None)
-             
+             raw_df = pd.read_excel(io.BytesIO(contents), header=None)     
         df = process_raw_report(raw_df)
     
     # Normalize checks to lowercase
@@ -206,37 +146,20 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
             renamed[col] = col_map[norm]
     df.rename(columns=renamed, inplace=True)
     
-    # FALLBACK STRATEGY: 
-    # If "part_number" is missing relative to standard read, implied that headers weren't found at Row 0.
-    # Trigger the Dynamic Raw Parser to hunt for headers.
+    # Fallback: If part_number missing, try Raw Parse one last time (simple, no multi-sheet loop)
     if "part_number" not in df.columns:
-        print("Standard parse failed (Part Number missing). Retrying with Dynamic Raw Parser...")
+        print("Standard parse failed (Part Number missing). Retrying with simple Raw Parser...")
         file.file.seek(0)
         contents = file.file.read()
         if file.filename.endswith('.csv'):
              raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
-             raw_data_debug = str(raw_df.head(5).values.tolist())
-             df = process_raw_report(raw_df)
         else:
-             # Try first sheet first
              raw_df = pd.read_excel(io.BytesIO(contents), header=None)
-             raw_data_debug = str(raw_df.head(5).values.tolist())
-             df = process_raw_report(raw_df)
-             
-             # If first sheet yielded no results, try ALL sheets
-             if df.empty:
-                 print("First sheet empty/invalid. Scanning all sheets...")
-                 all_sheets = pd.read_excel(io.BytesIO(contents), sheet_name=None, header=None)
-                 raw_data_debug += f" All Sheets: {list(all_sheets.keys())}. "
-                 
-                 for sheet_name, sheet_df in all_sheets.items():
-                     print(f"Scanning sheet: {sheet_name}")
-                     raw_data_debug += f" [Scanning {sheet_name}]: " + str(sheet_df.head(3).values.tolist())
-                     candidate_df = process_raw_report(sheet_df)
-                     if not candidate_df.empty:
-                         print(f"Found valid data in sheet: {sheet_name}")
-                         df = candidate_df
-                         break
+        
+        parsed_df = process_raw_report(raw_df)
+        if not parsed_df.empty:
+            df = parsed_df
+        # If still empty, the error below will catch it with 'Columns Missing'
     
     try:
         # Defaults and Calculations
@@ -279,12 +202,12 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         missing = required_db_cols - set(df.columns)
         if missing:
              found_cols = df.columns.tolist()
-             # Create debug snippet of what WAS found (up to 3 rows) to help user debug
+             # Simple snippet
              snippet = "No Data Scanned"
              if not df.empty:
                  snippet = df.head(3).to_dict(orient="records")
              
-             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}. Raw Dump: {raw_data_debug}")
+             raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}")
 
         # Store the report metadata
         report = ProductionReport(filename=file.filename, uploaded_at=datetime.utcnow())
