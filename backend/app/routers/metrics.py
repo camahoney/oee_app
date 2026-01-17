@@ -120,6 +120,8 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     oee_warning_setting = session.get(Setting, "show_oee_over_100_warning")
     show_oee_warning = (oee_warning_setting.value.lower() == 'true') if oee_warning_setting else True
 
+
+
     for key, data in aggregated.items():
 
         # Find applicable rate
@@ -238,8 +240,13 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         )
         metrics_to_save.append(metric)
 
-    session.bulk_save_objects(metrics_to_save)
-    session.commit()
+    try:
+        session.bulk_save_objects(metrics_to_save)
+        session.commit()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Database Save Error: {str(e)}")
     
     msg = f"Metrics calculated for {len(metrics_to_save)} rows."
     if skipped_count > 0:
