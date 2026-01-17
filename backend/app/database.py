@@ -1,9 +1,15 @@
 import os
+from pathlib import Path
 from sqlmodel import SQLModel, create_engine, Session
 
+# Robust Path Handling: Ensure DB file is always in `backend/` folder
+# independant of where the command is run from.
+BASE_DIR = Path(__file__).resolve().parent.parent
+sqlite_file_name = BASE_DIR / "oee_app.db"
+
 # Check for DATABASE_URL env var (assigned by Render/Cloud)
-# Fallback to local SQLite for development
-database_url = os.getenv("DATABASE_URL", "sqlite:///./oee_app.db")
+# Fallback to local SQLite with Absolute Path
+database_url = os.getenv("DATABASE_URL", f"sqlite:///{sqlite_file_name}")
 
 # Fix for Render/Heroku using "postgres://" instead of "postgresql://"
 if database_url.startswith("postgres://"):
