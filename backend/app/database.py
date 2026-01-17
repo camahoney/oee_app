@@ -1,9 +1,19 @@
+import os
 from sqlmodel import SQLModel, create_engine, Session
-from pathlib import Path
 
-DATABASE_URL = "sqlite:///./oee_app.db"
+# Check for DATABASE_URL env var (assigned by Render/Cloud)
+# Fallback to local SQLite for development
+database_url = os.getenv("DATABASE_URL", "sqlite:///./oee_app.db")
 
-engine = create_engine(DATABASE_URL, echo=False)
+# Fix for Render/Heroku using "postgres://" instead of "postgresql://"
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+connect_args = {}
+if database_url.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
+
+engine = create_engine(database_url, echo=False, connect_args=connect_args)
 
 def create_db_and_tables():
     """Create database tables based on SQLModel models."""
