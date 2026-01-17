@@ -9,9 +9,9 @@ def check():
 
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
-    cursor.execute("PRAGMA table_info(productionreport)")
+    cursor.execute("PRAGMA table_info(oeemetric)")
     columns = cursor.fetchall()
-    print(f"Columns in productionreport ({db_file}):")
+    print(f"Columns in oeemetric ({db_file}):")
     for col in columns:
         print(col)
     conn.close()
