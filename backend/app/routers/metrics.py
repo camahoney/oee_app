@@ -164,6 +164,10 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             missing_rate_warning = f"No Rate found for {identifier}"
             missing_rates_info.add(identifier)
             skipped_count += 1
+            
+        # Self-Healing: If total_count is 0 but good_count exists, fix it.
+        if data["total_count"] == 0 and data["good_count"] > 0:
+             data["total_count"] = data["good_count"] + data["reject_count"]
         
         # Create a temporary pseudo-entry object for computation
         # (This avoids changing the compute_oee signature)

@@ -190,7 +190,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         df["good_count"] = df["good_count"].fillna(0)
         df["reject_count"] = df["reject_count"].fillna(0)
         
-        if "total_count" not in df.columns:
+        if "total_count" not in df.columns or (pd.to_numeric(df.get("total_count", []), errors='coerce').fillna(0).sum() == 0):
             df["total_count"] = df["good_count"] + df["reject_count"]
         
         # 3. Times: Ensure run/down exist, handle HOURS detection
