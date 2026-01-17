@@ -287,7 +287,7 @@ def get_seed_rates():
             if ideal_sec > 0:
                 uph = 3600.0 / ideal_sec
             else:
-                uph = None
+                uph = 0.0
 
             if not part:
                 continue

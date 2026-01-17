@@ -259,10 +259,6 @@ def get_metrics(report_id: int, session: Session = Depends(get_session)):
 @router.get("/stats", response_model=Dict[str, Any])
 def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
     """Aggregate metrics for the dashboard. Default: Latest Report."""
-    from ..database import engine
-    # DEBUG: Reveal the active database
-    raise HTTPException(status_code=500, detail=f"DEBUG DB: {engine.url}")
-    
     stmt = select(Oeemetric)
     
     current_report_date = None
