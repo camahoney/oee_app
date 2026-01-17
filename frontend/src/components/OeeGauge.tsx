@@ -11,8 +11,11 @@ interface GaugeProps {
 const OeeGauge: React.FC<GaugeProps> = ({ title, value }) => {
     // Clamp value
     const normalizedValue = Math.min(Math.max(value, 0), 100);
-    // Angle: 180 (Left) -> 0 (Right)
-    const angle = 180 - (normalizedValue / 100) * 180;
+
+    // Angle Start: 180 (Left)
+    // Angle End: 360 (Right)
+    // Range: 180 degrees
+    const angle = 180 + (normalizedValue / 100) * 180;
 
     // Config
     const radius = 80;
@@ -20,9 +23,11 @@ const OeeGauge: React.FC<GaugeProps> = ({ title, value }) => {
     const cy = 90;
     const strokeWidth = 14;
 
-    // Helper for ticks
+    // Helper for ticks - Standard Trig
+    // SVG Cos: 180->Left(-1), 270->Up(0), 360->Right(1)
+    // SVG Sin: 180->0, 270->Up(-1), 360->0
     const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
-        const angleInRadians = (angleInDegrees - 180) * Math.PI / 180.0;
+        const angleInRadians = angleInDegrees * Math.PI / 180.0;
         return {
             x: centerX + (radius * Math.cos(angleInRadians)),
             y: centerY + (radius * Math.sin(angleInRadians))
@@ -53,26 +58,27 @@ const OeeGauge: React.FC<GaugeProps> = ({ title, value }) => {
                     </filter>
                 </defs>
 
-                {/* Main Arc Background (Grey Shadow) */}
+                {/* Main Arc Background (Track) */}
                 <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="#f0f0f0" strokeWidth={strokeWidth} />
 
-                {/* Gradient Value Arc */}
-                {/* We draw the Full Arc with the gradient */}
+                {/* Gradient Value Arc (Full range for background color effect) */}
                 <path d="M 20 90 A 80 80 0 0 1 180 90" fill="none" stroke="url(#gaugeGradient)" strokeWidth={strokeWidth} strokeLinecap="round" />
 
                 {/* Tick Marks */}
                 {ticks.map(tick => {
-                    const tickAngle = 180 - (tick / 100) * 180;
+                    // Map 0..100 to 180..360
+                    const tickAngle = 180 + (tick / 100) * 180;
+
+                    // Lines
                     const start = polarToCartesian(cx, cy, radius - strokeWidth / 2 + 2, tickAngle);
                     const end = polarToCartesian(cx, cy, radius + strokeWidth / 2 - 2, tickAngle);
-                    // Text pos
+
+                    // Text Labels
                     const textPos = polarToCartesian(cx, cy, radius - 20, tickAngle);
 
                     return (
                         <g key={tick}>
-                            {/* White separator line inside arc */}
                             <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke="#fff" strokeWidth="2" />
-                            {/* Text Label */}
                             <text x={textPos.x} y={textPos.y} fontSize="10" fill="#bfbfbf" textAnchor="middle" dominantBaseline="middle">
                                 {tick}%
                             </text>
@@ -82,10 +88,11 @@ const OeeGauge: React.FC<GaugeProps> = ({ title, value }) => {
 
                 {/* Needle */}
                 <g transform={`translate(${cx}, ${cy}) rotate(${angle})`} filter="url(#dropShadow)">
-                    {/* SVG Rotate is clockwise. 0 is 3 o'clock (Right).
-                        Val=0 -> angle=180 -> rotate(180) -> Points Left. Correct.
-                        Val=100 -> angle=0 -> rotate(0) -> Points Right. Correct.
-                        Needle design points RIGHT (0 deg) essentially.
+                    {/* 
+                        Needle Geometry: Drawn pointing to 0 degrees (Right).
+                        When angle=180 (0% Val), `rotate(180)` flips it to point Left. Correct.
+                        When angle=270 (50% Val), `rotate(270)` points Up. Correct.
+                        When angle=360 (100% Val), `rotate(360)` points Right. Correct.
                     */}
                     <path d="M 0 -4 L 75 0 L 0 4 Z" fill="#262626" />
                     <circle cx="0" cy="0" r="6" fill="#262626" stroke="#fff" strokeWidth="2" />
