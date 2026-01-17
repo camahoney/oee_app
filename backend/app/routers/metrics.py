@@ -332,10 +332,12 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "part_number": m.part_number,
             "date": m.date,
             "oee": m.oee,
+            "performance": m.performance,
+            "quality": m.quality,
+            "availability": m.availability,
             "insight": diag.get("insight"),
             "run_time_min": diag.get("run_time_min"),
             "downtime_min": diag.get("downtime_min"),
-            "good_count": diag.get("good_count"),
             "good_count": diag.get("good_count"),
             "reject_count": diag.get("reject_count"),
             "target_count": diag.get("target_count")
