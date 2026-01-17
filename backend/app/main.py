@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from .database import create_db_and_tables, engine
-from .db import RateEntry
-from .seeds import get_seed_rates
+from .db import RateEntry, User
+from .seeds import get_seed_rates, get_seed_users
 
 from .routers import rates, reports, metrics, auth, settings, analytics
 
@@ -34,6 +34,14 @@ def on_startup():
     create_db_and_tables()
     # Seed data if empty
     with Session(engine) as session:
+        if not session.exec(select(User)).first():
+            print("Seeding database with default users...")
+            users = get_seed_users()
+            for u in users:
+                session.add(u)
+            session.commit()
+            print(f"User seeding complete.")
+
         if not session.exec(select(RateEntry)).first():
             print("Seeding database with default rates...")
             rates = get_seed_rates()

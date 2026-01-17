@@ -1,7 +1,16 @@
 import csv
 import io
 from datetime import date
-from .db import RateEntry
+from .db import RateEntry, User
+
+def get_seed_users():
+    return [
+        User(
+            email="admin@example.com", 
+            hashed_password="scrypt:32768:8:1$k7...", 
+            role="admin"
+        )
+    ]
 
 CSV_DATA = """SO#,Part Number,WorkStation,Cavities,Ideal in seconds,Total Cycle,Unit,Heats,PCS
 56128,4228564,600T Comp,144,1309.090906,21.81818176,min,11,1584
