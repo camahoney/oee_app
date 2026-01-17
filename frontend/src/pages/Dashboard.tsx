@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu } from 'antd';
 import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined } from '@ant-design/icons';
+import OeeGauge from '../components/OeeGauge';
 import { reportService } from '../services/api';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -150,50 +151,22 @@ const Dashboard: React.FC = () => {
             <Row gutter={[24, 24]}>
                 <Col span={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <Statistic
-                            title={<Text type="secondary">OEE Score</Text>}
-                            value={stats.oee}
-                            precision={1}
-                            suffix="%"
-                            valueStyle={{ color: stats.oee >= 85 ? '#52c41a' : '#f5222d', fontWeight: 'bold' }}
-                            prefix={<span style={{ fontSize: '24px', marginRight: '8px' }}>🚀</span>}
-                        />
+                        <OeeGauge title="OEE Score" value={stats.oee} />
                     </Card>
                 </Col>
                 <Col span={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <Statistic
-                            title={<Text type="secondary">Availability</Text>}
-                            value={stats.availability}
-                            precision={1}
-                            suffix="%"
-                            prefix={<FieldTimeOutlined style={{ color: '#1890ff' }} />}
-                            valueStyle={{ fontWeight: 'bold' }}
-                        />
+                        <OeeGauge title="Availability" value={stats.availability} />
                     </Card>
                 </Col>
                 <Col span={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <Statistic
-                            title={<Text type="secondary">Performance</Text>}
-                            value={stats.performance}
-                            precision={1}
-                            suffix="%"
-                            prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
-                            valueStyle={{ fontWeight: 'bold' }}
-                        />
+                        <OeeGauge title="Performance" value={stats.performance} />
                     </Card>
                 </Col>
                 <Col span={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <Statistic
-                            title={<Text type="secondary">Quality</Text>}
-                            value={stats.quality}
-                            precision={1}
-                            suffix="%"
-                            prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
-                            valueStyle={{ fontWeight: 'bold' }}
-                        />
+                        <OeeGauge title="Quality" value={stats.quality} />
                     </Card>
                 </Col>
             </Row>
