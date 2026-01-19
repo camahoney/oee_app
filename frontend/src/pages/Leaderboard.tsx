@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip } from 'antd';
-import { CrownOutlined, TrophyOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
