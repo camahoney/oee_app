@@ -18,7 +18,6 @@ const Analytics: React.FC = () => {
     const [qualityData, setQualityData] = useState<any[]>([]);
     const [partData, setPartData] = useState<any[]>([]);
     const [downtimeData, setDowntimeData] = useState<any[]>([]);
-    const [operatorData, setOperatorData] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
 
     // Report Modal
@@ -52,13 +51,6 @@ const Analytics: React.FC = () => {
             const downtime = await analyticsService.getDowntimeAnalysis(10, startDate, endDate);
             setDowntimeData(downtime);
         } catch (e) { console.error("Downtime fetch failed", e); }
-
-        try {
-            // Sort operators by Volume (Total Produced) descending
-            const ops = await analyticsService.getComparison('operator', startDate, endDate);
-            const sortedOps = ops.sort((a: any, b: any) => (b.total_produced || 0) - (a.total_produced || 0));
-            setOperatorData(sortedOps);
-        } catch (e) { console.error("Operator fetch failed", e); }
 
         setLoading(false);
     };
@@ -333,54 +325,7 @@ const Analytics: React.FC = () => {
                     </Row>
                 </TabPane>
 
-                <TabPane tab="Leaderboard" key="leaderboard">
-                    <Row gutter={[24, 24]}>
-                        <Col span={24}>
-                            <Card title="Top Operators (By Volume)" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                                <div style={{ height: 400 }}>
-                                    {operatorData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={operatorData.slice(0, 10)}
-                                                layout="vertical"
-                                                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
-                                            >
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                                <XAxis type="number" />
-                                                <YAxis dataKey="name" type="category" width={100} />
-                                                <Tooltip />
-                                                <Legend />
-                                                <Bar dataKey="total_produced" name="Total Parts" fill="#722ed1" />
-                                                <Bar dataKey="total_good" name="Good Parts" fill="#52c41a" />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    ) : <Empty description="No operator data available" />}
-                                </div>
-                                <div style={{ marginTop: 24 }}>
-                                    <Table
-                                        dataSource={operatorData}
-                                        rowKey="name"
-                                        columns={[
-                                            { title: 'Operator', dataIndex: 'name', key: 'name' },
-                                            { title: 'Total Produced', dataIndex: 'total_produced', key: 'total', sorter: (a: any, b: any) => a.total_produced - b.total_produced, defaultSortOrder: 'descend' },
-                                            { title: 'Good Parts', dataIndex: 'total_good', key: 'good' },
-                                            {
-                                                title: 'Scrap Rate',
-                                                key: 'scrap',
-                                                render: (_: any, r: any) => {
-                                                    const rate = r.total_produced > 0 ? ((r.total_produced - r.total_good) / r.total_produced) * 100 : 0;
-                                                    return `${rate.toFixed(1)}%`;
-                                                }
-                                            },
-                                            { title: 'OEE Score', dataIndex: 'oee', key: 'oee', render: (v: number) => `${(v * 100).toFixed(0)}%` }
-                                        ]}
-                                        pagination={{ pageSize: 10 }}
-                                    />
-                                </div>
-                            </Card>
-                        </Col>
-                    </Row>
-                </TabPane>
+
 
                 <TabPane tab="Part Details" key="part">
                     <Card title="Detailed Part Performance" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
