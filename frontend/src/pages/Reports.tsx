@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Table, Button, Space, message, Popconfirm, Card } from 'antd';
-import { EyeOutlined, DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Typography, Table, Button, Space, message, Popconfirm, Card, Modal, Form, Input } from 'antd';
+import { EyeOutlined, DeleteOutlined, FileTextOutlined, EditOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,11 @@ const Reports: React.FC = () => {
     const [reports, setReports] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    // Rename Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingReport, setEditingReport] = useState<any>(null);
+    const [form] = Form.useForm();
 
     const fetchReports = async () => {
         try {
@@ -37,6 +42,24 @@ const Reports: React.FC = () => {
         }
     };
 
+    const handleEdit = (report: any) => {
+        setEditingReport(report);
+        form.setFieldsValue({ filename: report.filename });
+        setIsModalOpen(true);
+    };
+
+    const handleRenameSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            await reportService.updateReport(editingReport.id, values.filename);
+            message.success('Report renamed');
+            setIsModalOpen(false);
+            fetchReports();
+        } catch (error) {
+            message.error('Failed to rename report');
+        }
+    };
+
     const columns = [
         {
             title: 'Report Filename',
@@ -61,6 +84,12 @@ const Reports: React.FC = () => {
                         onClick={() => navigate(`/dashboard?reportId=${record.id}`)}
                     >
                         View
+                    </Button>
+                    <Button
+                        icon={<EditOutlined />}
+                        onClick={() => handleEdit(record)}
+                    >
+                        Rename
                     </Button>
                     <Popconfirm
                         title="Delete Report"
@@ -96,6 +125,23 @@ const Reports: React.FC = () => {
                     pagination={{ pageSize: 10 }}
                 />
             </Card>
+
+            <Modal
+                title="Rename Report"
+                open={isModalOpen}
+                onOk={handleRenameSubmit}
+                onCancel={() => setIsModalOpen(false)}
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item
+                        name="filename"
+                        label="New Filename"
+                        rules={[{ required: true, message: 'Please enter a filename' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

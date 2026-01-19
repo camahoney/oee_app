@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
+import { PrinterOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
 
@@ -14,11 +14,15 @@ const BRAND_BLUE = '#003366';
 
 const Analytics: React.FC = () => {
     const [loading, setLoading] = useState(true);
-    const [shiftData, setShiftData] = useState([]);
-    const [qualityData, setQualityData] = useState([]);
-    const [partData, setPartData] = useState([]);
-    const [downtimeData, setDowntimeData] = useState([]);
+    const [shiftData, setShiftData] = useState<any[]>([]);
+    const [qualityData, setQualityData] = useState<any[]>([]);
+    const [partData, setPartData] = useState<any[]>([]);
+    const [downtimeData, setDowntimeData] = useState<any[]>([]);
+    const [operatorData, setOperatorData] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
+
+    // Report Modal
+    const [isReportOpen, setIsReportOpen] = useState(false);
 
     useEffect(() => {
         fetchAllData();
@@ -29,7 +33,6 @@ const Analytics: React.FC = () => {
         const startDate = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
         const endDate = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
 
-        // Fetch independently so one failure doesn't break everything
         try {
             const shifts = await analyticsService.getComparison('shift', startDate, endDate);
             setShiftData(shifts);
@@ -50,14 +53,67 @@ const Analytics: React.FC = () => {
             setDowntimeData(downtime);
         } catch (e) { console.error("Downtime fetch failed", e); }
 
+        try {
+            // Sort operators by Volume (Total Produced) descending
+            const ops = await analyticsService.getComparison('operator', startDate, endDate);
+            const sortedOps = ops.sort((a: any, b: any) => (b.total_produced || 0) - (a.total_produced || 0));
+            setOperatorData(sortedOps);
+        } catch (e) { console.error("Operator fetch failed", e); }
+
         setLoading(false);
     };
 
     const handlePrint = () => {
+        // window.print(); // Old method
+        setIsReportOpen(true);
+    };
+
+    // Explicit trigger for react-to-print inside modal
+    // Note: In a real app we might install 'react-to-print', but here we can just use window.print with a specific CSS media query
+    // For simplicity without adding dependencies, we'll use a CSS-based Print approach on the Modal content.
+    const printContent = () => {
+        const content = document.getElementById('printable-report');
+        if (content) {
+            const pri = (document.getElementById('ifmcontentstoprint') as HTMLIFrameElement).contentWindow;
+            if (pri) {
+                pri.document.open();
+                pri.document.write(content.innerHTML);
+                pri.document.close();
+                pri.focus();
+                pri.print();
+            } else {
+                // Fallback
+                const originalContents = document.body.innerHTML;
+                document.body.innerHTML = content.innerHTML;
+                window.print();
+                document.body.innerHTML = originalContents;
+                window.location.reload(); // Reload to restore event listeners
+            }
+        }
+    };
+
+    // Better Approach: Use a dedicated CSS class for "print-only" and "no-print"
+    // We will just open the browser print dialog, but style the page so ONLY the report shows.
+    const triggerBrowserPrint = () => {
         window.print();
     };
 
-    // Columns for Part Analysis Table
+    // Columns
+    const shiftColumns = [
+        { title: 'Shift', dataIndex: 'name', key: 'name' },
+        {
+            title: 'OEE',
+            dataIndex: 'oee',
+            key: 'oee',
+            render: (val: number) => <Text strong style={{ color: val >= 0.85 ? '#52c41a' : '#faad14' }}>{(val * 100).toFixed(1)}%</Text>,
+            sorter: (a: any, b: any) => a.oee - b.oee
+        },
+        { title: 'Availability', dataIndex: 'availability', key: 'avail', render: (val: number) => `${(val * 100).toFixed(1)}%` },
+        { title: 'Performance', dataIndex: 'performance', key: 'perf', render: (val: number) => `${(val * 100).toFixed(1)}%` },
+        { title: 'Quality', dataIndex: 'quality', key: 'qual', render: (val: number) => `${(val * 100).toFixed(1)}%` },
+        { title: 'Samples', dataIndex: 'sample_size', key: 'samples' },
+    ];
+
     const partColumns = [
         { title: 'Part Number', dataIndex: 'name', key: 'name', width: 200 },
         {
@@ -67,24 +123,9 @@ const Analytics: React.FC = () => {
             render: (text: number) => <span style={{ fontWeight: 'bold', color: text >= 0.85 ? '#52c41a' : '#faad14' }}>{(text * 100).toFixed(1)}%</span>,
             sorter: (a: any, b: any) => a.oee - b.oee
         },
-        {
-            title: 'Availability',
-            dataIndex: 'availability',
-            key: 'availability',
-            render: (text: number) => `${(text * 100).toFixed(1)}%`
-        },
-        {
-            title: 'Performance',
-            dataIndex: 'performance',
-            key: 'performance',
-            render: (text: number) => `${(text * 100).toFixed(1)}%`
-        },
-        {
-            title: 'Quality',
-            dataIndex: 'quality',
-            key: 'quality',
-            render: (text: number) => `${(text * 100).toFixed(1)}%`
-        },
+        { title: 'Availability', dataIndex: 'availability', key: 'availability', render: (text: number) => `${(text * 100).toFixed(1)}%` },
+        { title: 'Performance', dataIndex: 'performance', key: 'performance', render: (text: number) => `${(text * 100).toFixed(1)}%` },
+        { title: 'Quality', dataIndex: 'quality', key: 'quality', render: (text: number) => `${(text * 100).toFixed(1)}%` },
         { title: 'Samples', dataIndex: 'sample_size', key: 'sample_size' },
     ];
 
@@ -98,7 +139,19 @@ const Analytics: React.FC = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            {/* Styles for Printing - Hides everything except the report when printing */}
+            <style>
+                {`
+                    @media print {
+                        body * { visibility: hidden; }
+                        #printable-section, #printable-section * { visibility: visible; }
+                        #printable-section { position: absolute; left: 0; top: 0; width: 100%; }
+                        .no-print { display: none !important; }
+                    }
+                `}
+            </style>
+
+            <div className="no-print" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                     <Title level={2} style={{ color: BRAND_BLUE, marginBottom: 0 }}>Advanced Analytics</Title>
                     <Text type="secondary">Deep dive into production trends, downtime, and quality issues.</Text>
@@ -110,26 +163,24 @@ const Analytics: React.FC = () => {
                         style={{ width: 260 }}
                     />
                     <Button
-                        icon={<PrinterOutlined />}
-                        onClick={handlePrint}
+                        type="primary"
+                        icon={<FilePdfOutlined />}
+                        onClick={() => setIsReportOpen(true)}
                     >
-                        Print Analysis
+                        Executive Report
                     </Button>
                 </Space>
             </div>
 
-            <Tabs defaultActiveKey="shift" type="card" size="large">
+            <Tabs defaultActiveKey="shift" type="card" size="large" className="no-print">
                 <TabPane tab="Shift Overview" key="shift">
                     <Row gutter={[24, 24]}>
                         <Col span={24}>
                             <Card title="Shift Performance Comparison" bordered={false} style={{ width: '100%', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                                <div style={{ height: 400 }}>
+                                <div style={{ height: 350, marginBottom: 24 }}>
                                     {shiftData.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={shiftData}
-                                                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                            >
+                                            <BarChart data={shiftData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                 <XAxis dataKey="name" />
                                                 <YAxis tickFormatter={(val) => `${(val * 100).toFixed(0)}%`} domain={[0, 1]} />
@@ -143,6 +194,14 @@ const Analytics: React.FC = () => {
                                         </ResponsiveContainer>
                                     ) : <Empty description="No data for selected range" />}
                                 </div>
+                                <Table
+                                    dataSource={shiftData}
+                                    columns={shiftColumns}
+                                    pagination={false}
+                                    rowKey="name"
+                                    bordered
+                                    size="small"
+                                />
                             </Card>
                         </Col>
                     </Row>
@@ -155,11 +214,7 @@ const Analytics: React.FC = () => {
                                 <div style={{ height: 400 }}>
                                     {downtimeData.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={downtimeData}
-                                                layout="vertical"
-                                                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
-                                            >
+                                            <BarChart data={downtimeData} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 5 }}>
                                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                                 <XAxis type="number" />
                                                 <YAxis dataKey="machine" type="category" width={100} />
@@ -194,11 +249,7 @@ const Analytics: React.FC = () => {
                                 <div style={{ height: 400 }}>
                                     {qualityData.length > 0 ? (
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart
-                                                data={qualityData}
-                                                layout="vertical"
-                                                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
-                                            >
+                                            <BarChart data={qualityData} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 5 }}>
                                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                                 <XAxis type="number" />
                                                 <YAxis dataKey="part_number" type="category" width={150} />
@@ -233,6 +284,104 @@ const Analytics: React.FC = () => {
                     </Row>
                 </TabPane>
 
+                <TabPane tab="Leaderboard" key="leaderboard">
+                    <Row gutter={[24, 24]}>
+                        <Col span={24}>
+                            <Card title="Top Operators (By Volume)" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                <div style={{ height: 400 }}>
+                                    {operatorData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={operatorData.slice(0, 10)}
+                                                layout="vertical"
+                                                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                <XAxis type="number" />
+                                                <YAxis dataKey="name" type="category" width={100} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="total_produced" name="Total Parts" fill="#722ed1" />
+                                                <Bar dataKey="total_good" name="Good Parts" fill="#52c41a" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : <Empty description="No operator data available" />}
+                                </div>
+                                <div style={{ marginTop: 24 }}>
+                                    <Table
+                                        dataSource={operatorData}
+                                        rowKey="name"
+                                        columns={[
+                                            { title: 'Operator', dataIndex: 'name', key: 'name' },
+                                            { title: 'Total Produced', dataIndex: 'total_produced', key: 'total', sorter: (a: any, b: any) => a.total_produced - b.total_produced, defaultSortOrder: 'descend' },
+                                            { title: 'Good Parts', dataIndex: 'total_good', key: 'good' },
+                                            {
+                                                title: 'Scrap Rate',
+                                                key: 'scrap',
+                                                render: (_: any, r: any) => {
+                                                    const rate = r.total_produced > 0 ? ((r.total_produced - r.total_good) / r.total_produced) * 100 : 0;
+                                                    return `${rate.toFixed(1)}%`;
+                                                }
+                                            },
+                                            { title: 'OEE Score', dataIndex: 'oee', key: 'oee', render: (v: number) => `${(v * 100).toFixed(0)}%` }
+                                        ]}
+                                        pagination={{ pageSize: 10 }}
+                                    />
+                                </div>
+                            </Card>
+                        </Col>
+                    </Row>
+                </TabPane>
+
+                <TabPane tab="Leaderboard" key="leaderboard">
+                    <Row gutter={[24, 24]}>
+                        <Col span={24}>
+                            <Card title="Top Operators (By Volume)" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                <div style={{ height: 400 }}>
+                                    {operatorData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={operatorData.slice(0, 10)}
+                                                layout="vertical"
+                                                margin={{ top: 20, right: 30, left: 100, bottom: 5 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                <XAxis type="number" />
+                                                <YAxis dataKey="name" type="category" width={100} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="total_produced" name="Total Parts" fill="#722ed1" />
+                                                <Bar dataKey="total_good" name="Good Parts" fill="#52c41a" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : <Empty description="No operator data available" />}
+                                </div>
+                                <div style={{ marginTop: 24 }}>
+                                    <Table
+                                        dataSource={operatorData}
+                                        rowKey="name"
+                                        columns={[
+                                            { title: 'Operator', dataIndex: 'name', key: 'name' },
+                                            { title: 'Total Produced', dataIndex: 'total_produced', key: 'total', sorter: (a: any, b: any) => a.total_produced - b.total_produced, defaultSortOrder: 'descend' },
+                                            { title: 'Good Parts', dataIndex: 'total_good', key: 'good' },
+                                            {
+                                                title: 'Scrap Rate',
+                                                key: 'scrap',
+                                                render: (_: any, r: any) => {
+                                                    const rate = r.total_produced > 0 ? ((r.total_produced - r.total_good) / r.total_produced) * 100 : 0;
+                                                    return `${rate.toFixed(1)}%`;
+                                                }
+                                            },
+                                            { title: 'OEE Score', dataIndex: 'oee', key: 'oee', render: (v: number) => `${(v * 100).toFixed(0)}%` }
+                                        ]}
+                                        pagination={{ pageSize: 10 }}
+                                    />
+                                </div>
+                            </Card>
+                        </Col>
+                    </Row>
+                </TabPane>
+
                 <TabPane tab="Part Details" key="part">
                     <Card title="Detailed Part Performance" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                         <Table
@@ -244,6 +393,73 @@ const Analytics: React.FC = () => {
                     </Card>
                 </TabPane>
             </Tabs>
+
+            {/* Hidden Printable Section (Only visible in Modal or Print Mode) */}
+            <Modal
+                title="Executive Report Preview"
+                open={isReportOpen}
+                onCancel={() => setIsReportOpen(false)}
+                width={800}
+                footer={[
+                    <Button key="close" onClick={() => setIsReportOpen(false)}>Close</Button>,
+                    <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={triggerBrowserPrint}>Print / Save PDF</Button>
+                ]}
+            >
+                <div id="printable-section" style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                        <Title level={3} style={{ color: BRAND_BLUE }}>Vibracoustic Executive Summary</Title>
+                        <Text type="secondary">Generated on {dayjs().format('MMMM D, YYYY')}</Text>
+                        <br />
+                        <Text strong>Period: {dateRange[0].format('MMM D')} - {dateRange[1].format('MMM D, YYYY')}</Text>
+                    </div>
+
+                    <Divider orientation="left">Production Overview</Divider>
+                    <Row gutter={16} style={{ textAlign: 'center' }}>
+                        {/* Simple Average of Shifts for Headline */}
+                        <Col span={6}><Statistic title="Avg OEE" value={shiftData.reduce((acc, c) => acc + c.oee, 0) / (shiftData.length || 1) * 100} precision={1} suffix="%" /></Col>
+                        <Col span={6}><Statistic title="Total Downtime" value={downtimeData.reduce((acc, c) => acc + c.total_downtime, 0)} suffix=" min" /></Col>
+                        <Col span={6}><Statistic title="Reject Rate" value={qualityData.reduce((acc, c) => acc + c.reject_rate, 0) / (qualityData.length || 1)} precision={1} suffix="%" /></Col>
+                    </Row>
+
+                    <Divider orientation="left">Shift Performance</Divider>
+                    <Table
+                        dataSource={shiftData}
+                        columns={shiftColumns}
+                        pagination={false}
+                        bordered
+                        size="small"
+                        rowKey="name"
+                    />
+
+                    <Divider orientation="left">Top Downtime Drivers</Divider>
+                    <Table
+                        dataSource={downtimeData.slice(0, 5)}
+                        columns={[
+                            { title: 'Machine', dataIndex: 'machine' },
+                            { title: 'Minutes Lost', dataIndex: 'total_downtime' }
+                        ]}
+                        pagination={false}
+                        size="small"
+                        rowKey="machine"
+                    />
+
+                    <Divider orientation="left">Quality Alerts (Top Rejects)</Divider>
+                    <Table
+                        dataSource={qualityData.slice(0, 5)}
+                        columns={[
+                            { title: 'Part Number', dataIndex: 'part_number' },
+                            { title: 'Reject Rate', dataIndex: 'reject_rate', render: (v: number) => `${v}%` }
+                        ]}
+                        pagination={false}
+                        size="small"
+                        rowKey="part_number"
+                    />
+
+                    <div style={{ marginTop: 40, textAlign: 'center', color: '#999', fontSize: '12px' }}>
+                        End of Report - Vibracoustic OEE Analytics
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

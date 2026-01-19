@@ -25,6 +25,9 @@ class ReportEntryUpdate(BaseModel):
     run_time_min: Optional[float] = None
     downtime_min: Optional[float] = None
 
+class ReportUpdate(BaseModel):
+    filename: Optional[str] = None
+
 # Helper to parse dates safely
 def parse_date(value) -> date:
     try:
@@ -311,6 +314,21 @@ def list_reports(session: Session = Depends(get_session)):
     """List all available production reports."""
     reports = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc())).all()
     return reports
+
+@router.put("/{report_id}", response_model=ProductionReport)
+def update_report(report_id: int, report_update: ReportUpdate, session: Session = Depends(get_session)):
+    """Update report metadata (e.g. filename)."""
+    report = session.get(ProductionReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    if report_update.filename is not None:
+        report.filename = report_update.filename
+        
+    session.add(report)
+    session.commit()
+    session.refresh(report)
+    return report
 
 @router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_report(report_id: int, session: Session = Depends(get_session)):

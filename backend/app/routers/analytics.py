@@ -45,13 +45,30 @@ def compare_metrics(
                     "avail_sum": 0.0,
                     "perf_sum": 0.0,
                     "qual_sum": 0.0,
+                    "produced_sum": 0,
+                    "good_sum": 0,
                     "count": 0
                 }
             
+            # Parse Volume from Diagnostics
+            run_produced = 0
+            run_good = 0
+            if m.diagnostics_json:
+                try:
+                    import json
+                    diag = json.loads(m.diagnostics_json)
+                    run_good = int(diag.get("good_count", 0))
+                    run_reject = int(diag.get("reject_count", 0))
+                    run_produced = run_good + run_reject
+                except:
+                    pass
+
             grouped_data[key]["oee_sum"] += (m.oee or 0)
             grouped_data[key]["avail_sum"] += (m.availability or 0)
             grouped_data[key]["perf_sum"] += (m.performance or 0)
             grouped_data[key]["qual_sum"] += (m.quality or 0)
+            grouped_data[key]["produced_sum"] += run_produced
+            grouped_data[key]["good_sum"] += run_good
             grouped_data[key]["count"] += 1
             
         results = []
@@ -64,6 +81,8 @@ def compare_metrics(
                 "availability": round(data["avail_sum"] / count, 4),
                 "performance": round(data["perf_sum"] / count, 4),
                 "quality": round(data["qual_sum"] / count, 4),
+                "total_produced": data["produced_sum"],
+                "total_good": data["good_sum"],
                 "sample_size": count
             })
             
