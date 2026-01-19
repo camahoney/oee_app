@@ -103,7 +103,6 @@ const Leaderboard: React.FC = () => {
         <div style={{ padding: '24px' }}>
             <style>
                 {`
-                    .no-print { display: block; }
                     .print-only { display: none; }
                     @media print {
                         .no-print { display: none !important; }
