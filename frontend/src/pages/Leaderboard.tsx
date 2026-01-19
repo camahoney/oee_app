@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip } from 'antd';
-import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined } from '@ant-design/icons';
+```typescript
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip, Button } from 'antd';
+import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined, PrinterOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
+import { LeaderboardExport } from '../components/LeaderboardExport';
+// import { useReactToPrint } from 'react-to-print'; // Assuming we might not have this, so I will stick to window.print with media queries like Analytics
 
 const { Title, Text } = Typography;
 
@@ -19,6 +22,7 @@ const Leaderboard: React.FC = () => {
     const [allOperators, setAllOperators] = useState<any[]>([]); // Raw data
     const [displayedOperators, setDisplayedOperators] = useState<any[]>([]); // Sorted & Ranked
     const [metric, setMetric] = useState<MetricType>('volume');
+    const [dateRangeStr, setDateRangeStr] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -32,9 +36,14 @@ const Leaderboard: React.FC = () => {
         setLoading(true);
         try {
             // Defaulting to last 30 days for leaderboard context
-            const startDate = dayjs().subtract(30, 'days').format('YYYY-MM-DD');
-            const endDate = dayjs().format('YYYY-MM-DD');
+            const start = dayjs().subtract(30, 'days');
+            const end = dayjs();
+            const startDate = start.format('YYYY-MM-DD');
+            const endDate = end.format('YYYY-MM-DD');
+            
+            setDateRangeStr(`${ start.format('MMM D') } - ${ end.format('MMM D, YYYY') } `);
 
+            // Fetch with high limit to get ALL operators
             const ops = await analyticsService.getComparison('operator', startDate, endDate);
             setAllOperators(ops);
         } catch (e) { console.error("Leaderboard fetch failed", e); }
@@ -59,6 +68,10 @@ const Leaderboard: React.FC = () => {
         }));
 
         setDisplayedOperators(ranked);
+    };
+
+    const handlePrint = () => {
+        window.print();
     };
 
     const getRankColor = (rank: number) => {
@@ -88,15 +101,34 @@ const Leaderboard: React.FC = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                <Title level={1} style={{ color: BRAND_BLUE, marginBottom: 8 }}>
-                    <TrophyOutlined /> Operator Hall of Fame
-                </Title>
-                <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 16 }}>Top Performers (Last 30 Days)</Text>
+            <style>
+                {`
+    .no - print { display: block; }
+                    .print - only { display: none; }
+@media print {
+                        .no - print { display: none!important; }
+                        .print - only { display: block!important; }
+}
+`}
+            </style>
+
+            <div className="no-print" style={{ textAlign: 'center', marginBottom: 40 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ width: 100 }}></div> {/* Spacer */}
+                    <div>
+                        <Title level={1} style={{ color: BRAND_BLUE, marginBottom: 8 }}>
+                            <TrophyOutlined /> Operator Hall of Fame
+                        </Title>
+                        <div style={{ marginBottom: 16 }}>
+                            <Text type="secondary" style={{ fontSize: 16 }}>Top Performers (Last 30 Days)</Text>
+                        </div>
+                    </div>
+                    <div style={{ width: 100 }}>
+                        <Button icon={<PrinterOutlined />} onClick={handlePrint} size="large">Print Poster</Button>
+                    </div>
                 </div>
 
-                <Space align="center" style={{ backgroundColor: '#f5f5f5', padding: '8px', borderRadius: '8px' }}>
+                <Space align="center" style={{ backgroundColor: '#f5f5f5', padding: '8px', borderRadius: '8px', marginTop: 16 }}>
                     <Text strong>Rank By:</Text>
                     <Segmented<MetricType>
                         options={[
@@ -114,7 +146,7 @@ const Leaderboard: React.FC = () => {
             </div>
 
             {/* Podium Section */}
-            <Row justify="center" align="bottom" gutter={24} style={{ marginBottom: 60, minHeight: 320 }}>
+            <Row className="no-print" justify="center" align="bottom" gutter={24} style={{ marginBottom: 60, minHeight: 320 }}>
                 {podiumData.map((op: any) => (
                     op && (
                         <Col key={op.name} span={6} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -138,7 +170,7 @@ const Leaderboard: React.FC = () => {
                                 style={{
                                     width: '100%',
                                     borderRadius: '12px 12px 0 0',
-                                    borderTop: `6px solid ${getRankColor(op.rank)}`,
+                                    borderTop: `6px solid ${ getRankColor(op.rank) } `,
                                     boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                                     height: op.rank === 0 ? 220 : op.rank === 1 ? 190 : 160
                                 }}
@@ -147,7 +179,7 @@ const Leaderboard: React.FC = () => {
                                 <div style={{ fontSize: 32, fontWeight: 'bold', color: BRAND_BLUE, margin: '16px 0' }}>
                                     {metric === 'volume'
                                         ? op.total_produced?.toLocaleString()
-                                        : `${(op.oee * 100).toFixed(0)}%`
+                                        : `${ (op.oee * 100).toFixed(0) }% `
                                     }
                                 </div>
                                 <Text type="secondary">
@@ -160,9 +192,9 @@ const Leaderboard: React.FC = () => {
             </Row>
 
             {/* Stats Row */}
-            <Row gutter={[24, 24]}>
+            <Row className="no-print" gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                    <Card title={`Detailed Rankings - Sorted by ${metric === 'volume' ? 'Volume' : 'Efficiency'}`} bordered={false} style={{ borderRadius: 12 }}>
+                    <Card title={`Detailed Rankings - Sorted by ${ metric === 'volume' ? 'Volume' : 'Efficiency' } `} bordered={false} style={{ borderRadius: 12 }}>
                         <Table
                             dataSource={displayedOperators}
                             rowKey="name"
@@ -235,8 +267,14 @@ const Leaderboard: React.FC = () => {
                     </Card>
                 </Col>
             </Row>
+
+            {/* Actually render the print component here, normally hidden */}
+            <div className="print-only">
+                <LeaderboardExport data={displayedOperators} metric={metric} dateRange={dateRangeStr} />
+            </div>
         </div>
     );
 };
 
 export default Leaderboard;
+```

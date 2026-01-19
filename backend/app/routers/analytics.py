@@ -11,7 +11,7 @@ router = APIRouter(tags=["analytics"])
 @router.get("/compare", response_model=List[Dict[str, Any]])
 def compare_metrics(
     group_by: str = Query(..., regex="^(shift|part|machine|operator)$"), 
-    limit: int = 20,
+    limit: int = 100,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     session: Session = Depends(get_session)
