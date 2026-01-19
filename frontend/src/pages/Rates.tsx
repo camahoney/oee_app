@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Table, Button, Space, Upload as AntUpload, message, Popconfirm, Tooltip } from 'antd';
-import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Typography, Table, Button, Space, Upload as AntUpload, message, Popconfirm, Tooltip, Input, Modal, Form, InputNumber } from 'antd';
+import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { rateService } from '../services/api';
 
 const { Title } = Typography;
 
 const Rates: React.FC = () => {
-    const [rates, setRates] = useState([]);
+    const [rates, setRates] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchText, setSearchText] = useState('');
+
+    // Modal State
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [editingRate, setEditingRate] = useState<any>(null);
+    const [form] = Form.useForm();
 
     const fetchRates = async () => {
         setLoading(true);
@@ -26,14 +32,71 @@ const Rates: React.FC = () => {
         fetchRates();
     }, []);
 
-    const handleDelete = (id: number) => {
-        message.info("Delete functionality coming soon!");
-        // TODO: Implement delete API call
+    // Filtered Data
+    const filteredRates = rates.filter(rate => {
+        const search = searchText.toLowerCase();
+        return (
+            (rate.job?.toLowerCase() || '').includes(search) ||
+            (rate.part_number?.toLowerCase() || '').includes(search) ||
+            (rate.machine?.toLowerCase() || '').includes(search)
+        );
+    });
+
+    // Delete
+    const handleDelete = async (id: number) => {
+        try {
+            await rateService.deleteRate(id);
+            message.success('Rate deleted');
+            fetchRates();
+        } catch (error) {
+            message.error('Failed to delete rate');
+        }
+    };
+
+    // Add / Edit Handlers
+    const handleAdd = () => {
+        setEditingRate(null);
+        form.resetFields();
+        // Set defaults
+        form.setFieldsValue({
+            active: true,
+            cavities: 1,
+            operators: 0
+        });
+        setIsModalVisible(true);
     };
 
     const handleEdit = (record: any) => {
-        message.info("Edit functionality coming soon!");
-        // TODO: Implement edit modal
+        setEditingRate(record);
+        form.setFieldsValue({
+            job: record.job,
+            part_number: record.part_number,
+            machine: record.machine,
+            ideal_cycle_time_seconds: record.ideal_cycle_time_seconds,
+            active: record.active
+        });
+        setIsModalVisible(true);
+    };
+
+    const handleModalOk = async () => {
+        try {
+            const values = await form.validateFields();
+
+            if (editingRate) {
+                await rateService.updateRate(editingRate.id, values);
+                message.success('Rate updated');
+            } else {
+                await rateService.createRate(values);
+                message.success('Rate created');
+            }
+            setIsModalVisible(false);
+            fetchRates();
+        } catch (error) {
+            console.error(error);
+            if (!form.isFieldsValidating()) {
+                message.error('Failed to save rate. Check inputs.');
+            }
+        }
     };
 
     const uploadProps = {
@@ -61,9 +124,9 @@ const Rates: React.FC = () => {
     };
 
     const columns: any = [
-        { title: 'Job / SO#', dataIndex: 'job', key: 'job' },
-        { title: 'Part Number', dataIndex: 'part_number', key: 'part_number' },
-        { title: 'Machine', dataIndex: 'machine', key: 'machine' },
+        { title: 'Job / SO#', dataIndex: 'job', key: 'job', sorter: (a: any, b: any) => (a.job || '').localeCompare(b.job || '') },
+        { title: 'Part Number', dataIndex: 'part_number', key: 'part_number', sorter: (a: any, b: any) => (a.part_number || '').localeCompare(b.part_number || '') },
+        { title: 'Machine', dataIndex: 'machine', key: 'machine', sorter: (a: any, b: any) => (a.machine || '').localeCompare(b.machine || '') },
         {
             title: 'Ideal Cycle (s)',
             dataIndex: 'ideal_cycle_time_seconds',
@@ -95,26 +158,60 @@ const Rates: React.FC = () => {
     ];
 
     return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ paddingBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <Title level={2} style={{ margin: 0 }}>Master Rate Table</Title>
                 <Space>
+                    <Input
+                        placeholder="Search Rate..."
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 250 }}
+                        allowClear
+                    />
                     <AntUpload {...uploadProps}>
                         <Button icon={<UploadOutlined />}>Upload Rates</Button>
                     </AntUpload>
-                    <Button type="primary" icon={<PlusOutlined />}>Add Rate</Button>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Add Rate</Button>
                 </Space>
             </div>
+
             <Table
                 columns={columns}
-                dataSource={rates}
+                dataSource={filteredRates}
                 rowKey="id"
                 loading={loading}
-                pagination={{ pageSize: 500, hideOnSinglePage: true }}
-                scroll={{ y: 600 }}
+                pagination={{ pageSize: 100, showSizeChanger: true, pageSizeOptions: ['50', '100', '200', '500'] }}
+                scroll={{ y: 'calc(100vh - 280px)' }}
                 size="middle"
                 bordered
             />
+
+            <Modal
+                title={editingRate ? "Edit Rate" : "Add Rate"}
+                open={isModalVisible}
+                onOk={handleModalOk}
+                onCancel={() => setIsModalVisible(false)}
+                destroyOnClose
+            >
+                <Form form={form} layout="vertical">
+                    <Form.Item name="job" label="Job / SO#" rules={[{ required: true, message: 'Please enter Job/SO#' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="part_number" label="Part Number" rules={[{ required: true, message: 'Please enter Part Number' }]}>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="machine" label="Machine" rules={[{ required: true, message: 'Please enter Machine ID' }]}>
+                        <Input />
+                    </Form.Item>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                        <Form.Item name="ideal_cycle_time_seconds" label="Ideal Cycle (Sec)" rules={[{ required: true, message: 'Required' }]} style={{ flex: 1 }}>
+                            <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+                        </Form.Item>
+                    </div>
+                </Form>
+            </Modal>
         </div>
     );
 };

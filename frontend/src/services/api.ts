@@ -17,6 +17,18 @@ export const rateService = {
         const response = await api.get('/rates');
         return response.data;
     },
+    createRate: async (data: any) => {
+        const response = await api.post('/rates/', data);
+        return response.data;
+    },
+    updateRate: async (id: number, data: any) => {
+        const response = await api.put(`/rates/${id}`, data);
+        return response.data;
+    },
+    deleteRate: async (id: number) => {
+        const response = await api.delete(`/rates/${id}`);
+        return response.data;
+    },
     uploadRates: async (file: File) => {
         const formData = new FormData();
         formData.append('file', file);
