@@ -1,4 +1,4 @@
-```typescript
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip, Button } from 'antd';
 import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined, PrinterOutlined } from '@ant-design/icons';
@@ -40,8 +40,8 @@ const Leaderboard: React.FC = () => {
             const end = dayjs();
             const startDate = start.format('YYYY-MM-DD');
             const endDate = end.format('YYYY-MM-DD');
-            
-            setDateRangeStr(`${ start.format('MMM D') } - ${ end.format('MMM D, YYYY') } `);
+
+            setDateRangeStr(`${start.format('MMM D')} - ${end.format('MMM D, YYYY')} `);
 
             // Fetch with high limit to get ALL operators
             const ops = await analyticsService.getComparison('operator', startDate, endDate);
@@ -170,7 +170,7 @@ const Leaderboard: React.FC = () => {
                                 style={{
                                     width: '100%',
                                     borderRadius: '12px 12px 0 0',
-                                    borderTop: `6px solid ${ getRankColor(op.rank) } `,
+                                    borderTop: `6px solid ${getRankColor(op.rank)} `,
                                     boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                                     height: op.rank === 0 ? 220 : op.rank === 1 ? 190 : 160
                                 }}
@@ -179,7 +179,7 @@ const Leaderboard: React.FC = () => {
                                 <div style={{ fontSize: 32, fontWeight: 'bold', color: BRAND_BLUE, margin: '16px 0' }}>
                                     {metric === 'volume'
                                         ? op.total_produced?.toLocaleString()
-                                        : `${ (op.oee * 100).toFixed(0) }% `
+                                        : `${(op.oee * 100).toFixed(0)}% `
                                     }
                                 </div>
                                 <Text type="secondary">
@@ -194,7 +194,7 @@ const Leaderboard: React.FC = () => {
             {/* Stats Row */}
             <Row className="no-print" gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                    <Card title={`Detailed Rankings - Sorted by ${ metric === 'volume' ? 'Volume' : 'Efficiency' } `} bordered={false} style={{ borderRadius: 12 }}>
+                    <Card title={`Detailed Rankings - Sorted by ${metric === 'volume' ? 'Volume' : 'Efficiency'} `} bordered={false} style={{ borderRadius: 12 }}>
                         <Table
                             dataSource={displayedOperators}
                             rowKey="name"
@@ -277,4 +277,4 @@ const Leaderboard: React.FC = () => {
 };
 
 export default Leaderboard;
-```
+
