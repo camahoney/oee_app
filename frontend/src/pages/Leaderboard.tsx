@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Table, Spin, Avatar, Statistic, Empty, Badge } from 'antd';
-import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip } from 'antd';
+import { CrownOutlined, TrophyOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
@@ -12,27 +12,53 @@ const GOLD = '#FFD700';
 const SILVER = '#C0C0C0';
 const BRONZE = '#CD7F32';
 
+type MetricType = 'volume' | 'oee';
+
 const Leaderboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
-    const [operators, setOperators] = useState<any[]>([]);
+    const [allOperators, setAllOperators] = useState<any[]>([]); // Raw data
+    const [displayedOperators, setDisplayedOperators] = useState<any[]>([]); // Sorted & Ranked
+    const [metric, setMetric] = useState<MetricType>('volume');
 
     useEffect(() => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        processData(allOperators, metric);
+    }, [metric, allOperators]);
+
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Defaulting to last 30 days for leaderboard context, or could make this selectable
+            // Defaulting to last 30 days for leaderboard context
             const startDate = dayjs().subtract(30, 'days').format('YYYY-MM-DD');
             const endDate = dayjs().format('YYYY-MM-DD');
 
             const ops = await analyticsService.getComparison('operator', startDate, endDate);
-            // Sort by Volume descending
-            const sortedOps = ops.sort((a: any, b: any) => (b.total_produced || 0) - (a.total_produced || 0));
-            setOperators(sortedOps);
+            setAllOperators(ops);
         } catch (e) { console.error("Leaderboard fetch failed", e); }
         setLoading(false);
+    };
+
+    const processData = (data: any[], currentMetric: MetricType) => {
+        if (!data.length) return;
+
+        let sorted = [...data];
+        if (currentMetric === 'volume') {
+            sorted.sort((a, b) => (b.total_produced || 0) - (a.total_produced || 0));
+        } else {
+            sorted.sort((a, b) => (b.oee || 0) - (a.oee || 0));
+        }
+
+        // Assign fixed rank based on sorted position
+        const ranked = sorted.map((op, index) => ({
+            ...op,
+            rank: index, // 0-based rank
+            displayRank: index + 1 // 1-based for display
+        }));
+
+        setDisplayedOperators(ranked);
     };
 
     const getRankColor = (rank: number) => {
@@ -51,13 +77,13 @@ const Leaderboard: React.FC = () => {
 
     if (loading) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />;
 
-    const top3 = operators.slice(0, 3);
+    const top3 = displayedOperators.slice(0, 3);
 
     // Podium order for visual display: 2nd, 1st, 3rd
     const podiumData = [
-        top3[1] ? { ...top3[1], rank: 1, originalIndex: 1 } : null,
-        top3[0] ? { ...top3[0], rank: 0, originalIndex: 0 } : null,
-        top3[2] ? { ...top3[2], rank: 2, originalIndex: 2 } : null,
+        top3[1] ? { ...top3[1] } : null,
+        top3[0] ? { ...top3[0] } : null,
+        top3[2] ? { ...top3[2] } : null,
     ].filter(Boolean);
 
     return (
@@ -66,12 +92,30 @@ const Leaderboard: React.FC = () => {
                 <Title level={1} style={{ color: BRAND_BLUE, marginBottom: 8 }}>
                     <TrophyOutlined /> Operator Hall of Fame
                 </Title>
-                <Text type="secondary" style={{ fontSize: 16 }}>Top Producers for the last 30 Days</Text>
+                <div style={{ marginBottom: 16 }}>
+                    <Text type="secondary" style={{ fontSize: 16 }}>Top Performers (Last 30 Days)</Text>
+                </div>
+
+                <Space align="center" style={{ backgroundColor: '#f5f5f5', padding: '8px', borderRadius: '8px' }}>
+                    <Text strong>Rank By:</Text>
+                    <Segmented<MetricType>
+                        options={[
+                            { label: 'Production Volume', value: 'volume', icon: <UserOutlined /> },
+                            { label: 'Efficiency (OEE)', value: 'oee', icon: <RiseOutlined /> },
+                        ]}
+                        value={metric}
+                        onChange={setMetric}
+                        size="large"
+                    />
+                    <AntTooltip title={metric === 'volume' ? "Total parts made. Best for heavy hitters." : "Performance relative to potential. Fairer for different machine speeds/cavities."}>
+                        <InfoCircleOutlined style={{ color: '#999', cursor: 'pointer' }} />
+                    </AntTooltip>
+                </Space>
             </div>
 
             {/* Podium Section */}
             <Row justify="center" align="bottom" gutter={24} style={{ marginBottom: 60, minHeight: 320 }}>
-                {podiumData.map((op, index) => (
+                {podiumData.map((op: any) => (
                     op && (
                         <Col key={op.name} span={6} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}>
                             <div style={{ marginBottom: 16, position: 'relative' }}>
@@ -101,9 +145,14 @@ const Leaderboard: React.FC = () => {
                             >
                                 <Title level={3} style={{ marginBottom: 0 }}>{op.name}</Title>
                                 <div style={{ fontSize: 32, fontWeight: 'bold', color: BRAND_BLUE, margin: '16px 0' }}>
-                                    {op.total_produced?.toLocaleString()}
+                                    {metric === 'volume'
+                                        ? op.total_produced?.toLocaleString()
+                                        : `${(op.oee * 100).toFixed(0)}%`
+                                    }
                                 </div>
-                                <Text type="secondary">Parts Produced</Text>
+                                <Text type="secondary">
+                                    {metric === 'volume' ? 'Parts Produced' : 'OEE Score'}
+                                </Text>
                             </Card>
                         </Col>
                     )
@@ -113,9 +162,9 @@ const Leaderboard: React.FC = () => {
             {/* Stats Row */}
             <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                    <Card title="Detailed Rankings" bordered={false} style={{ borderRadius: 12 }}>
+                    <Card title={`Detailed Rankings - Sorted by ${metric === 'volume' ? 'Volume' : 'Efficiency'}`} bordered={false} style={{ borderRadius: 12 }}>
                         <Table
-                            dataSource={operators}
+                            dataSource={displayedOperators}
                             rowKey="name"
                             pagination={{ pageSize: 10 }}
                             columns={[
@@ -123,9 +172,11 @@ const Leaderboard: React.FC = () => {
                                     title: 'Rank',
                                     key: 'rank',
                                     width: 80,
-                                    render: (_, __, index) => {
-                                        if (index < 3) return <Badge count={index + 1} style={{ backgroundColor: getRankColor(index) }} />;
-                                        return <span style={{ paddingLeft: 8, color: '#999' }}>#{index + 1}</span>;
+                                    render: (_, record: any) => {
+                                        // Use PRE-CALCULATED rank from data, not rendering index
+                                        const rankIndex = record.rank;
+                                        if (rankIndex < 3) return <Badge count={rankIndex + 1} style={{ backgroundColor: getRankColor(rankIndex) }} />;
+                                        return <span style={{ paddingLeft: 8, color: '#999' }}>#{rankIndex + 1}</span>;
                                     }
                                 },
                                 {
@@ -138,8 +189,6 @@ const Leaderboard: React.FC = () => {
                                     title: 'Volume',
                                     dataIndex: 'total_produced',
                                     key: 'total',
-                                    sorter: (a, b) => a.total_produced - b.total_produced,
-                                    defaultSortOrder: 'descend',
                                     render: (val) => <Text style={{ fontSize: 16 }}>{val?.toLocaleString()}</Text>
                                 },
                                 {
@@ -166,14 +215,20 @@ const Leaderboard: React.FC = () => {
                     </Card>
                 </Col>
                 <Col xs={24} lg={8}>
-                    <Card title="Production Distribution" bordered={false} style={{ borderRadius: 12 }}>
+                    <Card title="Distribution" bordered={false} style={{ borderRadius: 12 }}>
                         <div style={{ height: 400 }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={operators.slice(0, 10)} layout="vertical">
+                                <BarChart data={displayedOperators.slice(0, 10)} layout="vertical">
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
                                     <Tooltip />
-                                    <Bar dataKey="total_produced" fill={BRAND_BLUE} radius={[0, 4, 4, 0]} barSize={20} />
+                                    <Bar
+                                        dataKey={metric === 'volume' ? "total_produced" : "oee"}
+                                        name={metric === 'volume' ? "Parts" : "OEE"}
+                                        fill={BRAND_BLUE}
+                                        radius={[0, 4, 4, 0]}
+                                        barSize={20}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
