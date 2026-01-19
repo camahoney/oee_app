@@ -8,17 +8,31 @@ const BRONZE = '#CD7F32';
 
 interface LeaderboardExportProps {
     data: any[];
-    metric: 'volume' | 'oee';
+    metric: 'volume' | 'oee' | 'yield';
     dateRange: string;
 }
 
 export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metric, dateRange }) => {
+
+    const getMetricLabel = () => {
+        if (metric === 'volume') return 'Top Producers by Volume';
+        if (metric === 'oee') return 'Top Performers by Efficiency';
+        return 'Quality Champions (Yield)';
+    };
+
+    const getValue = (op: any) => {
+        if (metric === 'volume') return op.total_produced.toLocaleString();
+        if (metric === 'oee') return (op.oee * 100).toFixed(0) + '%';
+        // Yield
+        return ((op.total_good / (op.total_produced || 1)) * 100).toFixed(1) + '%';
+    };
+
     return (
         <div id="printable-leaderboard" style={{ padding: '40px', fontFamily: 'Arial, sans-serif', backgroundColor: 'white' }}>
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 40, borderBottom: `4px solid ${BRAND_BLUE}`, paddingBottom: 20 }}>
                 <h1 style={{ color: BRAND_BLUE, fontSize: '42px', margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>Production Leaderboard</h1>
-                <h3 style={{ color: '#666', marginTop: 10, fontSize: '24px' }}>{metric === 'volume' ? 'Top Producers by Volume' : 'Top Performers by Efficiency'}</h3>
+                <h3 style={{ color: '#666', marginTop: 10, fontSize: '24px' }}>{getMetricLabel()}</h3>
                 <p style={{ color: '#999', fontSize: '18px' }}>Period: {dateRange}</p>
             </div>
 
@@ -41,7 +55,7 @@ export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metr
                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                         }}>2</div>
                         <div style={{ marginTop: 10, fontSize: '20px', fontWeight: 'bold', color: '#555' }}>
-                            {metric === 'volume' ? data[1].total_produced.toLocaleString() : (data[1].oee * 100).toFixed(0) + '%'}
+                            {getValue(data[1])}
                         </div>
                     </div>
                 )}
@@ -64,7 +78,7 @@ export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metr
                             border: '4px solid #fff'
                         }}>1</div>
                         <div style={{ marginTop: 10, fontSize: '28px', fontWeight: 'bold', color: BRAND_BLUE }}>
-                            {metric === 'volume' ? data[0].total_produced.toLocaleString() : (data[0].oee * 100).toFixed(0) + '%'}
+                            {getValue(data[0])}
                         </div>
                     </div>
                 )}
@@ -86,7 +100,7 @@ export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metr
                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                         }}>3</div>
                         <div style={{ marginTop: 10, fontSize: '20px', fontWeight: 'bold', color: '#555' }}>
-                            {metric === 'volume' ? data[2].total_produced.toLocaleString() : (data[2].oee * 100).toFixed(0) + '%'}
+                            {getValue(data[2])}
                         </div>
                     </div>
                 )}
@@ -100,7 +114,7 @@ export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metr
                         <th style={{ padding: '15px', textAlign: 'left' }}>Operator</th>
                         <th style={{ padding: '15px', textAlign: 'right' }}>Volume</th>
                         <th style={{ padding: '15px', textAlign: 'right' }}>Good Parts</th>
-                        <th style={{ padding: '15px', textAlign: 'right' }}>OEE Score</th>
+                        <th style={{ padding: '15px', textAlign: 'right' }}>{metric === 'yield' ? 'Yield Rate' : 'OEE Score'}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,11 +125,13 @@ export const LeaderboardExport: React.FC<LeaderboardExportProps> = ({ data, metr
                             <td style={{ padding: '12px', textAlign: 'right' }}>{op.total_produced?.toLocaleString()}</td>
                             <td style={{ padding: '12px', textAlign: 'right', color: '#3f8600' }}>
                                 {op.total_good?.toLocaleString()}
-                                <span style={{ fontSize: '12px', display: 'block', color: '#999' }}>
-                                    {((op.total_good / (op.total_produced || 1)) * 100).toFixed(1)}% Yield
-                                </span>
                             </td>
-                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>{(op.oee * 100).toFixed(0)}%</td>
+                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>
+                                {metric === 'yield'
+                                    ? ((op.total_good / (op.total_produced || 1)) * 100).toFixed(1) + '%'
+                                    : (op.oee * 100).toFixed(0) + '%'
+                                }
+                            </td>
                         </tr>
                     ))}
                 </tbody>

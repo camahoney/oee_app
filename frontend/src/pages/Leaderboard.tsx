@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Typography, Table, Spin, Avatar, Badge, Segmented, Space, Tooltip as AntTooltip, Button } from 'antd';
-import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined, PrinterOutlined } from '@ant-design/icons';
+import { CrownOutlined, TrophyOutlined, UserOutlined, RiseOutlined, InfoCircleOutlined, PrinterOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
@@ -15,7 +15,7 @@ const GOLD = '#FFD700';
 const SILVER = '#C0C0C0';
 const BRONZE = '#CD7F32';
 
-type MetricType = 'volume' | 'oee';
+type MetricType = 'volume' | 'oee' | 'yield';
 
 const Leaderboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -56,8 +56,17 @@ const Leaderboard: React.FC = () => {
         let sorted = [...data];
         if (currentMetric === 'volume') {
             sorted.sort((a, b) => (b.total_produced || 0) - (a.total_produced || 0));
-        } else {
+        } else if (currentMetric === 'oee') {
             sorted.sort((a, b) => (b.oee || 0) - (a.oee || 0));
+        } else {
+            // Yield Logic: Filter small sample sizes (<50 parts) to avoid "1 for 1" 100% bias
+            // Then sort by Yield % ((good/total)*100)
+            sorted = sorted.filter(op => (op.total_produced || 0) > 50);
+            sorted.sort((a, b) => {
+                const yieldA = a.total_produced ? (a.total_good / a.total_produced) : 0;
+                const yieldB = b.total_produced ? (b.total_good / b.total_produced) : 0;
+                return yieldB - yieldA;
+            });
         }
 
         // Assign fixed rank based on sorted position
@@ -133,6 +142,7 @@ const Leaderboard: React.FC = () => {
                         options={[
                             { label: 'Production Volume', value: 'volume', icon: <UserOutlined /> },
                             { label: 'Efficiency (OEE)', value: 'oee', icon: <RiseOutlined /> },
+                            { label: 'Quality (Yield)', value: 'yield', icon: <SafetyCertificateOutlined /> },
                         ]}
                         value={metric}
                         onChange={setMetric}
@@ -178,11 +188,13 @@ const Leaderboard: React.FC = () => {
                                 <div style={{ fontSize: 32, fontWeight: 'bold', color: BRAND_BLUE, margin: '16px 0' }}>
                                     {metric === 'volume'
                                         ? op.total_produced?.toLocaleString()
-                                        : `${(op.oee * 100).toFixed(0)}% `
+                                        : metric === 'oee'
+                                            ? `${(op.oee * 100).toFixed(0)}%`
+                                            : `${((op.total_good / (op.total_produced || 1)) * 100).toFixed(1)}%`
                                     }
                                 </div>
                                 <Text type="secondary">
-                                    {metric === 'volume' ? 'Parts Produced' : 'OEE Score'}
+                                    {metric === 'volume' ? 'Parts Produced' : metric === 'oee' ? 'OEE Score' : 'Yield Rate'}
                                 </Text>
                             </Card>
                         </Col>
@@ -193,7 +205,7 @@ const Leaderboard: React.FC = () => {
             {/* Stats Row */}
             <Row className="no-print" gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                    <Card title={`Detailed Rankings - Sorted by ${metric === 'volume' ? 'Volume' : 'Efficiency'} `} bordered={false} style={{ borderRadius: 12 }}>
+                    <Card title={`Detailed Rankings - Sorted by ${metric === 'volume' ? 'Volume' : metric === 'oee' ? 'Efficiency' : 'Quality'}`} bordered={false} style={{ borderRadius: 12 }}>
                         <Table
                             dataSource={displayedOperators}
                             rowKey="name"
@@ -254,8 +266,8 @@ const Leaderboard: React.FC = () => {
                                     <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
                                     <Tooltip />
                                     <Bar
-                                        dataKey={metric === 'volume' ? "total_produced" : "oee"}
-                                        name={metric === 'volume' ? "Parts" : "OEE"}
+                                        dataKey={metric === 'volume' ? "total_produced" : metric === 'oee' ? "oee" : "total_good"}
+                                        name={metric === 'volume' ? "Parts" : metric === 'oee' ? "OEE" : "Good Parts"}
                                         fill={BRAND_BLUE}
                                         radius={[0, 4, 4, 0]}
                                         barSize={20}
