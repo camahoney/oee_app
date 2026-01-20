@@ -88,6 +88,13 @@ export const reportService = {
     updateReportEntry: async (entryId: number, data: any) => {
         const response = await api.put(`/reports/entries/${entryId}`, data);
         return response.data;
+    },
+    createReportEntry: async (reportId: number, data: any) => {
+        const response = await api.post(`/reports/${reportId}/entries`, data);
+        return response.data;
+    },
+    deleteReportEntry: async (entryId: number) => {
+        await api.delete(`/reports/entries/${entryId}`);
     }
 };
 

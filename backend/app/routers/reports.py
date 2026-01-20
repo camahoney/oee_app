@@ -309,6 +309,50 @@ def update_report_entry(entry_id: int, update_data: ReportEntryUpdate, session: 
     session.refresh(entry)
     return entry
 
+@router.post("/{report_id}/entries", response_model=ReportEntry)
+def create_report_entry(report_id: int, entry_data: ReportEntryUpdate, session: Session = Depends(get_session)):
+    """Create a new manual entry for a report."""
+    report = session.get(ProductionReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    # Create with defaults
+    entry = ReportEntry(
+        report_id=report_id,
+        date=datetime.today().date(), # Default to new entry today, or frontend should send it
+        operator=entry_data.operator or "New Operator",
+        machine=entry_data.machine or "New Machine",
+        part_number=entry_data.part_number or "Part-001",
+        job=entry_data.job or "",
+        shift=entry_data.shift or "1",
+        good_count=entry_data.good_count or 0,
+        reject_count=entry_data.reject_count or 0,
+        run_time_min=entry_data.run_time_min or 0.0,
+        downtime_min=entry_data.downtime_min or 0.0,
+        planned_production_time_min=0.0,
+        total_count=0
+    )
+    
+    # Recalculate totals
+    entry.total_count = entry.good_count + entry.reject_count
+    entry.planned_production_time_min = entry.run_time_min + entry.downtime_min
+    
+    session.add(entry)
+    session.commit()
+    session.refresh(entry)
+    return entry
+
+@router.delete("/entries/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_report_entry(entry_id: int, session: Session = Depends(get_session)):
+    """Delete a single report entry."""
+    entry = session.get(ReportEntry, entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+        
+    session.delete(entry)
+    session.commit()
+    return None
+
 @router.get("/", response_model=List[ProductionReport])
 def list_reports(session: Session = Depends(get_session)):
     """List all available production reports."""

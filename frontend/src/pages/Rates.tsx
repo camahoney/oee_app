@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Table, Button, Space, Upload as AntUpload, message, Popconfirm, Tooltip, Input, Modal, Form, InputNumber } from 'antd';
+import { Typography, Table, Button, Space, Upload as AntUpload, message, Popconfirm, Tooltip, Input, Modal, Form, InputNumber, Radio } from 'antd';
 import { PlusOutlined, UploadOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { rateService } from '../services/api';
 
@@ -14,6 +14,11 @@ const Rates: React.FC = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRate, setEditingRate] = useState<any>(null);
     const [form] = Form.useForm();
+
+    // Calculation State
+    const [calcMode, setCalcMode] = useState('seconds');
+    const [shiftHours, setShiftHours] = useState(8);
+    const [targetVal, setTargetVal] = useState(0);
 
     const fetchRates = async () => {
         setLoading(true);
@@ -57,6 +62,11 @@ const Rates: React.FC = () => {
     const handleAdd = () => {
         setEditingRate(null);
         form.resetFields();
+        // Reset Calc State
+        setCalcMode('seconds');
+        setShiftHours(8);
+        setTargetVal(0);
+
         // Set defaults
         form.setFieldsValue({
             active: true,
@@ -68,19 +78,53 @@ const Rates: React.FC = () => {
 
     const handleEdit = (record: any) => {
         setEditingRate(record);
+        // Default to seconds mode on edit
+        setCalcMode('seconds');
+        setShiftHours(8);
+        setTargetVal(0);
+
         form.setFieldsValue({
             job: record.job,
             part_number: record.part_number,
             machine: record.machine,
             ideal_cycle_time_seconds: record.ideal_cycle_time_seconds,
-            active: record.active
+            active: record.active,
+            cavities: record.ideal_units_per_hour ? 1 : 1 // Logic to preserve cavities if we stored it? We don't store cavities in backend explicitly yet, relying on ideal_cycle.
+            // Wait, front-end form has 'cavities'. Does backend store it? 
+            // Looking at metrics.py/db.py earlier, RateEntry has ideal_cycle_time. 
+            // If the user wants to Edit "Cavities", we need to store it? 
+            // Or just assume it's set logic.
+            // For now, on Edit, just load the cycle time.
         });
         setIsModalVisible(true);
     };
 
     const handleModalOk = async () => {
         try {
-            const values = await form.validateFields();
+            let values = await form.validateFields();
+
+            // Calculate Cycle Time if in alternate mode
+            if (calcMode !== 'seconds') {
+                const secondsInShift = shiftHours * 3600;
+                let calculatedCycle = 0;
+                const cavs = values.cavities || 1;
+
+                if (targetVal > 0) {
+                    if (calcMode === 'parts_shift') {
+                        calculatedCycle = secondsInShift / targetVal;
+                    } else if (calcMode === 'heats_shift') {
+                        calculatedCycle = secondsInShift / (targetVal * cavs);
+                    }
+                }
+
+                if (calculatedCycle <= 0) {
+                    message.error("Calculated cycle time is invalid. Check targets.");
+                    return;
+                }
+
+                // Inject
+                values.ideal_cycle_time_seconds = parseFloat(calculatedCycle.toFixed(4));
+            }
 
             if (editingRate) {
                 await rateService.updateRate(editingRate.id, values);
@@ -93,9 +137,7 @@ const Rates: React.FC = () => {
             fetchRates();
         } catch (error) {
             console.error(error);
-            if (!form.isFieldsValidating()) {
-                message.error('Failed to save rate. Check inputs.');
-            }
+            // message handled by antd form validation usually
         }
     };
 
@@ -224,11 +266,65 @@ const Rates: React.FC = () => {
                     <Form.Item name="machine" label="Machine" rules={[{ required: true, message: 'Please enter Machine ID' }]}>
                         <Input />
                     </Form.Item>
-                    <div style={{ display: 'flex', gap: 16 }}>
-                        <Form.Item name="ideal_cycle_time_seconds" label="Ideal Cycle (Sec)" rules={[{ required: true, message: 'Required' }]} style={{ flex: 1 }}>
-                            <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+                    <div style={{ marginBottom: 16 }}>
+                        <Form.Item label="Entry Mode" required>
+                            <Radio.Group
+                                value={calcMode}
+                                onChange={e => setCalcMode(e.target.value)}
+                                optionType="button"
+                                buttonStyle="solid"
+                            >
+                                <Radio value="seconds">Seconds/Part</Radio>
+                                <Radio value="parts_shift">Parts/Shift</Radio>
+                                <Radio value="heats_shift">Heats/Shift</Radio>
+                            </Radio.Group>
                         </Form.Item>
                     </div>
+
+                    <div style={{ display: 'flex', gap: 16 }}>
+                        <Form.Item name="cavities" label="Cavities" initialValue={1} rules={[{ required: true }]} style={{ flex: 1 }}>
+                            <InputNumber min={1} style={{ width: '100%' }} />
+                        </Form.Item>
+
+                        {calcMode === 'seconds' && (
+                            <Form.Item name="ideal_cycle_time_seconds" label="Ideal Cycle (Sec)" rules={[{ required: true, message: 'Required' }]} style={{ flex: 1 }}>
+                                <InputNumber style={{ width: '100%' }} step={0.1} min={0} />
+                            </Form.Item>
+                        )}
+                    </div>
+
+                    {calcMode !== 'seconds' && (
+                        <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '8px', marginBottom: 16 }}>
+                            <div style={{ display: 'flex', gap: 16 }}>
+                                <Form.Item label="Shift Length (Hrs)" style={{ flex: 1 }}>
+                                    <InputNumber value={shiftHours} onChange={val => setShiftHours(val || 8)} min={1} max={24} style={{ width: '100%' }} />
+                                </Form.Item>
+                                <Form.Item label={calcMode === 'parts_shift' ? "Target Parts" : "Target Heats"} style={{ flex: 1 }}>
+                                    <InputNumber value={targetVal} onChange={val => setTargetVal(val || 0)} min={0} style={{ width: '100%' }} />
+                                </Form.Item>
+                            </div>
+                            <div style={{ textAlign: 'center' }}>
+                                <Typography.Text type="secondary">Calculated Cycle Time:</Typography.Text>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
+                                    {(() => {
+                                        if (!targetVal) return '---';
+                                        const secondsInShift = shiftHours * 3600;
+                                        let cycle = 0;
+                                        const cavs = form.getFieldValue('cavities') || 1;
+
+                                        if (calcMode === 'parts_shift') {
+                                            cycle = secondsInShift / targetVal;
+                                        } else {
+                                            // Heats -> Parts = Heats * Cavities
+                                            // Cycle per Part = Time / Parts
+                                            cycle = secondsInShift / (targetVal * cavs);
+                                        }
+                                        return cycle.toFixed(2) + ' sec';
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </Form>
             </Modal>
         </div>

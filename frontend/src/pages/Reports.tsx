@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Table, Button, Space, message, Popconfirm, Card, Modal, Form, Input } from 'antd';
-import { EyeOutlined, DeleteOutlined, FileTextOutlined, EditOutlined } from '@ant-design/icons';
+import { EyeOutlined, DeleteOutlined, FileTextOutlined, EditOutlined, FormOutlined } from '@ant-design/icons';
+
+
 import { reportService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -84,6 +86,12 @@ const Reports: React.FC = () => {
                         onClick={() => navigate(`/dashboard?reportId=${record.id}`)}
                     >
                         View
+                    </Button>
+                    <Button
+                        icon={<FormOutlined />}
+                        onClick={() => navigate(`/upload?editReportId=${record.id}`)}
+                    >
+                        Edit Data
                     </Button>
                     <Button
                         icon={<EditOutlined />}

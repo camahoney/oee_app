@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Upload as AntUpload, Button, message, Card, Table, Modal, List, Form, Input, InputNumber, Popconfirm, Tooltip } from 'antd';
-import { UploadOutlined, CloudServerOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { UploadOutlined, CloudServerOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons';
 import { reportService } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -58,9 +58,19 @@ const Upload: React.FC = () => {
     const [data, setData] = useState<any[]>([]);
     const [editingKey, setEditingKey] = useState<any>('');
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [form] = Form.useForm();
 
     const isEditing = (record: any) => record.id === editingKey;
+
+    useEffect(() => {
+        const editId = searchParams.get('editReportId');
+        if (editId) {
+            const id = parseInt(editId);
+            setReportId(id);
+            fetchEntries(id);
+        }
+    }, [searchParams]);
 
     const edit = (record: Partial<any> & { id: React.Key }) => {
         form.setFieldsValue({ ...record });
@@ -100,14 +110,31 @@ const Upload: React.FC = () => {
         }
     };
 
+    const handleAddRow = async () => {
+        if (!reportId) return;
+        try {
+            const newEntry = await reportService.createReportEntry(reportId, {
+                operator: "New Operator",
+                machine: "New Machine",
+                part_number: "Part-New",
+                shift: "1",
+                good_count: 0
+            });
+            message.success("New row added");
+            setData([...data, newEntry]);
+        } catch (err) {
+            message.error("Failed to add new entry");
+        }
+    };
+
     const handleDelete = async (key: React.Key) => {
-        // Since backend delete_report deletes the whole report, verifying if we want single row delete.
-        // Currently 'delete_report' is whole report. 
-        // Logic: Deleting a row from a report isn't in API yet, but user asked for "Make corrections".
-        // Let's add delete row support later if critical. For now, editing to fix bad scans is priority.
-        // Actually, if a scan is totally garbage, user might want to delete it.
-        // I'll skip delete row for now to keep it safe, user instructions were "make corrections".
-        message.info("Row deletion coming soon. You can set counts to 0 to ignore.");
+        try {
+            await reportService.deleteReportEntry(Number(key));
+            message.success("Row deleted");
+            setData(data.filter(item => item.id !== key));
+        } catch (err) {
+            message.error("Failed to delete entry");
+        }
     };
 
     const fetchEntries = async (id: number) => {
@@ -222,9 +249,16 @@ const Upload: React.FC = () => {
                         </Popconfirm>
                     </span>
                 ) : (
-                    <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
-                        <EditOutlined />
-                    </Typography.Link>
+                    <Space>
+                        <Typography.Link disabled={editingKey !== ''} onClick={() => edit(record)}>
+                            <EditOutlined />
+                        </Typography.Link>
+                        <Popconfirm title="Delete this entry?" onConfirm={() => handleDelete(record.id)}>
+                            <Typography.Link type="danger" disabled={editingKey !== ''}>
+                                <DeleteOutlined />
+                            </Typography.Link>
+                        </Popconfirm>
+                    </Space>
                 );
             },
         },
@@ -250,7 +284,7 @@ const Upload: React.FC = () => {
         <div>
             <Title level={2}>Upload Production Report</Title>
             <Paragraph>
-                Upload your report, review the data below, and fix any scan errors before calculating OEE.
+                Upload a new report or edit report entries below.
             </Paragraph>
 
             <Card style={{ marginBottom: 24 }}>
@@ -265,15 +299,23 @@ const Upload: React.FC = () => {
                 <div style={{ marginTop: 24 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                         <Title level={4} style={{ margin: 0 }}>Review Data</Title>
-                        <Button
-                            type="primary"
-                            size="large"
-                            icon={<CloudServerOutlined />}
-                            onClick={handleCalculate}
-                            disabled={editingKey !== ''} // Disable while editing row
-                        >
-                            Confirm & Calculate
-                        </Button>
+                        <Space>
+                            <Button
+                                icon={<PlusOutlined />}
+                                onClick={handleAddRow}
+                            >
+                                Add Entry
+                            </Button>
+                            <Button
+                                type="primary"
+                                size="large"
+                                icon={<CloudServerOutlined />}
+                                onClick={handleCalculate}
+                                disabled={editingKey !== ''} // Disable while editing row
+                            >
+                                Confirm & Calculate
+                            </Button>
+                        </Space>
                     </div>
 
                     <Form form={form} component={false}>
