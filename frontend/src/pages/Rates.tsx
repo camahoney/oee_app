@@ -123,20 +123,39 @@ const Rates: React.FC = () => {
         showUploadList: false,
     };
 
+    // Unique machines for filtering
+    const uniqueMachines = Array.from(new Set(rates.map((r: any) => r.machine))).filter(Boolean).sort();
+    const machineFilters = uniqueMachines.map(m => ({ text: m, value: m }));
+
     const columns: any = [
         { title: 'Job / SO#', dataIndex: 'job', key: 'job', sorter: (a: any, b: any) => (a.job || '').localeCompare(b.job || '') },
-        { title: 'Part Number', dataIndex: 'part_number', key: 'part_number', sorter: (a: any, b: any) => (a.part_number || '').localeCompare(b.part_number || '') },
-        { title: 'Machine', dataIndex: 'machine', key: 'machine', sorter: (a: any, b: any) => (a.machine || '').localeCompare(b.machine || '') },
+        {
+            title: 'Part Number',
+            dataIndex: 'part_number',
+            key: 'part_number',
+            sorter: (a: any, b: any) => (a.part_number || '').localeCompare(b.part_number || ''),
+            render: (text: string) => <Typography.Text strong>{text}</Typography.Text>
+        },
+        {
+            title: 'Machine',
+            dataIndex: 'machine',
+            key: 'machine',
+            filters: machineFilters,
+            onFilter: (value: any, record: any) => record.machine === value,
+            sorter: (a: any, b: any) => (a.machine || '').localeCompare(b.machine || '')
+        },
         {
             title: 'Ideal Cycle (s)',
             dataIndex: 'ideal_cycle_time_seconds',
             key: 'ideal_cycle_time_seconds',
+            sorter: (a: any, b: any) => a.ideal_cycle_time_seconds - b.ideal_cycle_time_seconds,
             render: (val: number) => val ? val.toFixed(2) : '-'
         },
         {
             title: 'Units/Hr',
             dataIndex: 'ideal_units_per_hour',
             key: 'ideal_units_per_hour',
+            sorter: (a: any, b: any) => a.ideal_units_per_hour - b.ideal_units_per_hour,
             render: (val: number) => val ? val.toFixed(1) : '-'
         },
         {
@@ -182,7 +201,7 @@ const Rates: React.FC = () => {
                 dataSource={filteredRates}
                 rowKey="id"
                 loading={loading}
-                pagination={{ pageSize: 100, showSizeChanger: true, pageSizeOptions: ['50', '100', '200', '500'] }}
+                pagination={{ defaultPageSize: 100, showSizeChanger: true, pageSizeOptions: ['50', '100', '200', '500'] }}
                 scroll={{ y: 'calc(100vh - 280px)' }}
                 size="middle"
                 bordered
