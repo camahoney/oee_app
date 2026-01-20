@@ -25,7 +25,7 @@ def log_audit(session: Session, rate_id: int, user_id: int, field: str, old: str
 # CRUD endpoints
 @router.get("/", response_model=List[RateEntry])
 def list_rates(skip: int = 0, limit: int = 100, session: Session = Depends(get_session)):
-    rates = session.exec(select(RateEntry).offset(skip).limit(limit)).all()
+    rates = session.exec(select(RateEntry).order_by(RateEntry.id.desc()).offset(skip).limit(limit)).all()
     return rates
 
 @router.get("/{rate_id}", response_model=RateEntry)
