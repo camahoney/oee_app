@@ -57,6 +57,7 @@ const Upload: React.FC = () => {
     const [reportId, setReportId] = useState<number | null>(null);
     const [data, setData] = useState<any[]>([]);
     const [editingKey, setEditingKey] = useState<any>('');
+    const [highlightedRow, setHighlightedRow] = useState<any>(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [form] = Form.useForm();
@@ -79,6 +80,8 @@ const Upload: React.FC = () => {
 
     const cancel = () => {
         setEditingKey('');
+        // If we cancel a new row, we might want to keep it or delete it? 
+        // For now, standard cancel behavior.
     };
 
     const save = async (key: React.Key) => {
@@ -95,6 +98,7 @@ const Upload: React.FC = () => {
                 newData.splice(index, 1, updatedItem);
                 setData(newData);
                 setEditingKey('');
+                setHighlightedRow(null); // Clear highlight on save
 
                 // API Update
                 try {
@@ -121,7 +125,12 @@ const Upload: React.FC = () => {
                 good_count: 0
             });
             message.success("New row added");
-            setData([...data, newEntry]);
+            // Prepend new Entry
+            setData([newEntry, ...data]);
+            // Automatically enter edit mode
+            edit(newEntry);
+            // Highlight it
+            setHighlightedRow(newEntry.id);
         } catch (err) {
             message.error("Failed to add new entry");
         }
@@ -140,7 +149,12 @@ const Upload: React.FC = () => {
     const fetchEntries = async (id: number) => {
         try {
             const entries = await reportService.getReportEntries(id);
-            setData(entries);
+            // Sort by ID descending (newest first) or preserve API order?
+            // API usually returns by ID asc. Let's reverse it locally if needed, but user wants "new row at top".
+            // If we prepend locally, it's at top. If we reload, it might go to bottom unless we sort.
+            // Let's sort by ID descending for consistency.
+            const sorted = [...entries].sort((a, b) => b.id - a.id);
+            setData(sorted);
         } catch (error) {
             message.error("Failed to load report data");
         }
@@ -327,7 +341,13 @@ const Upload: React.FC = () => {
                             }}
                             dataSource={data}
                             columns={mergedColumns}
-                            rowClassName="editable-row"
+                            rowClassName={(record) => {
+                                let className = 'editable-row';
+                                if (record.id === highlightedRow) {
+                                    className += ' highlight-row';
+                                }
+                                return className;
+                            }}
                             pagination={{ pageSize: 50 }}
                             size="small"
                             scroll={{ x: 1200 }}

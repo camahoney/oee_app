@@ -135,9 +135,14 @@ const Rates: React.FC = () => {
             }
             setIsModalVisible(false);
             fetchRates();
-        } catch (error) {
-            console.error(error);
-            // message handled by antd form validation usually
+        } catch (error: any) {
+            console.error("Save failed:", error);
+            // Check if it's a validation error (Ant Design throws an object with 'errorFields')
+            if (error.errorFields) {
+                message.error("Please fill in all required fields correctly.");
+            } else {
+                message.error(error.message || "Failed to save rate");
+            }
         }
     };
 

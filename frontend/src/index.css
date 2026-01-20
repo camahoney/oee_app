@@ -55,3 +55,11 @@ code {
     color: black !important;
   }
 }
+.highlight-row {
+    background-color: #fffbe6 !important; /* Light yellow */
+    transition: background-color 0.5s;
+}
+
+.highlight-row:hover > td {
+    background-color: #fff5cc !important;
+}
