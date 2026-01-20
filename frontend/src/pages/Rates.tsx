@@ -101,9 +101,21 @@ const Rates: React.FC = () => {
 
     const handleModalOk = async () => {
         try {
-            let values = await form.validateFields();
+            const values = await form.validateFields();
 
-            // Calculate Cycle Time if in alternate mode
+            // Prepare Payload
+            const payload: any = {
+                job: values.job,
+                part_number: values.part_number,
+                machine: values.machine,
+                active: values.active !== undefined ? values.active : true,
+                start_date: new Date().toISOString().split('T')[0], // Required by backend
+                notes: "Manual Entry"
+            };
+
+            // Calculate Cycle Time logic
+            let finalCycleTime = values.ideal_cycle_time_seconds;
+
             if (calcMode !== 'seconds') {
                 const secondsInShift = shiftHours * 3600;
                 let calculatedCycle = 0;
@@ -121,23 +133,29 @@ const Rates: React.FC = () => {
                     message.error("Calculated cycle time is invalid. Check targets.");
                     return;
                 }
+                finalCycleTime = parseFloat(calculatedCycle.toFixed(4));
+            }
 
-                // Inject
-                values.ideal_cycle_time_seconds = parseFloat(calculatedCycle.toFixed(4));
+            payload.ideal_cycle_time_seconds = finalCycleTime;
+
+            // Optional: Calculate units/hr for convenience if backend doesn't (backend calculates cycle if units present, but we are sending cycle)
+            if (finalCycleTime > 0) {
+                payload.ideal_units_per_hour = parseFloat((3600 / finalCycleTime).toFixed(2));
             }
 
             if (editingRate) {
-                await rateService.updateRate(editingRate.id, values);
+                // For update, we might need to keep existing start_date if we don't want to reset it?
+                // But simplified: just send the payload. Backend Update uses field-by-field copy.
+                await rateService.updateRate(editingRate.id, payload);
                 message.success('Rate updated');
             } else {
-                await rateService.createRate(values);
+                await rateService.createRate(payload);
                 message.success('Rate created');
             }
             setIsModalVisible(false);
             fetchRates();
         } catch (error: any) {
             console.error("Save failed:", error);
-            // Check if it's a validation error (Ant Design throws an object with 'errorFields')
             if (error.errorFields) {
                 message.error("Please fill in all required fields correctly.");
             } else {

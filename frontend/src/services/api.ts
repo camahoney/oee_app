@@ -151,6 +151,20 @@ export const analyticsService = {
             }
         });
         return response.data;
+    },
+    getHistory: async (params: { operator?: string, part_number?: string, start_date?: string, end_date?: string, limit?: number }) => {
+        const response = await axios.get(`${API_URL}/analytics/history`, { params });
+        return response.data;
+    },
+    getPartPerformance: async (partNumber: string, startDate?: string, endDate?: string) => {
+        const response = await axios.get(`${API_URL}/analytics/part-performance`, {
+            params: {
+                part_number: partNumber,
+                start_date: startDate,
+                end_date: endDate
+            }
+        });
+        return response.data;
     }
 };
 

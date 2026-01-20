@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic } from 'antd';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { PrinterOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
@@ -20,12 +20,61 @@ const Analytics: React.FC = () => {
     const [downtimeData, setDowntimeData] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
 
+    // New State for Operator Analysis
+    const [operators, setOperators] = useState<string[]>([]);
+    const [partsList, setPartsList] = useState<string[]>([]);
+    const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+    const [selectedPart, setSelectedPart] = useState<string | null>(null);
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [comparisonData, setComparisonData] = useState<any>(null);
+
     // Report Modal
     const [isReportOpen, setIsReportOpen] = useState(false);
 
     useEffect(() => {
         fetchAllData();
     }, [dateRange]);
+
+    const loadDropdowns = async () => {
+        try {
+            const ops = await analyticsService.getComparison('operator');
+            setOperators(ops.map((o: any) => o.name).filter(Boolean).sort());
+
+            const pts = await analyticsService.getComparison('part');
+            setPartsList(pts.map((p: any) => p.name).filter(Boolean).sort());
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const fetchHistory = async (op: string) => {
+        if (!op) return;
+        try {
+            const start = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
+            const end = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
+            const data = await analyticsService.getHistory({
+                operator: op,
+                start_date: start,
+                end_date: end,
+                limit: 500
+            });
+            setHistoryData(data);
+        } catch (error) {
+            message.error("Failed to load history");
+        }
+    };
+
+    const fetchPartComparison = async (part: string) => {
+        if (!part) return;
+        try {
+            const start = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
+            const end = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
+            const data = await analyticsService.getPartPerformance(part, start, end);
+            setComparisonData(data);
+        } catch (error) {
+            message.error("Failed to load comparison");
+        }
+    };
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -289,6 +338,93 @@ const Analytics: React.FC = () => {
                             pagination={{ pageSize: 15 }}
                         />
                     </Card>
+                </TabPane>
+
+                <TabPane tab="Operator Analysis" key="operator">
+                    <Tabs type="line">
+                        <TabPane tab="Operator History" key="op-history">
+                            <Card title="Operator Daily History" bordered={false}>
+                                <div style={{ marginBottom: 16 }}>
+                                    <Text strong>Select Operator: </Text>
+                                    <Select
+                                        showSearch
+                                        style={{ width: 300, marginLeft: 8 }}
+                                        placeholder="Search operator..."
+                                        optionFilterProp="children"
+                                        onDropdownVisibleChange={(open) => {
+                                            if (open && operators.length === 0) loadDropdowns();
+                                        }}
+                                        value={selectedOperator}
+                                        onChange={(val) => { setSelectedOperator(val); fetchHistory(val); }}
+                                    >
+                                        {operators.map(op => <Select.Option key={op} value={op}>{op}</Select.Option>)}
+                                    </Select>
+                                </div>
+                                <Table
+                                    dataSource={historyData}
+                                    columns={[
+                                        { title: 'Date', dataIndex: 'date', key: 'date', render: (d: string) => dayjs(d).format('MM/DD/YYYY') },
+                                        { title: 'Machine', dataIndex: 'machine', key: 'machine' },
+                                        { title: 'Part', dataIndex: 'part_number', key: 'part_number' },
+                                        { title: 'Shift', dataIndex: 'shift', key: 'shift' },
+                                        { title: 'OEE', dataIndex: 'oee', key: 'oee', render: (val: number) => <Tag color={val >= 0.85 ? 'green' : val >= 0.6 ? 'orange' : 'red'}>{(val * 100).toFixed(1)}%</Tag> },
+                                    ]}
+                                    rowKey="id"
+                                    pagination={{ pageSize: 20 }}
+                                />
+                            </Card>
+                        </TabPane>
+                        <TabPane tab="Peer Comparison" key="op-peer">
+                            <Card title="Operator Performance vs Part Average" bordered={false}>
+                                <Alert message="Select a part to see how different operators compare against the running average." type="info" showIcon style={{ marginBottom: 16 }} />
+                                <div style={{ marginBottom: 16 }}>
+                                    <Text strong>Select Part: </Text>
+                                    <Select
+                                        showSearch
+                                        style={{ width: 300, marginLeft: 8 }}
+                                        placeholder="Search part..."
+                                        optionFilterProp="children"
+                                        onDropdownVisibleChange={(open) => {
+                                            if (open && partsList.length === 0) loadDropdowns();
+                                        }}
+                                        value={selectedPart}
+                                        onChange={(val) => { setSelectedPart(val); fetchPartComparison(val); }}
+                                    >
+                                        {partsList.map(p => <Select.Option key={p} value={p}>{p}</Select.Option>)}
+                                    </Select>
+                                </div>
+                                {comparisonData && (
+                                    <>
+                                        <Row gutter={16} style={{ marginBottom: 24 }}>
+                                            <Col span={8}>
+                                                <Statistic title="Global Average OEE" value={comparisonData.global_average_oee * 100} precision={1} suffix="%" />
+                                            </Col>
+                                            <Col span={8}>
+                                                <Statistic title="Total Runs Analyzed" value={comparisonData.total_runs} />
+                                            </Col>
+                                        </Row>
+                                        <div style={{ height: 400 }}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart
+                                                    data={comparisonData.operators}
+                                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                                    layout="horizontal"
+                                                >
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis dataKey="operator" />
+                                                    <YAxis unit="%" domain={[0, 100]} />
+                                                    <Tooltip formatter={(val: number) => [(val * 100).toFixed(1) + '%', 'Avg OEE']} />
+                                                    <Legend />
+                                                    <ReferenceLine y={comparisonData.global_average_oee} stroke="red" strokeDasharray="3 3" label="Global Avg" isFront />
+                                                    <Bar dataKey="average_oee" fill="#1890ff" name="Operator Average OEE" />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </>
+                                )}
+                            </Card>
+                        </TabPane>
+                    </Tabs>
                 </TabPane>
             </Tabs>
 

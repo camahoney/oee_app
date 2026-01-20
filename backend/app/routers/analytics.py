@@ -201,6 +201,107 @@ def downtime_analysis(
         
     return sorted(results, key=lambda x: x["total_downtime"], reverse=True)[:limit]
         
+@router.get("/history", response_model=List[Dict[str, Any]])
+def get_operator_history(
+    operator: Optional[str] = None,
+    part_number: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    limit: int = 100,
+    session: Session = Depends(get_session)
+):
+    """
+    Get raw OEE history entries for detailed analysis.
+    Useful for 'Operator History' view.
+    """
+    stmt = select(Oeemetric).order_by(Oeemetric.date.desc())
+    
+    if operator:
+        stmt = stmt.where(Oeemetric.operator == operator)
+    if part_number:
+        stmt = stmt.where(Oeemetric.part_number == part_number)
+    if start_date:
+        stmt = stmt.where(Oeemetric.date >= start_date)
+    if end_date:
+        stmt = stmt.where(Oeemetric.date <= end_date)
+        
+    metrics = session.exec(stmt.limit(limit)).all()
+    
+    results = []
+    for m in metrics:
+        results.append({
+            "id": m.id,
+            "date": m.date,
+            "operator": m.operator,
+            "machine": m.machine,
+            "part_number": m.part_number,
+            "shift": m.shift,
+            "oee": m.oee,
+            "availability": m.availability,
+            "performance": m.performance,
+            "quality": m.quality
+        })
+    return results
+
+@router.get("/part-performance", response_model=Dict[str, Any])
+def get_part_performance(
+    part_number: str,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    session: Session = Depends(get_session)
+):
+    """
+    Compare operators for a specific part.
+    Returns:
+    - box_plot: global average oee for this part
+    - operators: list of {name, average_oee, sample_size}
+    """
+    # 1. Get all metrics for this part in range
+    stmt = select(Oeemetric).where(Oeemetric.part_number == part_number)
+    if start_date:
+        stmt = stmt.where(Oeemetric.date >= start_date)
+    if end_date:
+        stmt = stmt.where(Oeemetric.date <= end_date)
+        
+    metrics = session.exec(stmt).all()
+    
+    if not metrics:
+        return {"global_average": 0, "operators": []}
+        
+    # 2. Calculate Global Average
+    global_sum = sum(m.oee or 0 for m in metrics)
+    global_count = len(metrics)
+    global_avg = global_sum / global_count if global_count > 0 else 0
+    
+    # 3. Group by Operator
+    op_stats = {}
+    for m in metrics:
+        op = m.operator or "Unknown"
+        if op not in op_stats:
+            op_stats[op] = {"sum": 0.0, "count": 0}
+        op_stats[op]["sum"] += (m.oee or 0)
+        op_stats[op]["count"] += 1
+        
+    # 4. Format Results
+    operator_results = []
+    for op, stats in op_stats.items():
+        operator_results.append({
+            "operator": op,
+            "average_oee": round(stats["sum"] / stats["count"], 4),
+            "sample_size": stats["count"]
+        })
+        
+    # Sort best to worst
+    operator_results.sort(key=lambda x: x["average_oee"], reverse=True)
+    
+    return {
+        "part_number": part_number,
+        "global_average_oee": round(global_avg, 4),
+        "total_runs": global_count,
+        "operators": operator_results
+    }
+
+
 @router.get("/debug", response_model=Dict[str, Any])
 def debug_analytics(session: Session = Depends(get_session)):
     """Debug Quality Logic trace."""
