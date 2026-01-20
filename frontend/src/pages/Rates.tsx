@@ -282,9 +282,11 @@ const Rates: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: 16 }}>
-                        <Form.Item name="cavities" label="Cavities" initialValue={1} rules={[{ required: true }]} style={{ flex: 1 }}>
-                            <InputNumber min={1} style={{ width: '100%' }} />
-                        </Form.Item>
+                        {calcMode !== 'parts_shift' && (
+                            <Form.Item name="cavities" label="Cavities" initialValue={1} rules={[{ required: true }]} style={{ flex: 1 }}>
+                                <InputNumber min={1} style={{ width: '100%' }} />
+                            </Form.Item>
+                        )}
 
                         {calcMode === 'seconds' && (
                             <Form.Item name="ideal_cycle_time_seconds" label="Ideal Cycle (Sec)" rules={[{ required: true, message: 'Required' }]} style={{ flex: 1 }}>
@@ -304,7 +306,7 @@ const Rates: React.FC = () => {
                                 </Form.Item>
                             </div>
                             <div style={{ textAlign: 'center' }}>
-                                <Typography.Text type="secondary">Calculated Cycle Time:</Typography.Text>
+                                <Typography.Text type="secondary">Calculated Cycle Time (per Part):</Typography.Text>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
                                     {(() => {
                                         if (!targetVal) return '---';
@@ -313,10 +315,10 @@ const Rates: React.FC = () => {
                                         const cavs = form.getFieldValue('cavities') || 1;
 
                                         if (calcMode === 'parts_shift') {
+                                            // Parts Mode: Cavities irrelevant for per-part time
                                             cycle = secondsInShift / targetVal;
                                         } else {
-                                            // Heats -> Parts = Heats * Cavities
-                                            // Cycle per Part = Time / Parts
+                                            // Heats Mode: Need cavities to get Total Parts
                                             cycle = secondsInShift / (targetVal * cavs);
                                         }
                                         return cycle.toFixed(2) + ' sec';
