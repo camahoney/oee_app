@@ -20,61 +20,12 @@ const Analytics: React.FC = () => {
     const [downtimeData, setDowntimeData] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
 
-    // New State for Operator Analysis
-    const [operators, setOperators] = useState<string[]>([]);
-    const [partsList, setPartsList] = useState<string[]>([]);
-    const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
-    const [selectedPart, setSelectedPart] = useState<string | null>(null);
-    const [historyData, setHistoryData] = useState<any[]>([]);
-    const [comparisonData, setComparisonData] = useState<any>(null);
-
     // Report Modal
     const [isReportOpen, setIsReportOpen] = useState(false);
 
     useEffect(() => {
         fetchAllData();
     }, [dateRange]);
-
-    const loadDropdowns = async () => {
-        try {
-            const ops = await analyticsService.getComparison('operator');
-            setOperators(ops.map((o: any) => o.name).filter(Boolean).sort());
-
-            const pts = await analyticsService.getComparison('part');
-            setPartsList(pts.map((p: any) => p.name).filter(Boolean).sort());
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const fetchHistory = async (op: string) => {
-        if (!op) return;
-        try {
-            const start = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
-            const end = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
-            const data = await analyticsService.getHistory({
-                operator: op,
-                start_date: start,
-                end_date: end,
-                limit: 500
-            });
-            setHistoryData(data);
-        } catch (error) {
-            message.error("Failed to load history");
-        }
-    };
-
-    const fetchPartComparison = async (part: string) => {
-        if (!part) return;
-        try {
-            const start = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
-            const end = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
-            const data = await analyticsService.getPartPerformance(part, start, end);
-            setComparisonData(data);
-        } catch (error) {
-            message.error("Failed to load comparison");
-        }
-    };
 
     const fetchAllData = async () => {
         setLoading(true);

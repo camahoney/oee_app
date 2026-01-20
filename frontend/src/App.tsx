@@ -9,12 +9,14 @@ import {
     SettingOutlined,
     SettingOutlined,
     BarChartOutlined,
-    TrophyOutlined
+    TrophyOutlined,
+    TeamOutlined
 } from '@ant-design/icons';
 
 import Leaderboard from './pages/Leaderboard';
 
 import Dashboard from './pages/Dashboard';
+import OperatorPerformance from './pages/OperatorPerformance';
 import Upload from './pages/Upload';
 import Rates from './pages/Rates';
 import Reports from './pages/Reports';
@@ -68,6 +70,7 @@ const App: React.FC = () => {
                         >
                             <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
                             <Menu.Item key="analytics" icon={<BarChartOutlined />}> <a href="/analytics">Analytics</a> </Menu.Item>
+                            <Menu.Item key="operators" icon={<TeamOutlined />}> <a href="/operators">Operator Perf.</a> </Menu.Item>
                             <Menu.Item key="leaderboard" icon={<TrophyOutlined />}> <a href="/leaderboard">Leaderboard</a> </Menu.Item>
                             <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>
                             <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>
@@ -81,6 +84,7 @@ const App: React.FC = () => {
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/analytics" element={<Analytics />} />
+                                <Route path="/operators" element={<OperatorPerformance />} />
                                 <Route path="/leaderboard" element={<Leaderboard />} />
                                 <Route path="/upload" element={<Upload />} />
                                 <Route path="/rates" element={<Rates />} />
