@@ -165,7 +165,18 @@ export const analyticsService = {
             }
         });
         return response.data;
+    },
+    getOperatorBreakdown: async (operator: string, startDate?: string, endDate?: string) => {
+        const response = await axios.get(`${API_URL}/analytics/operator-breakdown`, {
+            params: {
+                operator,
+                start_date: startDate,
+                end_date: endDate
+            }
+        });
+        return response.data;
     }
+
 };
 
 export default api;

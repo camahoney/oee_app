@@ -333,3 +333,51 @@ def debug_analytics(session: Session = Depends(get_session)):
         })
         
     return {"count": len(metrics), "details": details}
+
+@router.get("/operator-breakdown", response_model=Dict[str, Any])
+def get_operator_breakdown(
+    operator: str,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    session: Session = Depends(get_session)
+):
+    query = select(Oeemetric).where(Oeemetric.operator == operator)
+    if start_date:
+        query = query.where(Oeemetric.date >= start_date)
+    if end_date:
+        query = query.where(Oeemetric.date <= end_date)
+    
+    metrics = session.exec(query).all()
+    
+    if not metrics:
+        return {"shift_performance": [], "part_performance": []}
+
+    # Shift Analysis
+    shifts = {}
+    for m in metrics:
+        s = m.shift or "Unknown"
+        if s not in shifts: shifts[s] = []
+        shifts[s].append(m.oee or 0)
+    
+    shift_data = []
+    for s, vals in shifts.items():
+        shift_data.append({"name": s, "oee": sum(vals)/len(vals)})
+    
+    # Part Analysis
+    parts = {}
+    for m in metrics:
+        p = m.part_number
+        if p not in parts: parts[p] = []
+        parts[p].append(m.oee or 0)
+        
+    part_data = []
+    for p, vals in parts.items():
+        part_data.append({"name": p, "oee": sum(vals)/len(vals), "samples": len(vals)})
+    
+    # Sort parts by OEE desc
+    part_data.sort(key=lambda x: x["oee"], reverse=True)
+    
+    return {
+        "shift_performance": shift_data,
+        "part_performance": part_data[:10] # Top 10 parts
+    }

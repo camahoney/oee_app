@@ -265,56 +265,92 @@ def get_metrics(report_id: int, session: Session = Depends(get_session)):
 
 @router.get("/stats", response_model=Dict[str, Any])
 def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
-    """Aggregate metrics for the dashboard. Default: Latest Report."""
+    """Aggregate metrics for the dashboard. Default: Latest Report. Includes Sparklines & Insights."""
     stmt = select(Oeemetric)
     
     current_report_date = None
+    target_report_id = report_id
     
-    if report_id:
-        stmt = stmt.where(Oeemetric.report_id == report_id)
-        # Fetch report date for context if needed
-        report = session.get(ProductionReport, report_id)
+    if target_report_id:
+        stmt = stmt.where(Oeemetric.report_id == target_report_id)
+        report = session.get(ProductionReport, target_report_id)
         if report and report.uploaded_at:
              current_report_date = report.uploaded_at.strftime("%Y-%m-%d")
     else:
         # Default to Latest Report
         latest_report = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc()).limit(1)).first()
         if latest_report:
-            stmt = stmt.where(Oeemetric.report_id == latest_report.id)
+            target_report_id = latest_report.id
+            stmt = stmt.where(Oeemetric.report_id == target_report_id)
             if latest_report.uploaded_at:
                  current_report_date = latest_report.uploaded_at.strftime("%Y-%m-%d")
         else:
-            # No reports exists
             return {
-                "oee": 0,
-                "availability": 0,
-                "performance": 0,
-                "quality": 0,
-                "recent_activity": [],
-                "db_row_count": 0
+                "oee": 0, "availability": 0, "performance": 0, "quality": 0,
+                "recent_activity": [], "db_row_count": 0, "sparkline_data": {}, "insights": []
             }
 
     metrics = session.exec(stmt).all()
-    if not metrics:
-        return {
-            "oee": 0,
-            "availability": 0,
-            "performance": 0,
-            "quality": 0,
-            "recent_activity": [],
-            "db_row_count": 0
-        }
     
-    # Calculate averages
+    # --- 1. Current Stats ---
     count = len(metrics)
-    avg_oee = sum(m.oee or 0 for m in metrics) / count
-    avg_avail = sum(m.availability or 0 for m in metrics) / count
-    avg_perf = sum(m.performance or 0 for m in metrics) / count
-    avg_qual = sum(m.quality or 0 for m in metrics) / count
+    avg_oee = 0
+    avg_avail = 0
+    avg_perf = 0
+    avg_qual = 0
+    
+    if count > 0:
+        avg_oee = sum(m.oee or 0 for m in metrics) / count
+        avg_avail = sum(m.availability or 0 for m in metrics) / count
+        avg_perf = sum(m.performance or 0 for m in metrics) / count
+        avg_qual = sum(m.quality or 0 for m in metrics) / count
 
-    # Get recent reports for activity feed
-    # This assumes ReportEntry or ProductionReport has dates, but Oeemetric has report_id
-    # Simpler: just return recent OEE metrics
+    # --- 2. Sparklines (Trend) ---
+    # Fetch last 7 reports (including current) to build trend
+    # We aggregate by Report ID / Date
+    sparkline_data = {"oee": [], "availability": [], "performance": [], "quality": [], "labels": []}
+    
+    history_reports = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc()).limit(7)).all()
+    # Reverse to show chronological order (Oldest -> Newest)
+    history_reports.reverse()
+    
+    for rep in history_reports:
+        # Get avg for this report
+        # OPTIMIZATION: In a real app, we should cache this or use a GROUP BY query. 
+        # For now, we do a quick fetch.
+        rep_metrics = session.exec(select(Oeemetric.oee, Oeemetric.availability, Oeemetric.performance, Oeemetric.quality).where(Oeemetric.report_id == rep.id)).all()
+        if rep_metrics:
+            rep_count = len(rep_metrics)
+            sparkline_data["oee"].append(sum(m[0] or 0 for m in rep_metrics) / rep_count)
+            sparkline_data["availability"].append(sum(m[1] or 0 for m in rep_metrics) / rep_count)
+            sparkline_data["performance"].append(sum(m[2] or 0 for m in rep_metrics) / rep_count)
+            sparkline_data["quality"].append(sum(m[3] or 0 for m in rep_metrics) / rep_count)
+            sparkline_data["labels"].append(rep.uploaded_at.strftime("%m/%d") if rep.uploaded_at else "N/A")
+    
+    # --- 3. Insights (Key Takeaways) ---
+    insights = []
+    
+    # Insight: OEE Target
+    # Fetch target from settings, default 0.85
+    oee_target_setting = session.get(Setting, "oee_target")
+    oee_target = float(oee_target_setting.value) if oee_target_setting else 0.85
+    
+    if avg_oee < oee_target:
+        insights.append(f"OEE is {((oee_target - avg_oee)*100):.1f}% below target ({int(oee_target*100)}%).")
+    else:
+        insights.append("OEE is on track above target.")
+        
+    # Insight: Main Loss Driver
+    losses = {
+        "Availability": (1.0 - avg_avail),
+        "Performance": (1.0 - avg_perf),
+        "Quality": (1.0 - avg_qual)
+    }
+    main_driver = max(losses, key=losses.get)
+    if losses[main_driver] > 0.05: # Only if loss is significant
+        insights.append(f"{main_driver} is the primary loss factor ({int(losses[main_driver]*100)}% loss).")
+
+    # --- 4. Recent Activity ---
     recent = []
     for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:500]:
         diag = {}
@@ -340,7 +376,8 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "downtime_min": diag.get("downtime_min"),
             "good_count": diag.get("good_count"),
             "reject_count": diag.get("reject_count"),
-            "target_count": diag.get("target_count")
+            "target_count": diag.get("target_count"),
+            "shift": m.shift # Added shift
         })
 
     return {
@@ -350,5 +387,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         "quality": round(avg_qual * 100, 1),
         "recent_activity": recent,
         "db_row_count": count,
-        "report_date": current_report_date
+        "report_date": current_report_date,
+        "sparkline_data": sparkline_data,
+        "insights": insights
     }
