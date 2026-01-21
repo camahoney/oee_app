@@ -248,7 +248,7 @@ const Dashboard: React.FC = () => {
                         itemLayout="vertical"
                         size="large"
                         pagination={{
-                            pageSize: 500, // Show all operators in one page as requested
+                            pageSize: 2000, // Show all operators (up to 2000) in one view
                             position: 'bottom',
                             showSizeChanger: false
                         }}

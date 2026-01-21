@@ -359,7 +359,14 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
 
     # --- 4. Recent Activity ---
     recent = []
-    for m in sorted(metrics, key=lambda x: x.date or date.min, reverse=True)[:500]:
+    # Limit logic: If looking at a specific report, show ALL. If recent activity (global), limit to 500.
+    limit = None if target_report_id else 500
+    
+    sorted_metrics = sorted(metrics, key=lambda x: x.date or date.min, reverse=True)
+    if limit:
+        sorted_metrics = sorted_metrics[:limit]
+
+    for m in sorted_metrics:
         diag = {}
         if m.diagnostics_json:
             try:
