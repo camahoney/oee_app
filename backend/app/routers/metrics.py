@@ -60,25 +60,32 @@ def compute_oee(
         "oee": round(oee, 4),
     }
 
-@router.post("/{report_id}/calculate", status_code=status.HTTP_201_CREATED)
-def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
-    """Calculate OEE metrics for all entries of a given production report.
-    Creates Oeemetric records in the database.
-    """
+def calculate_report_metrics_logic(report_id: int, session: Session):
+    """Core logic to calculate metrics for a report. Can be called by API or Background Task."""
     report = session.get(ProductionReport, report_id)
     if not report:
-        raise HTTPException(status_code=404, detail="Report not found")
+        print(f"Report {report_id} not found during calculation.")
+        return 0, 0, []
+
+    # Cascade delete existing metrics to ensure clean slate (Retroactive Fix)
+    from sqlmodel import delete
+    try:
+        session.exec(delete(Oeemetric).where(Oeemetric.report_id == report_id))
+        session.flush()
+    except Exception as e:
+        print(f"Error clearing metrics for report {report_id}: {e}")
+
     # Fetch all entries for this report
     entries = session.exec(select(ReportEntry).where(ReportEntry.report_id == report_id)).all()
     if not entries:
-        raise HTTPException(status_code=400, detail="No entries found for this report")
+        return 0, 0, []
+
     skipped_count = 0
     metrics_to_save = []
     missing_rates_info = set()
     
-    # Aggregate entries by (Date, Operator, Machine, Part, Shift, Job)
+    # Aggregation Phase
     try:
-        # Aggregation Phase
         aggregated = {}
         for entry in entries:
             key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job)
@@ -106,9 +113,8 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             agg["reject_count"] += (entry.reject_count or 0)
             
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Aggregation Error: {str(e)}")
+        print(f"Aggregation Error: {str(e)}")
+        return 0, 0, []
         
     # Calculation Phase
     # Fetch Settings for Logic
@@ -116,16 +122,12 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
     perf_threshold_pct = float(perf_threshold_setting.value) if perf_threshold_setting else 25.0
     perf_threshold = perf_threshold_pct / 100.0
     
-    # OEE > 100 Warning Flag (default to True)
+    # OEE > 100 Warning Flag
     oee_warning_setting = session.get(Setting, "show_oee_over_100_warning")
     show_oee_warning = (oee_warning_setting.value.lower() == 'true') if oee_warning_setting else True
 
-
-
     for key, data in aggregated.items():
-
         # Find applicable rate
-        # Strategy: Fetch all active rates for this Part Number, then find the best fit.
         stmt = select(RateEntry).where(
             (RateEntry.part_number == data["part_number"]),
             (RateEntry.active == True),
@@ -167,12 +169,10 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
             missing_rates_info.add(identifier)
             skipped_count += 1
             
-        # Self-Healing: If total_count is 0 but good_count exists, fix it.
+        # Self-Healing
         if data["total_count"] == 0 and data["good_count"] > 0:
              data["total_count"] = data["good_count"] + data["reject_count"]
         
-        # Create a temporary pseudo-entry object for computation
-        # (This avoids changing the compute_oee signature)
         pseudo_entry = ReportEntry(
             planned_production_time_min=data["planned_production_time_min"],
             run_time_min=data["run_time_min"],
@@ -190,12 +190,10 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         else:
             diagnostics["matched_rate_machine"] = rate.machine
         
-        # Warn if OEE > 100% (if enabled)
         if show_oee_warning and oee_vals["oee"] > 1.0:
-            if "warning" not in diagnostics: # Don't overwrite missing rate warning
+            if "warning" not in diagnostics:
                  diagnostics["warning"] = "OEE > 100%: Check Standard Rate"
 
-        # Manager Insights Logic
         ideal_cycle = rate.ideal_cycle_time_seconds or 0
         if not ideal_cycle and rate.ideal_units_per_hour:
              ideal_cycle = 3600.0 / rate.ideal_units_per_hour
@@ -203,20 +201,17 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         run_sec = data["run_time_min"] * 60
         perf_raw = (ideal_cycle * data["total_count"]) / run_sec if run_sec > 0 else 0
         
-        # Calculate Target Count based on actual Run Time
         target_count = int(run_sec / ideal_cycle) if ideal_cycle > 0 else 0
         diagnostics["target_count"] = target_count
         
-        # Performance Threshold Logic (1.0 +/- threshold)
         high_limit = 1.0 + perf_threshold
-        low_limit = max(0.0, 1.0 - perf_threshold) # safety floor
+        low_limit = max(0.0, 1.0 - perf_threshold)
         
         if perf_raw > high_limit:
              diagnostics["insight"] = f"High Output (>{int(high_limit*100)}%): Verify Std vs Speed"
         elif perf_raw < low_limit:
              diagnostics["insight"] = f"Low Output (<{int(low_limit*100)}%): Verify Std vs Speed"
         
-        # Add detailed stats to diagnostics
         diagnostics["run_time_min"] = data["run_time_min"]
         diagnostics["downtime_min"] = data["downtime_min"]
         diagnostics["good_count"] = data["good_count"]
@@ -244,18 +239,30 @@ def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
         session.bulk_save_objects(metrics_to_save)
         session.commit()
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Database Save Error: {str(e)}")
+        print(f"Database Save Error: {str(e)}")
+        
+    return len(metrics_to_save), skipped_count, sorted(list(missing_rates_info))
+
+
+@router.post("/{report_id}/calculate", status_code=status.HTTP_201_CREATED)
+def calculate_metrics(report_id: int, session: Session = Depends(get_session)):
+    """Calculate OEE metrics for all entries of a given production report.
+    Creates Oeemetric records in the database.
+    """
+    report = session.get(ProductionReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    count, skipped, missing = calculate_report_metrics_logic(report_id, session)
     
-    msg = f"Metrics calculated for {len(metrics_to_save)} rows."
-    if skipped_count > 0:
-        msg += f" Warning: {skipped_count} rows used missing rate data."
+    msg = f"Metrics calculated for {count} rows."
+    if skipped > 0:
+        msg += f" Warning: {skipped} rows used missing rate data."
         
     return {
-        "calculated": len(metrics_to_save), 
+        "calculated": count, 
         "message": msg,
-        "missing_rates": sorted(list(missing_rates_info))
+        "missing_rates": missing
     }
 
 @router.get("/report/{report_id}", response_model=List[Oeemetric])

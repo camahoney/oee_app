@@ -193,7 +193,20 @@ const Rates: React.FC = () => {
     const machineFilters = uniqueMachines.map(m => ({ text: m, value: m }));
 
     const columns: any = [
-        { title: 'Job / SO#', dataIndex: 'job', key: 'job', sorter: (a: any, b: any) => (a.job || '').localeCompare(b.job || '') },
+        {
+            title: 'Job / SO#',
+            dataIndex: 'job',
+            key: 'job',
+            sorter: (a: any, b: any) => (a.job || '').localeCompare(b.job || ''),
+            render: (text: string) => {
+                // User requirement: "612010" style, not "SO# 682220 / 682220"
+                // Extract the first sequence of digits (5-6 chars typically)
+                if (!text) return '-';
+                const match = text.match(/\b\d{5,8}\b/);
+                if (match) return <Typography.Text strong>{match[0]}</Typography.Text>;
+                return text; // Fallback if no clean number found
+            }
+        },
         {
             title: 'Part Number',
             dataIndex: 'part_number',

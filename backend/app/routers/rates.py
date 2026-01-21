@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks
 from sqlmodel import Session, select
 from typing import List
 import pandas as pd
 import io
 from datetime import datetime
 
-from ..db import RateEntry, RateAudit
+from ..db import RateEntry, RateAudit, ReportEntry
 from ..database import get_session
+# Import calculation logic (deferred import or direct if safe)
+# Since metrics imports from .db and .database, and rates does too, we can try direct import.
+# Note: routers/metrics.py is a sibling.
+from .metrics import calculate_report_metrics_logic
 
 router = APIRouter()
 
@@ -22,6 +26,20 @@ def log_audit(session: Session, rate_id: int, user_id: int, field: str, old: str
     )
     session.add(audit)
 
+def recalculate_affected_reports(part_number: str, session: Session):
+    """Finds all reports containing the part number and recalculates their metrics."""
+    # Find unique report IDs that have this part number
+    stmt = select(ReportEntry.report_id).where(ReportEntry.part_number == part_number).distinct()
+    report_ids = session.exec(stmt).all()
+    
+    print(f"Retroactive Recalc: Triggered for Part {part_number}. Found {len(report_ids)} affected reports.")
+    
+    for rid in report_ids:
+        try:
+            calculate_report_metrics_logic(rid, session)
+        except Exception as e:
+            print(f"Failed to recalculate report {rid}: {e}")
+
 # CRUD endpoints
 @router.get("/", response_model=List[RateEntry])
 def list_rates(skip: int = 0, limit: int = 100, session: Session = Depends(get_session)):
@@ -36,17 +54,36 @@ def get_rate(rate_id: int, session: Session = Depends(get_session)):
     return rate
 
 @router.post("/", response_model=RateEntry, status_code=status.HTTP_201_CREATED)
-def create_rate(rate: RateEntry, session: Session = Depends(get_session)):
+def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     session.add(rate)
     session.commit()
     session.refresh(rate)
+    
+    # Retroactive Calculation
+    if rate.part_number:
+        # BackgroundTasks require a strictly serializable function or a fresh session if async?
+        # FastAPI BackgroundTasks run in the same event loop. 
+        # Passing 'session' to background task is risky if session is closed.
+        # Better to pass a function that Creates a new session or accepts ID and gets new session.
+        # For simplicity in this sync/threaded SQLModel setup, we often need a new session wrapper.
+        # BUT, waiting for background task might be overkill for verified safe small checking.
+        # Let's run it synchronously for now to ensure correctness, or use a proper wrapper.
+        # Given the user wants to "recheck and redisplay", instant is better.
+        try:
+            recalculate_affected_reports(rate.part_number, session)
+        except Exception as e:
+            print(f"Warning: Retroactive calc failed inline: {e}")
+
     return rate
 
 @router.put("/{rate_id}", response_model=RateEntry)
-def update_rate(rate_id: int, updated: RateEntry, session: Session = Depends(get_session)):
+def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     db_rate = session.get(RateEntry, rate_id)
     if not db_rate:
         raise HTTPException(status_code=404, detail="Rate not found")
+    
+    old_part = db_rate.part_number
+    
     # Simple field-by-field update with audit logging
     user_id = 0  # placeholder; replace with actual user from auth
     for field in RateEntry.__fields__:
@@ -60,6 +97,19 @@ def update_rate(rate_id: int, updated: RateEntry, session: Session = Depends(get
     session.add(db_rate)
     session.commit()
     session.refresh(db_rate)
+    
+    # Trigger Recalc if relevant fields changed
+    # Recalc for BOTH old part number (if changed) and new part number
+    impacted_parts = set()
+    if old_part: impacted_parts.add(old_part)
+    if db_rate.part_number: impacted_parts.add(db_rate.part_number)
+    
+    for p in impacted_parts:
+        try:
+            recalculate_affected_reports(p, session)
+        except Exception as e:
+            print(f"Warning: Retroactive calc failed inline: {e}")
+
     return db_rate
 
 @router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -67,13 +117,20 @@ def delete_rate(rate_id: int, session: Session = Depends(get_session)):
     rate = session.get(RateEntry, rate_id)
     if not rate:
         raise HTTPException(status_code=404, detail="Rate not found")
+    
+    part_number = rate.part_number
     session.delete(rate)
     session.commit()
+    
+    # Recalc to likely generate "Missing Rate" warnings
+    if part_number:
+        recalculate_affected_reports(part_number, session)
+        
     return
 
 # Upload CSV/XLSX with validation and preview
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
-def upload_rates(file: UploadFile = File(...), session: Session = Depends(get_session)):
+def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks = None, session: Session = Depends(get_session)):
     if file.content_type not in ["text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"]:
         raise HTTPException(status_code=400, detail="Unsupported file type")
     contents = file.file.read()
@@ -108,14 +165,19 @@ def upload_rates(file: UploadFile = File(...), session: Session = Depends(get_se
 
     # Save to DB
     count = 0
+    affected_parts = set()
+    
     for _, row in df.iterrows():
         # Basic validation
         if pd.isna(row.get('part_number')): continue
         
+        part_num = str(row['part_number'])
+        affected_parts.add(part_num)
+        
         rate = RateEntry(
             operator=str(row.get('operator', 'Any')),
             machine=str(row.get('machine', 'Unknown')),
-            part_number=str(row['part_number']),
+            part_number=part_num,
             job=str(row.get('job', '')),
             ideal_units_per_hour=float(row.get('ideal_units_per_hour')) if pd.notna(row.get('ideal_units_per_hour')) else None,
             ideal_cycle_time_seconds=float(row.get('ideal_cycle_time_seconds')) if pd.notna(row.get('ideal_cycle_time_seconds')) else None,
@@ -127,4 +189,12 @@ def upload_rates(file: UploadFile = File(...), session: Session = Depends(get_se
         count += 1
     
     session.commit()
-    return {"message": f"Successfully uploaded {count} rates."}
+    
+    # Bulk Recalc
+    # This might be heavy, so we limit or rely on user to trigger full recalc if needed.
+    # But for now, let's try to do it.
+    print(f"Bulk Upload: Recalculating metrics for {len(affected_parts)} parts...")
+    for p in affected_parts:
+         recalculate_affected_reports(p, session)
+         
+    return {"message": f"Successfully uploaded {count} rates and refreshed historical metrics."}

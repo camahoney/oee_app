@@ -167,9 +167,11 @@ const Dashboard: React.FC = () => {
                             dataSource={stats.insights}
                             split={false}
                             renderItem={(item: any) => (
-                                <List.Item style={{ padding: '4px 0' }}>
-                                    <ThunderboltOutlined style={{ color: '#faad14', marginRight: 8 }} />
-                                    <Text strong style={{ fontSize: 16 }}>{item}</Text>
+                                <List.Item style={{ padding: '8px 0', justifyContent: 'flex-start', borderBottom: '1px solid #f0f0f0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                                        <ThunderboltOutlined style={{ color: '#faad14', fontSize: '16px', marginRight: 12, marginTop: '4px' }} />
+                                        <Text style={{ fontSize: '15px' }}>{item}</Text>
+                                    </div>
                                 </List.Item>
                             )}
                         />
