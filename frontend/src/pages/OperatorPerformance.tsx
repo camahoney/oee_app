@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Select, Table, Row, Col, Statistic, Alert, Typography, Spin, Tag, DatePicker } from 'antd';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
 import { analyticsService } from '../services/api';
 import dayjs from 'dayjs';
 
@@ -8,7 +8,17 @@ const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const OperatorPerformance: React.FC = () => {
+    const [loading, setLoading] = useState(false);
+    const [operators, setOperators] = useState<string[]>([]);
+    const [partsList, setPartsList] = useState<string[]>([]);
+    const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+    const [selectedPart, setSelectedPart] = useState<string | null>(null);
+    const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
+
     const [breakdownData, setBreakdownData] = useState<any>(null);
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [comparisonData, setComparisonData] = useState<any>(null);
+
 
     useEffect(() => {
         loadDropdowns();
@@ -237,7 +247,7 @@ const OperatorPerformance: React.FC = () => {
                                             <Bar dataKey="average_oee" name="Operator Avg" fill="#1890ff">
                                                 {
                                                     comparisonData.operators.map((entry: any, index: number) => (
-                                                        <cell key={`cell-${index}`} fill={entry.average_oee >= comparisonData.global_average_oee ? '#52c41a' : '#faad14'} />
+                                                        <Cell key={`cell-${index}`} fill={entry.average_oee >= comparisonData.global_average_oee ? '#52c41a' : '#faad14'} />
                                                     ))
                                                 }
                                             </Bar>
