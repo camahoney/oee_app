@@ -6,7 +6,7 @@ import io
 from datetime import datetime
 
 from ..db import RateEntry, RateAudit, ReportEntry
-from ..database import get_session
+from ..database import get_session, engine
 # Import calculation logic (deferred import or direct if safe)
 # Since metrics imports from .db and .database, and rates does too, we can try direct import.
 # Note: routers/metrics.py is a sibling.
@@ -40,6 +40,14 @@ def recalculate_affected_reports(part_number: str, session: Session):
         except Exception as e:
             print(f"Failed to recalculate report {rid}: {e}")
 
+def run_recalc_background(part_number: str):
+    """Background task wrapper to ensure a dedicated session."""
+    with Session(engine) as session:
+        try:
+            recalculate_affected_reports(part_number, session)
+        except Exception as e:
+            print(f"Background Recalc Error for Part {part_number}: {e}")
+
 # CRUD endpoints
 @router.get("/", response_model=List[RateEntry])
 def list_rates(skip: int = 0, limit: int = 100, session: Session = Depends(get_session)):
@@ -59,20 +67,9 @@ def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Ses
     session.commit()
     session.refresh(rate)
     
-    # Retroactive Calculation
+    # Retroactive Calculation (Async)
     if rate.part_number:
-        # BackgroundTasks require a strictly serializable function or a fresh session if async?
-        # FastAPI BackgroundTasks run in the same event loop. 
-        # Passing 'session' to background task is risky if session is closed.
-        # Better to pass a function that Creates a new session or accepts ID and gets new session.
-        # For simplicity in this sync/threaded SQLModel setup, we often need a new session wrapper.
-        # BUT, waiting for background task might be overkill for verified safe small checking.
-        # Let's run it synchronously for now to ensure correctness, or use a proper wrapper.
-        # Given the user wants to "recheck and redisplay", instant is better.
-        try:
-            recalculate_affected_reports(rate.part_number, session)
-        except Exception as e:
-            print(f"Warning: Retroactive calc failed inline: {e}")
+        background_tasks.add_task(run_recalc_background, rate.part_number)
 
     return rate
 
@@ -98,22 +95,18 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
     session.commit()
     session.refresh(db_rate)
     
-    # Trigger Recalc if relevant fields changed
-    # Recalc for BOTH old part number (if changed) and new part number
+    # Trigger Recalc if relevant fields changed (Async)
     impacted_parts = set()
     if old_part: impacted_parts.add(old_part)
     if db_rate.part_number: impacted_parts.add(db_rate.part_number)
     
     for p in impacted_parts:
-        try:
-            recalculate_affected_reports(p, session)
-        except Exception as e:
-            print(f"Warning: Retroactive calc failed inline: {e}")
+         background_tasks.add_task(run_recalc_background, p)
 
     return db_rate
 
 @router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_rate(rate_id: int, session: Session = Depends(get_session)):
+def delete_rate(rate_id: int, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     rate = session.get(RateEntry, rate_id)
     if not rate:
         raise HTTPException(status_code=404, detail="Rate not found")
@@ -122,9 +115,9 @@ def delete_rate(rate_id: int, session: Session = Depends(get_session)):
     session.delete(rate)
     session.commit()
     
-    # Recalc to likely generate "Missing Rate" warnings
+    # Recalc (Async)
     if part_number:
-        recalculate_affected_reports(part_number, session)
+        background_tasks.add_task(run_recalc_background, part_number)
         
     return
 
@@ -190,11 +183,14 @@ def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks
     
     session.commit()
     
-    # Bulk Recalc
-    # This might be heavy, so we limit or rely on user to trigger full recalc if needed.
-    # But for now, let's try to do it.
-    print(f"Bulk Upload: Recalculating metrics for {len(affected_parts)} parts...")
-    for p in affected_parts:
-         recalculate_affected_reports(p, session)
+    # Bulk Recalc (Async)
+    print(f"Bulk Upload: Triggering background recalc for {len(affected_parts)} parts...")
+    if background_tasks:
+        for p in affected_parts:
+             background_tasks.add_task(run_recalc_background, p)
+    else:
+        # Fallback if bg tasks not available (shouldn't happen with correct dependency)
+        for p in affected_parts:
+             run_recalc_background(p)
          
-    return {"message": f"Successfully uploaded {count} rates and refreshed historical metrics."}
+    return {"message": f"Successfully uploaded {count} rates. Metrics usually updated within seconds."}
