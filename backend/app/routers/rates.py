@@ -81,18 +81,25 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
     
     old_part = db_rate.part_number
     
+    
     # Simple field-by-field update with audit logging
-    user_id = 0  # placeholder; replace with actual user from auth
-    for field in RateEntry.__fields__:
-        if field == "id":
-            continue
-        new_val = getattr(updated, field)
-        old_val = getattr(db_rate, field)
-        if new_val != old_val:
-            log_audit(session, rate_id, user_id, field, str(old_val), str(new_val))
-            setattr(db_rate, field, new_val)
-    session.add(db_rate)
-    session.commit()
+    user_id = 1  # Fix: Use ID 1 (Admin) instead of 0 to avoid FK violation
+    try:
+        for field in RateEntry.__fields__:
+            if field == "id":
+                continue
+            new_val = getattr(updated, field)
+            old_val = getattr(db_rate, field)
+            if new_val != old_val:
+                log_audit(session, rate_id, user_id, field, str(old_val), str(new_val))
+                setattr(db_rate, field, new_val)
+        session.add(db_rate)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print(f"Update Rate Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update rate: {str(e)}")
+        
     session.refresh(db_rate)
     
     # Trigger Recalc if relevant fields changed (Async)
