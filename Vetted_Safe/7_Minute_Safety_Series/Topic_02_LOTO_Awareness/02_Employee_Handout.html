@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Field Guide - LOTO Awareness</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+    <style>
+        .page-break {
+            page-break-before: always;
+        }
+
+        .diagram-box {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+        }
+
+        .diagram-box img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--brand-navy);
+            margin-right: 1rem;
+        }
+
+        .role-card {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: BASICS -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">LOTO</div>
+            <div class="topic-sub">Energy Control</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+        <div class="objective-banner" style="background: var(--light-bg); border-left: 4px solid var(--brand-red);">
+            <div class="icon">&#128274;</div>
+            <div>
+                <strong>Golden Rule:</strong> One Lock. One Key. One Person.
+            </div>
+        </div>
+
+        <h2>Know Your Role</h2>
+        <div class="layout-grid">
+            <div class="role-card" style="background: var(--brand-orange);">
+                <h3>Affected Employee (You?)</h3>
+                <ul>
+                    <li>You OPERATE the equipment.</li>
+                    <li>You are PROTECTED by the locks others apply.</li>
+                    <li>You NEVER apply or remove locks.</li>
+                </ul>
+            </div>
+            <div class="role-card" style="background: var(--brand-blue);">
+                <h3>Authorized Employee (Maintenance)</h3>
+                <ul>
+                    <li>Has specialized training.</li>
+                    <li>Has a personal lock labeled with their name.</li>
+                    <li>VERIFIES zero energy.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="diagram-box">
+            <img src="images/loto_roles_diagram.png" alt="Roles Diagram">
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 1 of 3</div>
+    </div>
+
+    <!-- PAGE 2: ENERGY TYPES -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">Knowledge</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>It's Not Just Electricity</h2>
+        <p>Hazardous energy comes in many forms. We must control all of them.</p>
+
+        <div class="diagram-box">
+            <img src="images/energy_types_map.png" alt="Energy Types Icons">
+        </div>
+
+        <h3>The "Never Do This" List</h3>
+        <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 1rem; border-radius: 8px;">
+            <ul style="color: #991b1b; font-weight: bold;">
+                <li style="margin-bottom: 0.5rem;">NEVER reach past a guard to clear a jam without locking out.</li>
+                <li style="margin-bottom: 0.5rem;">NEVER restart a machine if a Tag is on the switch.</li>
+                <li style="margin-bottom: 0.5rem;">NEVER remove someone else's lock.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 2 of 3</div>
+    </div>
+
+    <!-- PAGE 3: SCENARIO -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">My Safety</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>Scenario: The Jam</h2>
+        <div class="layout-grid">
+            <div class="diagram-box">
+                <img src="images/violation_scenario.png" alt="Jammed Conveyor Sketch">
+            </div>
+            <div>
+                <p><strong>The Risk:</strong> Reaching in to clear a jammed box often releases stored energy. The belt
+                    can jump forward instantly.</p>
+                <p><strong>The Fix:</strong></p>
+                <ul>
+                    <li>Stop the line.</li>
+                    <li>Call Maintenance/Authorized.</li>
+                    <li>Wait for Lockout.</li>
+                    <li>Verify safe.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; border: 2px dashed #cbd5e1; padding: 1rem;">
+            <h3>My Commitment</h3>
+            <p>I understand I am an <strong>[ Affected / Authorized ]</strong> employee.</p>
+            <p>I promise to never bypass a lock or tag.</p>
+            <div style="height: 50px;"></div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 3 of 3</div>
+    </div>
+
+</body>
+
+</html>

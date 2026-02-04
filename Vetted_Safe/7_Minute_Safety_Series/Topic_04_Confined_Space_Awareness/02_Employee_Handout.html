@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Field Guide - Confined Space</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+    <style>
+        .page-break {
+            page-break-before: always;
+        }
+
+        .diagram-box {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .diagram-box img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--brand-navy);
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: SURVIVAL CARD -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">Confined Space</div>
+            <div class="topic-sub">Survival</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+        <div class="objective-banner" style="background: var(--light-bg); border-left: 4px solid var(--brand-red);">
+            <div class="icon">&#9760;</div>
+            <div>
+                <strong>The Rule:</strong> If you don't know, DON'T GO.
+            </div>
+        </div>
+
+        <h2>Permit Required Spaces Here</h2>
+        <div style="background: #f1f5f9; padding: 1rem; border-radius: 4px; border: 1px solid #cbd5e1;">
+            <p><strong>Locations to Watch:</strong></p>
+            <ul>
+                <li>Silos / Grain Bins</li>
+                <li>Underground Vaults / Pits</li>
+                <li>Storage Tanks</li>
+                <li>Tanker Trucks</li>
+            </ul>
+        </div>
+
+        <h3>The Killers & Limits</h3>
+        <div class="diagram-box">
+            <!-- Placeholder for Testing Order Image -->
+            [IMAGE: Testing Order Pyramid (O2 -> LEL -> Toxic)]
+        </div>
+
+        <table style="width:100%; border-collapse: collapse; margin-top: 1rem;">
+            <tr style="background: #e2e8f0;">
+                <th style="padding: 8px; text-align: left;">Hazard</th>
+                <th style="padding: 8px; text-align: left;">Safe Range</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">Oxygen (O2)</td>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">19.5% - 23.5%</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">Flammable (LEL)</td>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">Less than 10%</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">H2S / CO</td>
+                <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">Less than PEL</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 1 of 3</div>
+    </div>
+
+    <!-- PAGE 2: ENGULFMENT -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">Engulfment</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>Trapped by Material</h2>
+        <p>You can drown in grain or sand just like water. It takes seconds to be buried.</p>
+
+        <div class="diagram-box">
+            <!-- Placeholder for Engulfment Chart -->
+            [IMAGE: Engulfment Hazard Types (Bridging, Flowing, Caking)]
+        </div>
+
+        <div class="layout-grid">
+            <div class="info-card">
+                <strong style="color: var(--brand-red);">Bridging</strong>
+                <p>Crust on top, empty space below. You step on it, you fall through.</p>
+            </div>
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Avalanche</strong>
+                <p>Material stuck on walls breaks loose and buries you.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 2 of 3</div>
+    </div>
+
+    <!-- PAGE 3: AUTHORITY -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">Action</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>Your Authority</h2>
+        <div class="diagram-box">
+            <!-- Placeholder for Stop Work Shield -->
+            [IMAGE: Stop Work Authority Shield]
+        </div>
+
+        <p>You are authorized to <strong>STOP WORK</strong> if:</p>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>No Permit:</strong> Paperwork is missing/not signed.</div>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>No Attendant:</strong> Nobody is standing watch outside.</div>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>Bad Air:</strong> Alarm goes off (Even once).</div>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>Feeling Sick:</strong> Dizziness, headache, nausea.</div>
+        </div>
+
+        <br>
+        <div style="margin-top: 2rem; border: 2px dashed #cbd5e1; padding: 1rem;">
+            <h3>Rescue Plan</h3>
+            <p><strong>DO NOT ENTER TO RESCUE.</strong></p>
+            <p>Call: ____________________________</p>
+            <p>Wait for: ________________________</p>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 3 of 3</div>
+    </div>
+
+</body>
+
+</html>

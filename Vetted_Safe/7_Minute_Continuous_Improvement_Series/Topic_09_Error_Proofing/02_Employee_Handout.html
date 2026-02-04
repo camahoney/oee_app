@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Handout - Error Proofing</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+</head>
+
+<body>
+
+    <!-- V4 Header -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">Error Proofing</div>
+            <div class="topic-sub">Poka-Yoke</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+
+        <!-- Golden Rule -->
+        <div class="objective-banner"
+            style="background: var(--light-bg); border: none; border-left: 4px solid var(--brand-navy);">
+            <div class="icon">&#128737;</div>
+            <div>
+                <strong>The Golden Rule:</strong> The best process is one where it is physically impossible to make a
+                mistake.
+            </div>
+        </div>
+
+        <!-- 3 Info Cards Grid -->
+        <h2 style="border-bottom: none; margin-bottom: 1rem;">The 3 Types</h2>
+        <div class="handout-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 2rem;">
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-green);">1. Contact</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>Shape & Fit</strong><br>
+                    <p>Like a SIM card. It has a notched corner so it only fits one way.</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-blue);">2. Fixed Value</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>Counting</strong><br>
+                    <p>The machine counts 4 welds. It won't release the part until it sees 4.</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-red);">3. Motion-Step</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>Sequence</strong><br>
+                    <p>You must close the door before the saw starts. It forces the order.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layout Grid for Visuals -->
+        <div class="layout-grid">
+            <!-- Left: Visual/Icons -->
+            <div>
+                <h2 style="border: none;">The Hierarchy</h2>
+                <div style="text-align: center; border: 2px solid #e2e8f0; padding: 2rem; border-radius: 4px;">
+                    <div style="color: #166534; font-weight: 900; margin-bottom: 0.5rem; font-size: 1.2rem;">PREVENTION
+                        (Best)</div>
+                    <p style="font-size: 0.8rem; margin-bottom: 1rem;">(Cannot fail)</p>
+
+                    <div style="color: #eab308; font-weight: 700; margin-bottom: 0.5rem;">DETECTION (Okay)</div>
+                    <p style="font-size: 0.8rem; margin-bottom: 1rem;">(Beeps/Lights)</p>
+
+                    <div style="color: #ef4444; font-weight: 700; margin-bottom: 0.5rem;">WARNING (Bad)</div>
+                    <p style="font-size: 0.8rem;">(Signs/Procedures)</p>
+                </div>
+            </div>
+
+            <!-- Right: Behaviors -->
+            <div style="background: var(--light-bg); padding: 1rem; border-radius: 4px;">
+                <h2 style="border: none; margin-top: 0; font-size: 1rem;">Critical Behaviors</h2>
+
+                <div style="margin-bottom: 1rem;">
+                    <div style="color: #166534; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">ALWAYS
+                        (DO)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>Test the error-proofing daily (e.g. e-stop).</li>
+                        <li>Report if a Poka-Yoke is broken.</li>
+                        <li>Ask "Can we make this mistake impossible?"</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div style="color: #991b1b; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">NEVER
+                        (DON'T)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>NO bypassing safety switches.</li>
+                        <li>NO relying on "being careful".</li>
+                        <li>NO ignoring the alarm.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Specifics -->
+        <div style="margin-top: 2rem; border-top: 2px dashed #cbd5e1; padding-top: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">My Safety Checks (Write In):</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <span style="font-size: 0.75rem;">One Poka-Yoke on my machine:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem;"></div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem;">A mistake I worry about making:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Employee Field Guide</div>
+        <div>Page 1 of 1</div>
+    </div>
+
+</body>
+
+</html>

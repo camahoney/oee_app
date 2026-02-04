@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Energized Electrical Work Permit - High Value</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+</head>
+
+<body>
+
+    <!-- PAGE 1: Justification & Hazard Analysis -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <img src="../00_Design_System/assets/vetted_safe_logo_full.png" alt="Vetted Safe"
+                    class="doc-brand-logo">
+                <div class="doc-title">Energized Work Permit</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Permit No:</td>
+                    <td><strong>EEWP-[ID]</strong></td>
+                </tr>
+                <tr>
+                    <td>Standard:</td>
+                    <td><strong>NFPA 70E</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="info-block warning">
+            <div class="info-text">
+                <strong>STOP:</strong> Work on energized parts is permitted ONLY if de-energizing introduces increased
+                hazards or is infeasible (e.g., diagnostics). Inconvenience is NOT a justification.
+            </div>
+        </div>
+
+        <h2>Section 1: Description</h2>
+        <div class="form-grid-2">
+            <div class="input-group">
+                <label class="input-label">Equipment / Circuit</label>
+                <input class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Justification for Live Work</label>
+                <textarea class="input-field" style="height: 40px; resize: none;"></textarea>
+            </div>
+        </div>
+
+        <h2>Section 2: Shock Hazard Analysis</h2>
+        <div class="form-grid-3">
+            <div class="input-group">
+                <label class="input-label">Voltage Level (Phase-Phase)</label>
+                <input class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Limited Approach Boundary</label>
+                <input class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Restricted Approach Boundary</label>
+                <input class="input-field">
+            </div>
+        </div>
+
+        <h2>Section 3: Arc Flash Hazard Analysis</h2>
+        <div class="form-grid-2">
+            <div class="input-group">
+                <label class="input-label">Arc Flash Boundary (Distance)</label>
+                <input class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Incident Energy (cal/cm2) @ Working Distance</label>
+                <input class="input-field">
+            </div>
+        </div>
+
+        <h2>Section 4: Required PPE (Based on Analysis)</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+            <div>
+                <strong>Body Protection:</strong><br>
+                <label><input type="checkbox"> Non-Melting (Natural Fiber)</label><br>
+                <label><input type="checkbox"> Arc Rated Shirt/Pants (Cat 2)</label><br>
+                <label><input type="checkbox"> Arc Flash Suit (Cat 4)</label>
+            </div>
+            <div>
+                <strong>Face/Head/Hand:</strong><br>
+                <label><input type="checkbox"> Voltage Rated Gloves (Class ____)</label><br>
+                <label><input type="checkbox"> Arc Rated Face Shield + Balaclava</label><br>
+                <label><input type="checkbox"> Safety Glasses + Ear Plugs</label>
+            </div>
+        </div>
+
+        <div class="footer-strip">
+            <span>Critical Work Permit: Electrical</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 1 of 2</span>
+        </div>
+    </div>
+
+    <!-- PAGE 2: Approvals -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Approval & Briefing</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Status:</td>
+                    <td><strong>Pending Approval</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>Section 5: Safe Work Practices & Barriers</h2>
+        <p>Describe how unqualified persons will be kept out of the work area (Barricades, Attendants, Signs).</p>
+        <textarea class="input-field" style="height: 100px; resize: none; margin-bottom: 2rem;"></textarea>
+
+        <h2>Section 6: Job Briefing</h2>
+        <p>I acknowledge that I have been briefed on the hazards, the PPE requirements, and the emergency procedures.
+        </p>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: var(--slate); color: white;">
+                <th style="padding: 0.5rem; text-align: left;">Qualified Person Name</th>
+                <th style="padding: 0.5rem; text-align: left;">Signature</th>
+            </tr>
+            <tr>
+                <td style="border:1px solid var(--silver); padding: 1rem;"></td>
+                <td style="border:1px solid var(--silver);"></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid var(--silver); padding: 1rem;"></td>
+                <td style="border:1px solid var(--silver);"></td>
+            </tr>
+        </table>
+
+        <div class="info-block warning" style="margin-top: 2rem;">
+            <div class="info-text">
+                <strong>MANAGEMENT APPROVAL:</strong> This permit must be signed by the Safety Manager or Owner/Operator
+                for any High Voltage work.
+            </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 3rem;">
+            <div>
+                <div style="border-bottom: 1px solid var(--navy); height: 2rem; margin-bottom: 0.5rem;"></div>
+                <label class="input-label">Electrically Qualified Supervisor</label>
+            </div>
+            <div>
+                <div style="border-bottom: 1px solid var(--navy); height: 2rem; margin-bottom: 0.5rem;"></div>
+                <label class="input-label">Safety Manager / Owner</label>
+            </div>
+        </div>
+
+        <div class="footer-strip">
+            <span>Critical Work Permit: Electrical</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 2 of 2</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

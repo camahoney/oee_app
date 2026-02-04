@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Handout - Inventory & Kanban</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+</head>
+
+<body>
+
+    <!-- V4 Header -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">Inventory & Kanban</div>
+            <div class="topic-sub">Just-In-Time (JIT)</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+
+        <!-- Golden Rule -->
+        <div class="objective-banner"
+            style="background: var(--light-bg); border: none; border-left: 4px solid var(--brand-navy);">
+            <div class="icon">&#128230;</div>
+            <div>
+                <strong>The Golden Rule:</strong> No Ticket, No Work. Never produce a part unless you have a signal
+                (Kanban) telling you the customer needs it.
+            </div>
+        </div>
+
+        <!-- 3 Info Cards Grid -->
+        <h2 style="border-bottom: none; margin-bottom: 1rem;">Kanban Basics</h2>
+        <div class="handout-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 2rem;">
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-navy);">1. The Signal</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>"I need more"</strong><br>
+                    <p>It can be a card, an empty bin, or a designated space. It authorizes you to work.</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-navy);">2. The Supermarket</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>Visual Stock</strong><br>
+                    <p>A place where standard stock is kept. We refill strictly what was taken.</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-header" style="background: var(--brand-navy);">3. FIFO</div>
+                <div style="font-size: 0.9rem;">
+                    <strong>First In, First Out</strong><br>
+                    <p>Use the oldest stock first. Prevents parts from expiring or rusting at the back.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layout Grid for Visuals -->
+        <div class="layout-grid">
+            <!-- Left: Visual/Icons -->
+            <div>
+                <h2 style="border: none;">The Traffic Light</h2>
+                <div style="text-align: center; border: 2px solid #e2e8f0; padding: 2rem; border-radius: 4px;">
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 30px; height: 30px; background: #22c55e; border-radius: 50%;"></div>
+                        <div style="width: 30px; height: 30px; background: #eab308; border-radius: 50%;"></div>
+                        <div style="width: 30px; height: 30px; background: #ef4444; border-radius: 50%;"></div>
+                    </div>
+                    <div style="text-align: left; font-size: 0.85rem;">
+                        <p><strong><span style="color:#22c55e;">GREEN</span>:</strong> Max Level. STOP. Do not build.
+                        </p>
+                        <p><strong><span style="color:#eab308;">YELLOW</span>:</strong> Reorder Point. Prepare to build.
+                        </p>
+                        <p><strong><span style="color:#ef4444;">RED</span>:</strong> Danger Zone. Build immediately!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Behaviors -->
+            <div style="background: var(--light-bg); padding: 1rem; border-radius: 4px;">
+                <h2 style="border: none; margin-top: 0; font-size: 1rem;">Critical Behaviors</h2>
+
+                <div style="margin-bottom: 1rem;">
+                    <div style="color: #166534; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">ALWAYS
+                        (DO)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>Move the card when you move the bin.</li>
+                        <li>Respect the "Max" line.</li>
+                        <li>Rotate stock (oldest in front).</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div style="color: #991b1b; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">NEVER
+                        (DON'T)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>NO losing the Kanban cards.</li>
+                        <li>NO overloading the bin (overflow).</li>
+                        <li>NO building "Just in Case".</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Specifics -->
+        <div style="margin-top: 2rem; border-top: 2px dashed #cbd5e1; padding-top: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">My Kanban (Write In):</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <span style="font-size: 0.75rem;">Parts I control via Kanban:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem;"></div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem;">Where do I put empty cards?</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Employee Field Guide</div>
+        <div>Page 1 of 1</div>
+    </div>
+
+</body>
+
+</html>

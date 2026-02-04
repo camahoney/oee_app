@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>New Hire Safety Orientation - Expanded</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+
+        .page {
+            width: 11in;
+            height: 8.5in;
+            padding: 0.5in 0.75in;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+        }
+
+        .cover-image {
+            height: 100%;
+            width: 55%;
+            right: 0;
+            left: auto;
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+            opacity: 1;
+            mix-blend-mode: normal;
+        }
+
+        .cover-header {
+            width: 45%;
+            height: 100%;
+            padding: 4rem 2rem 4rem 4rem;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        .cover-footer {
+            display: none;
+        }
+
+        .slide-title {
+            font-size: 2.5rem;
+            color: var(--navy);
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide-body {
+            font-size: 1.3rem;
+            color: var(--navy-light);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .slide-body li {
+            margin-bottom: 0.75rem;
+        }
+
+        .speaker-notes {
+            margin-top: auto;
+            border-top: 1px dotted var(--slate);
+            padding-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--slate);
+            font-style: italic;
+        }
+
+        .footer-strip {
+            position: relative;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Slide 1: Cover -->
+    <div class="page cover-page">
+        <div class="cover-header">
+            <img src="../00_Design_System/assets/vetted_safe_logo_icon.png" class="cover-brand"
+                style="width: 80px; height: auto; background: none; padding: 0; filter: brightness(0) invert(1);">
+            <h1 class="cover-title-large" style="font-size: 3.5rem;">NEW HIRE<br>SAFETY<br>ACADEMY</h1>
+            <p style="color: white; font-size: 1.25rem; margin-top: 2rem; opacity: 0.9;">Module 1: Core Safety
+                Principles</p>
+        </div>
+        <img src="../00_Design_System/assets/kit_2_new_hire_cover.png" class="cover-image" alt="Cover">
+    </div>
+
+    <!-- Slide 2: Culture -->
+    <div class="page">
+        <h1 class="slide-title">01. Our Safety Culture</h1>
+        <div class="form-grid-2">
+            <div style="padding: 2rem; background: #F0FDF4; border-radius: 8px;">
+                <h3 style="color: #166534; margin-top: 0;">Production is NOT #1</h3>
+                <p class="slide-body">If you can't do it safe, don't do it. We will never fire you for stopping a job
+                    because of a hazard.</p>
+            </div>
+            <div style="padding: 2rem; background: #FEF2F2; border-radius: 8px;">
+                <h3 style="color: #991B1B; margin-top: 0;">Stop Work Authority</h3>
+                <p class="slide-body">You have the authority and the <strong>duty</strong> to stop work if you see an
+                    imminent danger.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                2</span></div>
+    </div>
+
+    <!-- Slide 3: Rules -->
+    <div class="page">
+        <h1 class="slide-title">02. The "Cardinal Rules"</h1>
+        <p class="slide-body">Violating these rules puts lives at risk and may result in immediate termination.</p>
+        <ul class="slide-body">
+            <li><strong>LOTO:</strong> Never bypass a lock or guard.</li>
+            <li><strong>Heights:</strong> No working above 4ft without fall protection.</li>
+            <li><strong>Confined Space:</strong> Never enter a tank/pit without a permit.</li>
+            <li><strong>Substance Abuse:</strong> 100% Drug & Alcohol Free workplace (includes marijuana).</li>
+        </ul>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                3</span></div>
+    </div>
+
+    <!-- Slide 4: PPE -->
+    <div class="page">
+        <h1 class="slide-title">03. Personal Protective Equipment</h1>
+        <div class="form-grid-3" style="margin-top: 2rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 3rem;">&#128083;</div>
+                <h3>Standard</h3>
+                <p>Safety Glasses (Z87)<br>Steel Toes<br>Long Pants</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 3rem;">&#129466;</div>
+                <h3>Hands</h3>
+                <p>Cut-Level 2 (General)<br>Nitrile (Chemical)<br>Leather (Hot Work)</p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 3rem;">&#128266;</div>
+                <h3>Hearing</h3>
+                <p>Earplugs required in zones marked ">85dB".</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                4</span></div>
+    </div>
+
+    <!-- Slide 5: HazCom -->
+    <div class="page">
+        <h1 class="slide-title">04. Hazard Communication (GHS)</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3>Labels are Mandatory</h3>
+                <ul class="slide-body">
+                    <li>Every container must be labeled.</li>
+                    <li>If you find an unlabeled bottle, tell your supervisor. Do NOT use it.</li>
+                    <li><strong>Blue:</strong> Health Hazard</li>
+                    <li><strong>Red:</strong> Flammability</li>
+                </ul>
+            </div>
+            <div class="info-block" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="info-text">
+                    <strong>SDS (Safety Data Sheets):</strong><br>
+                    Digital copies available on the shared drive.<br>
+                    Physical binder located in the Break Room.
+                </div>
+                <div
+                    style="background: white; border: 2px dashed #E2E8F0; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; color: #64748B; text-align: center; font-size: 0.9rem;">
+                    [PLACEHOLDER]<br>GHS Pictograms or NFPA Diamond Visual
+                </div>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                5</span></div>
+    </div>
+
+    <!-- Slide 6: Bloodborne Pathogens -->
+    <div class="page">
+        <h1 class="slide-title">05. Bloodborne Pathogens</h1>
+        <div class="info-block warning">
+            <div class="info-icon">&#9888;</div>
+            <div class="info-text">
+                <strong>Universal Precaution:</strong> Treat ALL blood and bodily fluids as if they are infectious.
+            </div>
+        </div>
+        <ul class="slide-body" style="margin-top: 1rem;">
+            <li><strong>If a coworker is bleeding:</strong> Do NOT touch the blood. Call the First Response Team.</li>
+            <li><strong>Cleanup:</strong> Only trained personnel (custodial/EHS) may clean up blood spills.</li>
+            <li><strong>Exposure:</strong> If you are exposed, wash immediately and report it.</li>
+        </ul>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                6</span></div>
+    </div>
+
+    <!-- Slide 7: Emergency -->
+    <div class="page">
+        <h1 class="slide-title">06. Emergency Action Plan</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3 style="color: var(--primary);">Fire / Evacuation</h3>
+                <ol class="slide-body">
+                    <li>Stop work safely.</li>
+                    <li>Walk to nearest Exit.</li>
+                    <li>Register at Rally Point.</li>
+                    <li>Wait for "All Clear".</li>
+                </ol>
+            </div>
+            <div>
+                <h3 style="color: var(--primary);">Severe Weather</h3>
+                <ol class="slide-body">
+                    <li>Move to interior Shelter Area.</li>
+                    <li>Stay away from glass/windows.</li>
+                    <li>Crouch and cover head.</li>
+                </ol>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                7</span></div>
+    </div>
+
+    <!-- Slide 8: Lockout -->
+    <div class="page">
+        <h1 class="slide-title">07. LOTO Awareness</h1>
+        <p class="slide-body">You are an <strong>"Affected Employee"</strong>.</p>
+        <div class="info-block" style="background: white; border: 2px solid var(--navy);">
+            <ul class="slide-body" style="list-style: none;">
+                <li>&#10060; You MAY NOT apply locks.</li>
+                <li>&#10060; You MAY NOT remove locks.</li>
+                <li>&#9989; You MUST respect the lock.</li>
+            </ul>
+        </div>
+        <p class="slide-body" style="margin-top: 1rem;">If a machine is locked out, it is being serviced. Attempting to
+            start it could kill the mechanic inside.</p>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                8</span></div>
+    </div>
+
+    <!-- Slide 9: Ergonomics -->
+    <div class="page">
+        <h1 class="slide-title">08. Ergonomics & Lifting</h1>
+        <div class="form-grid-2">
+            <div style="text-align: center;">
+                <img src="../00_Design_System/assets/safe_lifting_zone.png"
+                    style="background: white; width: 100%; height: auto; max-height: 250px; object-fit: contain; color: var(--slate); border-radius: 4px; border: 1px solid var(--silver);"
+                    alt="Green Zone Lifting">
+                <p><strong>Power Zone:</strong> Keep lifts between knees and shoulders.</p>
+            </div>
+            <div>
+                <ul class="slide-body">
+                    <li>Test the load before lifting.</li>
+                    <li>Get help for anything over 50 lbs.</li>
+                    <li>Don't twist your spine while holding a load. Turn your feet.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                9</span></div>
+    </div>
+
+    <!-- Slide 10: Reporting -->
+    <div class="page">
+        <h1 class="slide-title">09. Incident Reporting</h1>
+        <p class="slide-body"><strong>We want to know!</strong> Silence is the enemy of safety.</p>
+        <div class="form-grid-3">
+            <div style="background: #FFFBEB; padding: 1rem; border-radius: 4px;">
+                <h3>Near Miss</h3>
+                <p>"Almost an accident." No one hurt. Report it so we can fix the hazard.</p>
+            </div>
+            <div style="background: #EFF6FF; padding: 1rem; border-radius: 4px;">
+                <h3>First Aid</h3>
+                <p>Minor cut/scrape. Report it to get treatment and log it.</p>
+            </div>
+            <div style="background: #FEF2F2; padding: 1rem; border-radius: 4px;">
+                <h3>Lost Time</h3>
+                <p>Serious injury. Requires immediate investigation.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                10</span></div>
+    </div>
+
+    <!-- Slide 11: Quiz -->
+    <div class="page">
+        <h1 class="slide-title">10. Knowledge Check</h1>
+        <div class="form-grid-2">
+            <div class="info-block" style="display:block;">
+                <p><strong>Q1:</strong> Which color diamond represents Flammability?</p>
+                <p style="color: var(--slate); font-style: italic;">A: RED</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q2:</strong> Can you restart a machine if the lock belongs to a friend?</p>
+                <p style="color: var(--slate); font-style: italic;">A: NO. Never remove another person's lock.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q3:</strong> When should you report an injury?</p>
+                <p style="color: var(--slate); font-style: italic;">A: Immediately (Right Now).</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q4:</strong> What is the weight limit for a solo lift?</p>
+                <p style="color: var(--slate); font-style: italic;">A: 50 lbs.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                11</span></div>
+    </div>
+
+    <!-- Slide 12: Pledge -->
+    <div class="page">
+        <h1 class="slide-title">11. The Safety Commitment</h1>
+        <p class="slide-body" style="font-size: 1.5rem; text-align: center; margin-top: 3rem; font-style: italic;">
+            "I pledge to look out for my own safety and the safety of my teammates.<br>
+            I will not take shortcuts.<br>
+            I will stop work if it is unsafe."
+        </p>
+
+        <div style="margin-top: auto; text-align: center;">
+            <div style="border-bottom: 2px solid var(--navy); width: 60%; margin: 0 auto;"></div>
+            <p>Employee Signature</p>
+        </div>
+
+        <div class="footer-strip"><span>New Hire Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                12</span></div>
+    </div>
+
+</body>
+
+</html>

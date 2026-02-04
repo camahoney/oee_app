@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop Slides - Confined Space</title>
+    <style>
+        :root {
+            --brand-navy: #0F172A;
+            --brand-red: #DC2626;
+            --brand-green: #16a34a;
+            --brand-blue: #3b82f6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: white;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--brand-red);
+            text-align: center;
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            border: 4px solid white;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 60%;
+            height: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: var(--brand-red);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .title-slide {
+            background: var(--brand-navy);
+        }
+
+        .title-slide h1 {
+            border-bottom: 4px solid var(--brand-red);
+        }
+
+        .bullets {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active title-slide">
+        <h1>Confined Space</h1>
+        <h2>Recognize. Stop. Live.</h2>
+        <p>Vetted Safe | Safety Core Series</p>
+    </div>
+
+    <!-- Slide 2: The Stat -->
+    <div class="slide">
+        <h2>The Killer Stat</h2>
+        <div class="bullets" style="font-size: 4rem; text-align: center;">81%</div>
+        <p>Of fatalities are the would-be RESCUERS.</p>
+        <p>Don't be a hero. Be a professional.</p>
+    </div>
+
+    <!-- Slide 3: Hazards -->
+    <div class="slide">
+        <h2>The 6 Hazards</h2>
+        <ul class="bullets">
+            <li>Oxygen Deficiency (< 19.5%)</li>
+            <li>Toxic Gas (H2S, CO)</li>
+            <li>Explosive Atmosphere (LEL)</li>
+            <li>Engulfment (Grain, Fluid)</li>
+            <li>Temperature</li>
+            <li>Noise/Visibility</li>
+        </ul>
+    </div>
+
+    <!-- Slide 4: Testing Order -->
+    <div class="slide">
+        <h2>Testing Sequence</h2>
+        <div class="img-container">
+            [PLACEHOLDER: Testing Pyramid]
+        </div>
+        <p>1. Oxygen -> 2. Flammable -> 3. Toxic</p>
+    </div>
+
+    <!-- Slide 5: Scenario A -->
+    <div class="slide">
+        <h2>Scenario: The Sump</h2>
+        <p class="bullets">Pump breaks in a 6ft pit.</p>
+        <p class="bullets">"I'll just jump in for 10 seconds."</p>
+        <p class="bullets" style="color:red;"><strong>Result: FATALITY (H2S Gas)</strong></p>
+    </div>
+
+    <!-- Slide 6: Scenario B -->
+    <div class="slide">
+        <h2>Scenario: The Grain Bin</h2>
+        <p class="bullets">Grain is bridged overhead.</p>
+        <p class="bullets">"I'll poke it with a pole."</p>
+        <p class="bullets" style="color:red;"><strong>Result: FATALITY (Avalanche)</strong></p>
+    </div>
+
+    <!-- Slide 7: Stop Work -->
+    <div class="slide">
+        <h2>Stop Work Authority</h2>
+        <div class="img-container">
+            [PLACEHOLDER: Stop Work Shield]
+        </div>
+        <p>You have the power to stop unsafe entry.</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="changeSlide(-1)">&#8592; Prev</button>
+        <button onclick="changeSlide(1)">Next &#8594;</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        function changeSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + n + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('progressBar').style.width = ((currentSlide + 1) / slides.length) * 100 + '%';
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+    </script>
+</body>
+
+</html>

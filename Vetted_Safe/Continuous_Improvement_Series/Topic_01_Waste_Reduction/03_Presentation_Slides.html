@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Elite Slides - Waste Reduction</title>
+    <style>
+        :root {
+            --elite-black: #000000;
+            --elite-gold: #D4AF37;
+            --elite-white: #ffffff;
+            --elite-grey: #333333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', serif;
+            overflow: hidden;
+            background: var(--elite-black);
+            color: var(--elite-white);
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            box-sizing: border-box;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--elite-gold);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: var(--elite-white);
+            font-weight: 300;
+            /* Thin elegant font */
+            text-align: center;
+        }
+
+        .stat-huge {
+            font-size: 8rem;
+            font-weight: bold;
+            color: var(--elite-gold);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            border: 2px solid var(--elite-gold);
+            padding: 1rem;
+            width: 60%;
+            height: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--elite-gold);
+            font-style: italic;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--elite-gold);
+            color: var(--elite-gold);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: var(--elite-gold);
+            color: var(--elite-black);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--elite-gold);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .bullets {
+            font-size: 2rem;
+            color: #ccc;
+            text-align: left;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active">
+        <h1>Waste Reduction</h1>
+        <h2>Profit Generation Mastery</h2>
+        <div style="margin-top:2rem; width: 100px; height: 2px; background: var(--elite-gold);"></div>
+    </div>
+
+    <!-- Slide 2: The Wake Up -->
+    <div class="slide">
+        <h2>Your Cycle Time Analysis</h2>
+        <div class="stat-huge">90%</div>
+        <h2>Is Pure Waste</h2>
+        <p>Waiting. Walking. Searching. Reworking.</p>
+    </div>
+
+    <!-- Slide 3: The Cost -->
+    <div class="slide">
+        <h1>The Calculation</h1>
+        <div class="img-container">
+            [PLACEHOLDER: ROI Calculator Matrix]
+        </div>
+        <p>Labor Rate x 25% Reduction = Year 1 Profits</p>
+    </div>
+
+    <!-- Slide 4: 7 Wastes -->
+    <div class="slide">
+        <h1>TIMWOOD</h1>
+        <div class="img-container">
+            [PLACEHOLDER: 7 Wastes Icons]
+        </div>
+        <p>Transport | Inventory | Motion | Waiting | Overproduction | Overprocessing | Defects</p>
+    </div>
+
+    <!-- Slide 5: Spaghetti Map -->
+    <div class="slide">
+        <h1>Motion Waste</h1>
+        <h2>"The Spaghetti Map"</h2>
+        <div class="img-container">
+            [PLACEHOLDER: Spaghetti Diagram Example]
+        </div>
+        <p>If your path looks like spaghetti, you are burning cash.</p>
+    </div>
+
+    <!-- Slide 6: SMED -->
+    <div class="slide">
+        <h1>Capacity</h1>
+        <h2>Rapid Changeover (SMED)</h2>
+        <p class="bullets">Current: 60 mins setup time.</p>
+        <p class="bullets">Target: < 10 mins.</p>
+                <p class="bullets" style="color:var(--elite-gold);">Gain: 50 mins of capacity daily.</p>
+    </div>
+
+    <!-- Slide 7: Action Plan -->
+    <div class="slide">
+        <h1>Your 30 Days</h1>
+        <ul class="bullets">
+            <li>Week 1: 5S Blitz (Clear the clutter)</li>
+            <li>Week 2: Mapping & SMED</li>
+            <li>Week 3: Visual Controls</li>
+            <li>Week 4: Standard Work</li>
+        </ul>
+    </div>
+
+    <div class="controls">
+        <button onclick="changeSlide(-1)">PREV</button>
+        <button onclick="changeSlide(1)">NEXT</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        function changeSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + n + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('progressBar').style.width = ((currentSlide + 1) / slides.length) * 100 + '%';
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+    </script>
+</body>
+
+</html>

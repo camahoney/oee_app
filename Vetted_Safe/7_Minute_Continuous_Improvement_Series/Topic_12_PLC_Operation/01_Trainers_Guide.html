@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer's Guide - PLC Operation & Troubleshooting</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+</head>
+
+<body>
+
+    <!-- V4 Ultra-Premium Header -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Continuous Improvement Series</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">PLC Basics</div>
+            <div class="topic-sub">Operation & Troubleshooting</div>
+        </div>
+    </div>
+
+    <!-- Objective Banner -->
+    <div class="objective-banner" style="border-left: 4px solid var(--brand-navy);">
+        <div class="icon">&#128187;</div>
+        <div>
+            <strong>Learning Objective:</strong> Trainees will understand the basic "Input-Logic-Output" cycle of a
+            Programmable Logic Controller (PLC) to assist in safe troubleshooting.
+        </div>
+    </div>
+
+    <!-- Layout Grid -->
+    <div class="layout-grid">
+
+        <!-- MAIN SCRIPT (Timeline) -->
+        <div class="main-content">
+            <h2 style="border-bottom: 2px solid var(--brand-navy);">Trainer's Script</h2>
+
+            <div class="timeline">
+
+                <!-- Minute 1 -->
+                <div class="timeline-item">
+                    <span class="time-tag">Minute 0-1 (The 'Why')</span>
+                    <p style="margin-top:0;"><strong>Ask:</strong> "Does the machine 'know' when a part is present?"</p>
+                    <p><strong>State:</strong> "Not magic. It has 'eyes' (sensors). The PLC is the Brain that connects
+                        the Eyes to the Hands (Motors)."</p>
+                    <p><strong>Purpose:</strong> "If you understand the Brain, you can fix the machine without forcing
+                        it to crash."</p>
+                </div>
+
+                <!-- Minute 2-3 -->
+                <div class="timeline-item">
+                    <span class="time-tag">Minute 2-3 (The I-P-O Cycle)</span>
+                    <p><strong>3 Step Process:</strong></p>
+                    <ul style="padding-left: 1rem; color: #334155;">
+                        <li><strong>1. Inputs (Eyes):</strong> Buttons, Switches, Photo-eyes. (State: On/Off).</li>
+                        <li><strong>2. Processing (Brain):</strong> The Program/Mac. "If Eye sees part, THEN start
+                            Motor."</li>
+                        <li><strong>3. Outputs (Hands):</strong> Motors, lights, valves. (Action).</li>
+                    </ul>
+                </div>
+
+                <!-- Scenario Card -->
+                <div class="scenario-card" style="border-left: 4px solid var(--brand-navy);">
+                    <span class="time-tag" style="color: var(--brand-navy);">Troubleshooting Scenario</span>
+                    <p><strong>Problem:</strong> The conveyor won't start.</p>
+                    <p><strong>Check the Lights:</strong> "Look at the Input Module. Is the 'Start Button' light on? No?
+                        Then the PLC doesn't know you are pushing it."</p>
+                    <p><strong>Lesson:</strong> "Check the I/O lights before you call maintenance."</p>
+                </div>
+
+                <!-- Minute 4-5 -->
+                <div class="timeline-item">
+                    <span class="time-tag">Minute 4-5 (Safety First)</span>
+                    <p><strong>Forcing Inputs:</strong> "Never tape back a sensor or block a photo-eye to 'trick' the
+                        PLC."</p>
+                    <p><strong>Why?</strong> "The PLC assumes safety checks are met. If you lie to the PLC, it might
+                        crush your hand."</p>
+                </div>
+
+                <!-- Minute 6 -->
+                <div class="timeline-item">
+                    <span class="time-tag">Minute 6 (Site Specifics)</span>
+                    <p style="margin-top:0;">"Let's look at the PLC cabinet (from the outside)." <i>(Review
+                            sidebar).</i></p>
+                    <p>"We end with a 10-question quiz."</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SIDEBAR PANEL -->
+        <div class="sidebar-panel">
+            <h2>Preparation / Props</h2>
+            <ul style="padding-left: 1rem; font-size: 0.9rem; margin-bottom: 2rem;">
+                <li>Photo of a PLC Rack (Handout)</li>
+                <li>Quiz Copies & Pens</li>
+            </ul>
+
+            <h2>Site Specific Data</h2>
+            <p style="font-size: 0.8rem; color: #64748b;">Trainer: Fill in before class.</p>
+
+            <div style="margin-bottom: 1.5rem;">
+                <strong style="font-size: 0.8rem; display: block;">Brand of PLC we use (Allen-Bradley/Siemens):</strong>
+                <div style="background: white; border: 1px solid #cbd5e1; height: 1.5rem; margin-top: 0.25rem;"></div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <strong style="font-size: 0.8rem; display: block;">Most common Sensor failure:</strong>
+                <div style="background: white; border: 1px solid #cbd5e1; height: 1.5rem; margin-top: 0.25rem;"></div>
+            </div>
+
+            <h2>Trainer Tips</h2>
+            <div style="font-size: 0.85rem; line-height: 1.4;">
+                <p><strong>Binary:</strong> PLCs think in 1s and 0s. It's either ON or OFF. There is no 'Maybe'. Teach
+                    operators to think like the machine.</p>
+                <div style="height: 10px;"></div>
+                <p><strong>Don't touch code:</strong> Operators touch hardware (sensors). Maintenance touches code.
+                    Draws a clear line.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Continuous Improvement Series</div>
+        <div>Page 1 of 1</div>
+    </div>
+
+</body>
+
+</html>

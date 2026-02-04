@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Confined Space Permit - High Value</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+    <style>
+        .test-row td {
+            padding: 0.75rem;
+            border: 1px solid var(--silver);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: Evaluation & Pre-Entry -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <img src="../00_Design_System/assets/vetted_safe_logo_full.png" alt="Vetted Safe"
+                    class="doc-brand-logo">
+                <div class="doc-title">Confined Space Permit</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Space ID:</td>
+                    <td><strong>[Space Name]</strong></td>
+                </tr>
+                <tr>
+                    <td>Classification:</td>
+                    <td><strong>Permit Required</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-grid-2">
+            <div class="input-group">
+                <label class="input-label">Purpose of Entry</label>
+                <input class="input-field">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Date</label>
+                <input class="input-field">
+            </div>
+        </div>
+
+        <h2>Step 1: Hazard Isolation (The "Kill" List)</h2>
+        <p>Before entry, all hazards must be eliminated.</p>
+        <div class="form-grid-3">
+            <div>
+                <label><input type="checkbox"> LOTO Applied (Energy)</label><br>
+                <label><input type="checkbox"> Piping Disconnected</label>
+            </div>
+            <div>
+                <label><input type="checkbox"> Space Drained/Flushed</label><br>
+                <label><input type="checkbox"> Mechanical Ventilation On</label>
+            </div>
+            <div>
+                <label><input type="checkbox"> Road Barriers Erected</label><br>
+                <label><input type="checkbox"> Rescue Team Notified</label>
+            </div>
+        </div>
+
+        <h2>Step 2: Atmospheric Testing</h2>
+        <p><strong>Testing Protocol:</strong> Test Top, Middle, and Bottom. Record highest hazard reading.</p>
+        <table class="test-row" style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+            <tr style="background: var(--navy); color: white;">
+                <th>Gas</th>
+                <th>Safe Limits</th>
+                <th>Pre-Entry Reading</th>
+                <th>Time</th>
+                <th>Initials</th>
+            </tr>
+            <tr>
+                <td><strong>Oxygen (O2)</strong></td>
+                <td>19.5% - 23.5%</td>
+                <td>_______ %</td>
+                <td>______</td>
+                <td>______</td>
+            </tr>
+            <tr>
+                <td><strong>Flammability (LEL)</strong></td>
+                <td>&lt; 10%</td>
+                <td>_______ %</td>
+                <td>______</td>
+                <td>______</td>
+            </tr>
+            <tr>
+                <td><strong>H2S</strong></td>
+                <td>&lt; 10 PPM</td>
+                <td>_______ PPM</td>
+                <td>______</td>
+                <td>______</td>
+            </tr>
+            <tr>
+                <td><strong>CO</strong></td>
+                <td>&lt; 35 PPM</td>
+                <td>_______ PPM</td>
+                <td>______</td>
+                <td>______</td>
+            </tr>
+        </table>
+
+        <h2>Step 3: Rescue Plan</h2>
+        <div class="input-group">
+            <label class="input-label">Primary Rescue Method:</label>
+            <div style="display: flex; gap: 2rem;">
+                <label><input type="checkbox"> Self-Rescue</label>
+                <label><input type="checkbox"> Non-Entry (Tripod/Winch Retrieval)</label>
+                <label><input type="checkbox"> Entry Rescue (Fire Dept/Team)</label>
+            </div>
+        </div>
+        <div class="input-group" style="margin-top: 1rem;">
+            <label class="input-label">Emergency Contact Number:</label>
+            <input class="input-field" placeholder="911 or Site Emergency #">
+        </div>
+
+        <div class="footer-strip">
+            <span>Critical Work Permit: Confined Space</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 1 of 2</span>
+        </div>
+    </div>
+
+    <!-- PAGE 2: Entry Log -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Entry Authorization</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Status:</td>
+                    <td><strong>Active/Closed</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>Step 4: Personnel Log</h2>
+        <p><strong>The Attendant (Hole Watch)</strong> must remain at the opening at all times and track entrants.</p>
+
+        <div class="input-group">
+            <label class="input-label">Attendant Name(s)</label>
+            <input class="input-field">
+        </div>
+
+        <table style="margin-top: 1rem;">
+            <tr>
+                <th style="width: 40%;">Entrant Name</th>
+                <th style="width: 20%;">Time In</th>
+                <th style="width: 20%;">Time Out</th>
+                <th style="width: 20%;">Time In</th>
+                <th style="width: 20%;">Time Out</th>
+            </tr>
+            <!-- Rows -->
+            <tr>
+                <td><input class="input-field"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><input class="input-field"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><input class="input-field"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><input class="input-field"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><input class="input-field"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <h2>Step 5: Ongoing Monitoring (Periodically)</h2>
+        <table class="test-row" style="width: 100%; border-collapse: collapse; margin-top: 0.5rem;">
+            <tr>
+                <th>Time</th>
+                <th>O2 %</th>
+                <th>LEL %</th>
+                <th>H2S</th>
+                <th>CO</th>
+                <th>Tester</th>
+            </tr>
+            <tr>
+                <td>_______</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>_______</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>_______</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <h2>Step 6: Closure</h2>
+        <p>Space verified empty. All personnel accounted for. Permit cancelled.</p>
+
+        <div class="form-grid-2" style="margin-top: 2rem;">
+            <div>
+                <div style="border-bottom: 1px solid var(--navy); height: 2rem; margin-bottom: 0.5rem;"></div>
+                <label class="input-label">Entry Supervisor Signature</label>
+            </div>
+            <div>
+                <label class="input-label">Time Closed</label>
+                <input class="input-field">
+            </div>
+        </div>
+
+        <div class="footer-strip">
+            <span>Critical Work Permit: Confined Space</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 2 of 2</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

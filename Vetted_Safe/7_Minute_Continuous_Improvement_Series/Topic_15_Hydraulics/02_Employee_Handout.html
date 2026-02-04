@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Field Guide - Hydraulics</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+    <style>
+        .page-break {
+            page-break-before: always;
+        }
+
+        .diagram-box {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+        }
+
+        .diagram-box img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--brand-navy);
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: HAZARD IDENTIFICATION -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">Hydraulics</div>
+            <div class="topic-sub">Hazard Awareness</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+
+        <!-- Golden Rule -->
+        <div class="objective-banner" style="background: var(--light-bg); border-left: 4px solid var(--brand-red);">
+            <div class="icon">&#9888;</div>
+            <div>
+                <strong>Golden Rule:</strong> Treat Hydraulic Fluid as a Projectile. 3,000 PSI cuts bone.
+            </div>
+        </div>
+
+        <h2>1. The Invisible Enemy: Injection</h2>
+        <div class="layout-grid">
+            <div class="diagram-box">
+                <img src="images/injection_injury.png" alt="Injection Injury Diagram">
+                <p style="font-size: 0.8rem; color: var(--brand-red);"><strong>Figure 1:</strong> Fluid penetrating deep
+                    tissue.</p>
+            </div>
+            <div>
+                <h3>What happens?</h3>
+                <p>Hydraulic fluid is toxic. When injected under pressure, your body reacts violently.</p>
+                <ul>
+                    <li><strong>0 Hours:</strong> Tiny prick. Numbness.</li>
+                    <li><strong>4 Hours:</strong> Throbbing pain. Swelling.</li>
+                    <li><strong>12 Hours:</strong> Extreme necrosis (tissue death).</li>
+                    <li><strong>Result:</strong> Amputation if not treated by a hand surgeon instantly.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card" style="margin-top: 1rem; border-left: 4px solid var(--brand-red);">
+            <strong>EMERGENCY ACTION:</strong><br>
+            If you get injected, do not wash it. Do not bandage it. Go to the ER. Show them this paper: "I have a
+            High-Pressure Injection Injury from Hydraulic Fluid."
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 1 of 3</div>
+    </div>
+
+    <!-- PAGE 2: SAFE WORK PRACTICES -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">Standard Work</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>2. Finding Leaks (The Cardboard Method)</h2>
+        <div class="layout-grid">
+            <div>
+                <p>Never run your hand along a hose. Use a target.</p>
+                <ol>
+                    <li>Get a stiff piece of cardboard or wood.</li>
+                    <li>Wear safety glasses and full face shield.</li>
+                    <li>Move the cardboard along the hose.</li>
+                    <li>Check the cardboard for wet spots.</li>
+                </ol>
+            </div>
+            <div class="diagram-box">
+                <img src="images/safety_check.png" alt="Cardboard Safety Check">
+                <p style="font-size: 0.8rem; color: var(--brand-green);"><strong>Figure 2:</strong> Correct Leak
+                    Detection.</p>
+            </div>
+        </div>
+
+        <h2>3. Zero Energy Verification</h2>
+        <p>Before breaking a line (changing a hose/valve):</p>
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 4px;">
+            <div class="checklist-item">
+                <div class="checkbox"></div>
+                <div><strong>Step 1:</strong> Lockout Electrical Pump Motor.</div>
+            </div>
+            <div class="checklist-item">
+                <div class="checkbox"></div>
+                <div><strong>Step 2:</strong> Wait for motion to stop (Cylinders settle).</div>
+            </div>
+            <div class="checklist-item">
+                <div class="checkbox"></div>
+                <div><strong>Step 3:</strong> Bleed Accumulator (Cycle valves or open bleed valve).</div>
+            </div>
+            <div class="checklist-item">
+                <div class="checkbox"></div>
+                <div><strong>Step 4:</strong> Verify Pressure Gauge reads "0".</div>
+            </div>
+            <div class="checklist-item">
+                <div class="checkbox"></div>
+                <div><strong>Step 5:</strong> Crack fitting slowly (Cover with rag to catch spray).</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 2 of 3</div>
+    </div>
+
+    <!-- PAGE 3: SYSTEM MAP -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">System Components</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>4. Understanding the Force (Pascal's Law)</h2>
+        <div class="diagram-box">
+            <img src="images/pascals_law.png" alt="Pascal's Law">
+            <p style="font-size: 0.8rem;"><strong>Figure 3:</strong> A small force creates a massive force.</p>
+        </div>
+
+        <h2>5. Quick Reference</h2>
+        <div class="layout-grid">
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Hoses</strong>
+                <p>Check for: Blisters, cracked rubber cover, rubbing against metal.</p>
+            </div>
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Fittings</strong>
+                <p>Check for: Wetness, thread exposure. Never tighten under pressure.</p>
+            </div>
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Oil</strong>
+                <p>Check: Level (Sight glass), Temp (Below 140F), Color (Clear/Amber, not Milky).</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; border: 2px dashed #cbd5e1; padding: 1rem;">
+            <h3>My Notes / System Specifics</h3>
+            <div style="height: 150px;"></div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 3 of 3</div>
+    </div>
+
+</body>
+
+</html>

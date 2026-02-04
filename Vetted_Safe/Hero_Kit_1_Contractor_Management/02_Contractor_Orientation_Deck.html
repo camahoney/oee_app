@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contractor Orientation - Expanded</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+
+        .page {
+            width: 11in;
+            height: 8.5in;
+            padding: 0.5in 0.75in;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+        }
+
+        .cover-image {
+            height: 100%;
+            width: 55%;
+            right: 0;
+            left: auto;
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+            opacity: 1;
+            mix-blend-mode: normal;
+        }
+
+        .cover-header {
+            width: 45%;
+            height: 100%;
+            padding: 4rem 2rem 4rem 4rem;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        .cover-footer {
+            display: none;
+        }
+
+        .slide-title {
+            font-size: 2.5rem;
+            color: var(--navy);
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide-body {
+            font-size: 1.3rem;
+            color: var(--navy-light);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .slide-body li {
+            margin-bottom: 0.75rem;
+        }
+
+        .speaker-notes {
+            margin-top: auto;
+            border-top: 1px dotted var(--slate);
+            padding-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--slate);
+            font-style: italic;
+        }
+
+        .footer-strip {
+            position: relative;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Slide 1: Cover -->
+    <div class="page cover-page">
+        <div class="cover-header">
+            <img src="../00_Design_System/assets/vetted_safe_logo_icon.png" class="cover-brand"
+                style="width: 80px; height: auto; background: none; padding: 0; filter: brightness(0) invert(1);">
+            <h1 class="cover-title-large" style="font-size: 3rem;">CONTRACTOR<br>SITE SAFETY<br>MASTERY</h1>
+            <p style="color: white; font-size: 1.25rem; margin-top: 2rem; opacity: 0.9;">Required Training for All
+                Visiting Personnel</p>
+        </div>
+        <img src="../00_Design_System/assets/kit_1_contractor_cover.png" class="cover-image" alt="Cover">
+    </div>
+
+    <!-- Slide 2: Rules of Engagement -->
+    <div class="page">
+        <h1 class="slide-title">01. Our Core Values</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3>Safety First</h3>
+                <p class="slide-body">We believe all accidents are preventable. No job is so urgent that we cannot take
+                    time to do it safely.</p>
+            </div>
+            <div>
+                <h3>Total Accountability</h3>
+                <p class="slide-body">You are responsible for your safety and the safety of those around you. See
+                    something? Say something.</p>
+            </div>
+        </div>
+        <div class="info-block warning" style="margin-top: 2rem;">
+            <div class="info-text" style="font-size: 1.2rem;">
+                <strong>Zero Tolerance:</strong> Violence, harassment, and substance abuse result in immediate expulsion
+                from the property.
+            </div>
+        </div>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 2</span>
+        </div>
+    </div>
+
+    <!-- Slide 3: Site Access -->
+    <div class="page">
+        <h1 class="slide-title">02. Site Access & Logistics</h1>
+        <ul class="slide-body">
+            <li><strong>Sign In/Out:</strong> All contractors must sign the Visitor Log at the reception desk daily.
+            </li>
+            <li><strong>Badges:</strong> Visitor badges must be worn on the outer garment above the waist at all times.
+            </li>
+            <li><strong>Parking:</strong> Park only in designated "Contractor/Visitor" spots. Reverse parking (backing
+                in) is recommended.</li>
+            <li><strong>Escorts:</strong> Do not wander. Stay in your designated work area unless escorted.</li>
+        </ul>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 3</span>
+        </div>
+    </div>
+
+    <!-- Slide 4: PPE -->
+    <div class="page">
+        <h1 class="slide-title">03. Minimum PPE Requirements</h1>
+        <div style="display: flex; gap: 2rem; margin-top: 2rem;">
+            <div
+                style="flex:1; text-align: center; border: 1px solid var(--silver); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 4rem;">&#128083;</div>
+                <h3>Eyes</h3>
+                <p>Z87.1 Safety Glasses</p>
+            </div>
+            <div
+                style="flex:1; text-align: center; border: 1px solid var(--silver); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 4rem;">&#128094;</div>
+                <h3>Feet</h3>
+                <p>Steel/Composite Toe</p>
+            </div>
+            <div
+                style="flex:1; text-align: center; border: 1px solid var(--silver); padding: 1rem; border-radius: 8px;">
+                <div style="font-size: 4rem;">&#129344;</div>
+                <h3>Visibility</h3>
+                <p>Hi-Vis Class 2 Vest</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 4</span>
+        </div>
+    </div>
+
+    <!-- Slide 5: Emergency -->
+    <div class="page">
+        <h1 class="slide-title">04. Emergency Response</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3>Alert Signals</h3>
+                <ul class="slide-body">
+                    <li><strong>Continuous Siren:</strong> Fire/Evacuation. Proceed to Rally Point.</li>
+                    <li><strong>Intermittent Tone:</strong> Severe Weather. Proceed to Shelter.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Rally Point</h3>
+                <div style="border: 2px dashed var(--navy); padding: 1rem; text-align: center; background: #F8FAFC;">
+                    <strong style="font-size: 1.5rem;">NORTH PARKING LOT<br>FLAG POLE</strong>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 2rem; font-size: 1.2rem;"><strong>Medical Emergency:</strong> Dial x5555 from any house
+            phone. Do not call 911 directly unless instructed.</p>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 5</span>
+        </div>
+    </div>
+
+    <!-- Slide 6: LOTO -->
+    <div class="page">
+        <h1 class="slide-title">05. Lockout / Tagout (LOTO)</h1>
+        <div class="info-block warning">
+            <div class="info-icon">&#9888;</div>
+            <div class="info-text" style="font-size: 1.2rem;">
+                <strong>Golden Rule:</strong> NEVER assume a machine is de-energized.
+            </div>
+        </div>
+        <ul class="slide-body" style="margin-top: 2rem;">
+            <li>Service personnel must apply their <strong>OWN</strong> personal lock and tag.</li>
+            <li>Company locks (Blue) vs. Contractor locks (Red).</li>
+            <li>No "group lockouts" without a lockbox.</li>
+            <li>If you see a lock, do not touch it. Violating LOTO is instant termination.</li>
+        </ul>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 6</span>
+        </div>
+    </div>
+
+    <!-- Slide 7: Hot Work -->
+    <div class="page">
+        <h1 class="slide-title">06. Hot Work & Fire Safety</h1>
+        <p class="slide-body">"Hot Work" includes welding, grinding, cutting, or any open flame/spark-producing
+            activity.</p>
+        <div class="form-grid-2" style="margin-top: 1rem;">
+            <div style="background: #FFF1F2; padding: 1rem; border-left: 4px solid #E11D48;">
+                <h3>The 35-Foot Rule</h3>
+                <p>All combustibles must be cleared within 35 feet of the work area.</p>
+            </div>
+            <div style="background: #F0FDF4; padding: 1rem; border-left: 4px solid #16A34A;">
+                <h3>Fire Watch</h3>
+                <p>A designated Fire Watch must remain for 60 minutes after work completes.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 7</span>
+        </div>
+    </div>
+
+    <!-- Slide 8: Heights -->
+    <div class="page">
+        <h1 class="slide-title">07. Working at Heights</h1>
+        <ul class="slide-body">
+            <li><strong>Trigger Height:</strong> Fall protection is required at <strong>4 feet</strong> (General
+                Industry) or <strong>6 feet</strong> (Construction).</li>
+            <li><strong>Ladders:</strong> Inspect before use. Maintain 3 points of contact. Tie off extension ladders.
+            </li>
+            <li><strong>Scissor Lifts:</strong> Chain gate must be closed. Keep feet on the floor (no climbing rails).
+            </li>
+        </ul>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 8</span>
+        </div>
+    </div>
+
+    <!-- Slide 9: HazCom -->
+    <div class="page">
+        <h1 class="slide-title">08. Chemicals (HazCom)</h1>
+        <p class="slide-body">You have a Right to Know about hazardous chemicals in your work area.</p>
+        <ul class="slide-body">
+            <li><strong>Bringing Chemicals On Site:</strong> You must provide an SDS (Safety Data Sheet) to the Safety
+                Manager <em>before</em> bringing any chemical on site.</li>
+            <li><strong>Labeling:</strong> No "mystery bottles". All containers must be labeled with contents and
+                hazards.</li>
+            <li><strong>Spills:</strong> Report spills immediately. Do not attempt to clean up unknown substances.</li>
+        </ul>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 9</span>
+        </div>
+    </div>
+
+    <!-- Slide 10: Environmental -->
+    <div class="page">
+        <h1 class="slide-title">09. Environmental Stewardship</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3>Storm Drains</h3>
+                <p>Nothing goes down strict drains but rain. No wash water, no oil, no solvents.</p>
+            </div>
+            <div>
+                <h3>Waste Disposal</h3>
+                <p>Separate trash from recyclables. Hazardous waste (oily rags, aerosol cans) goes in designated Red
+                    Drums.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 10</span>
+        </div>
+    </div>
+
+    <!-- Slide 11: Knowledge Check -->
+    <div class="page">
+        <h1 class="slide-title">10. Knowledge Check</h1>
+        <div class="form-grid-2">
+            <div class="info-block" style="display:block;">
+                <p><strong>Q1:</strong> When is hearing protection required?</p>
+                <p style="color: var(--slate); font-style: italic;">A: Whenever noise levels exceed 85 decibels.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q2:</strong> Who can remove a LOTO lock?</p>
+                <p style="color: var(--slate); font-style: italic;">A: ONLY the person who applied it.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q3:</strong> Where is the emergency rally point?</p>
+                <p style="color: var(--slate); font-style: italic;">A: North Parking Lot Flag Pole.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q4:</strong> What is the fall protection trigger height?</p>
+                <p style="color: var(--slate); font-style: italic;">A: 4 Feet (General Industry).</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 11</span>
+        </div>
+    </div>
+
+    <!-- Slide 12: Sign Off -->
+    <div class="page">
+        <h1 class="slide-title">Final Certification</h1>
+        <p class="slide-body">I certify that I have reviewed the Contractor Safety Rules and understand my
+            responsibilities.</p>
+
+        <div style="margin-top: 3rem; border: 2px solid var(--navy); padding: 2rem;">
+            <div class="form-grid-2">
+                <div>
+                    <div style="border-bottom: 1px solid var(--navy); height: 2rem; margin-bottom: 0.5rem;"></div>
+                    <label class="input-label">Contractor Signature</label>
+                </div>
+                <div>
+                    <div style="border-bottom: 1px solid var(--navy); height: 2rem; margin-bottom: 0.5rem;"></div>
+                    <label class="input-label">Date</label>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="text-align: center; margin-top: 3rem; color: var(--primary);">WELCOME TO THE TEAM. WORK SAFE.</h3>
+        <div class="footer-strip"><span>Site Orientation</span><span>Vetted Safe &copy; 2026</span><span>Slide 12</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

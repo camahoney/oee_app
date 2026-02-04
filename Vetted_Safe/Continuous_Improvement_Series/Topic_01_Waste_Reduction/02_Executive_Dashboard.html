@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Executive Dashboard - Waste Reduction</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+    <style>
+        :root {
+            --elite-black: #1a1a1a;
+            --elite-gold: #fbbf24;
+            --elite-grey: #404040;
+        }
+
+        body {
+            font-family: 'Segoe UI', serif;
+            background: #fff;
+            color: #1a1a1a;
+        }
+
+        .dashboard-header {
+            background: var(--elite-black);
+            color: var(--elite-gold);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 6px solid var(--elite-gold);
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .panel {
+            border: 1px solid #e5e5e5;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+
+        .panel-title {
+            background: var(--elite-grey);
+            color: white;
+            padding: 0.5rem;
+            margin: -1rem -1rem 1rem -1rem;
+            font-weight: bold;
+            text-align: center;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        .kpi-big {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--elite-black);
+            text-align: center;
+        }
+
+        .kpi-label {
+            text-align: center;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .action-list input {
+            margin-right: 10px;
+        }
+
+        .action-list div {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .kaizen-card {
+            border: 2px dashed var(--elite-gold);
+            padding: 1rem;
+            background: #fffbeb;
+        }
+
+        .img-placeholder {
+            width: 100%;
+            height: 150px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed #ccc;
+            color: #999;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-header">
+        <h1>Profit Dashboard</h1>
+        <p>Waste Reduction Mastery | 30-Day Plan</p>
+    </div>
+
+    <div class="grid-container">
+        <!-- KPI SECTION -->
+        <div class="panel">
+            <div class="panel-title">Your Targets</div>
+            <div style="display: flex; justify-content: space-around;">
+                <div>
+                    <div class="kpi-big">25%</div>
+                    <div class="kpi-label">Waste Reduction</div>
+                </div>
+                <div>
+                    <div class="kpi-big">$___</div>
+                    <div class="kpi-label">Monthly Savings</div>
+                </div>
+            </div>
+            <br>
+            <div class="img-placeholder">
+                [IMAGE: ROI Calculator Matrix]
+            </div>
+        </div>
+
+        <!-- 7 WASTES -->
+        <div class="panel">
+            <div class="panel-title">The 7 Wastes (Hunt These)</div>
+            <div class="img-placeholder">
+                [IMAGE: 7 Wastes Icons (TIMWOOD)]
+            </div>
+            <ul style="font-size: 0.9rem;">
+                <li><strong>T</strong>ransport: Moving things.</li>
+                <li><strong>I</strong>nventory: Storing things.</li>
+                <li><strong>M</strong>otion: Walking/Searching.</li>
+                <li><strong>W</strong>aiting: Doing nothing.</li>
+            </ul>
+        </div>
+
+        <!-- IMMEDIATE ACTIONS -->
+        <div class="panel">
+            <div class="panel-title">Immediate Actions (Start Tomorrow)</div>
+            <div class="action-list">
+                <div><input type="checkbox"> <strong>5S Blitz:</strong> Remove 30% of clutter from Area A.</div>
+                <div><input type="checkbox"> <strong>Motion Map:</strong> Draw one operator's full path.</div>
+                <div><input type="checkbox"> <strong>SMED Audit:</strong> Video record one changeover.</div>
+            </div>
+        </div>
+
+        <!-- DAILY KAIZEN -->
+        <div class="panel kaizen-card">
+            <div class="panel-title" style="background:var(--elite-gold); color:black;">Daily Kaizen Card</div>
+            <p><strong>I Found:</strong> ____________________________________</p>
+            <p><strong>Waste Type:</strong> ________________________________</p>
+            <p><strong>The Fix:</strong> ____________________________________</p>
+            <hr>
+            <p><strong>Est. Savings:</strong> $______________________________</p>
+            <div style="text-align: right; font-size: 0.8rem;">Submit to Supervisor</div>
+        </div>
+    </div>
+
+    <div style="text-align: center; padding: 1rem; font-size: 0.8rem; color: #999;">
+        &copy; 2026 Vetted Safe | Elite Continuous Improvement Series
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Field Guide - HazCom</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+    <style>
+        .page-break {
+            page-break-before: always;
+        }
+
+        .diagram-box {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+        }
+
+        .diagram-box img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--brand-navy);
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: HAZARD ID -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">HazCom</div>
+            <div class="topic-sub">Chemical Safety</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+        <div class="objective-banner" style="background: var(--light-bg); border-left: 4px solid var(--brand-red);">
+            <div class="icon">&#9760;</div>
+            <div>
+                <strong>The Right to Know:</strong> You must know what chemicals are present, what they do, and how to
+                work safely.
+            </div>
+        </div>
+
+        <h2>Labels: What to Look For</h2>
+        <p>Before you use ANY chemical, check the label for:</p>
+        <div class="layout-grid">
+            <div class="diagram-box">
+                <img src="images/label_decoder.png" alt="GHS Label Decoder">
+                <p style="font-size: 0.8rem; color: var(--brand-red);"><strong>Figure 1:</strong> The GHS Label System.
+                </p>
+            </div>
+            <div>
+                <h3>Signal Words</h3>
+                <ul>
+                    <li><strong style="color: #dc2626;">DANGER:</strong> Severe hazard (Can kill or permanently damage).
+                    </li>
+                    <li><strong style="color: #f59e0b;">WARNING:</strong> Moderate hazard (Can irritate or burn).</li>
+                </ul>
+                <div
+                    style="background: #fef2f2; padding: 0.5rem; border: 1px solid #fee2e2; margin-top: 1rem; font-size: 0.85rem;">
+                    <strong>Alert:</strong> No label? DO NOT USE IT.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 1 of 3</div>
+    </div>
+
+    <!-- PAGE 2: SDS & GHS -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">Knowledge</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>Decoding the Diamond (Pictograms)</h2>
+        <div class="diagram-box">
+            <img src="images/ghs_pictogram_chart.png" alt="GHS Pictogram Chart">
+        </div>
+
+        <h2>The Safety Data Sheet (SDS)</h2>
+        <p>The SDS is your manual. You can access it at the [Station Location].</p>
+        <div class="layout-grid">
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Section 4: First Aid</strong>
+                <p>Crucial if you get splashed. Move to fresh air? Flush eyes? Induce vomiting (or not)?</p>
+            </div>
+            <div class="info-card">
+                <strong style="color: var(--brand-navy);">Section 8: PPE</strong>
+                <p>Crucial before you start. Gloves (Nitrile vs Latex), Eye Protection, Respirators.</p>
+            </div>
+        </div>
+
+        <div class="diagram-box">
+            <img src="images/sds_station.png" alt="SDS Station Config">
+            <p style="font-size: 0.8rem; color: var(--brand-navy);"><strong>Figure 2:</strong> Look for the Yellow
+                Binder or Kiosk.</p>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 2 of 3</div>
+    </div>
+
+    <!-- PAGE 3: MY CHEMICALS -->
+    <div class="page-break"></div>
+    <div class="header-bar">
+        <div class="logo-text">Vetted Safe</div>
+        <div class="series-badge">My Habits</div>
+    </div>
+
+    <div class="doc-container">
+        <h2>Staying Safe with Chemicals</h2>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>Use Required PPE:</strong> Every time. Not just when supervisor is looking.</div>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>Secondary Containers:</strong> Transferring to a spray bottle? You MUST write the Name and
+                Hazard on it.</div>
+        </div>
+        <div class="checklist-item">
+            <div class="checkbox"></div>
+            <div><strong>Personal Hygiene:</strong> Wash hands before eating. Never eat/drink in chemical areas.</div>
+        </div>
+
+        <div style="margin-top: 2rem; border: 2px dashed #cbd5e1; padding: 1rem;">
+            <h3>Emergency Response Plan</h3>
+            <p><strong>If something goes wrong (Leak, Odor, Splash):</strong></p>
+            <ol>
+                <li><strong>Alert:</strong> Warn others in the area.</li>
+                <li><strong>Evacuate:</strong> Move to fresh air or safe zone.</li>
+                <li><strong>Shower/Flush:</strong> If on skin/eyes, use the station for 15 mins.</li>
+                <li><strong>Report:</strong> Tell your supervisor immediately.</li>
+            </ol>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h3>My Chemical List</h3>
+            <p style="font-size:0.8rem; color:#64748b;">List 3 chemicals you use daily and their main hazard:</p>
+            <div style="border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px;"></div>
+            <div style="border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px;"></div>
+            <div style="border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px;"></div>
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Field Guide</div>
+        <div>Page 3 of 3</div>
+    </div>
+
+</body>
+
+</html>

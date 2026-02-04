@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop Slides - Pneumatics Safety</title>
+    <style>
+        :root {
+            --brand-navy: #0F172A;
+            --brand-red: #DC2626;
+            --brand-slate: #64748B;
+            --brand-yellow: #F59E0B;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: white;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #475569 0%, #0f172a 100%);
+            /* Slightly lighter Slate for Pneumatics */
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #38bdf8;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        /* Light Blue for Air */
+        p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            border: 4px solid white;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .img-container img {
+            max-height: 50vh;
+            max-width: 80vw;
+            display: block;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #38bdf8;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Slide Specifics */
+        .title-slide {
+            background: var(--brand-navy);
+        }
+
+        .title-slide h1 {
+            border-bottom: 4px solid #38bdf8;
+        }
+
+        .bullets {
+            text-align: left;
+            font-size: 1.5rem;
+            color: #cbd5e1;
+        }
+
+        .bullets li {
+            margin-bottom: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid var(--brand-red);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- TITLE SLIDE -->
+    <div class="slide active title-slide">
+        <h1>Pneumatics Safety</h1>
+        <h2>Compressed Air & Stored Energy</h2>
+        <p>Vetted Safe | Continuous Improvement Series</p>
+    </div>
+
+    <!-- OBJECTIVE -->
+    <div class="slide">
+        <h2>Learning Objective</h2>
+        <p>"To treat compressed air as a dangerous energy source, not a cleaning tool. Pneumatics can kill."</p>
+    </div>
+
+    <!-- WHIP HAZARD -->
+    <div class="slide">
+        <h2>The Whip Hazard</h2>
+        <div class="img-container">
+            <img src="images/hose_whip.png" alt="Whipping Hose Diagram">
+        </div>
+        <p>If a coupling fails, the hose becomes a whip. It moves fast enough to break bones.</p>
+        <div class="warning-box">
+            <strong>Solution:</strong> Always use a Whip Check cable.
+        </div>
+    </div>
+
+    <!-- EMBOLISM -->
+    <div class="slide">
+        <h2>Don't Dust Off!</h2>
+        <div class="img-container">
+            <img src="images/air_danger.png" alt="Air Injection Embolism">
+        </div>
+        <p>Compressed air can penetrate skin and inject bubbles into your blood. This causes a stroke or heart attack.
+        </p>
+    </div>
+
+    <!-- COMPONENTS: FRL -->
+    <div class="slide">
+        <h2>The FRL Unit</h2>
+        <div class="img-container">
+            <img src="images/frl_unit.png" alt="FRL Unit Diagram">
+        </div>
+        <ul class="bullets">
+            <li><strong>Filter:</strong> Removes water (drain it daily).</li>
+            <li><strong>Regulator:</strong> Sets the PSI (don't max it out).</li>
+            <li><strong>Lubricator:</strong> Oils the tool (keep it full).</li>
+        </ul>
+    </div>
+
+    <!-- STORED ENERGY -->
+    <div class="slide">
+        <h2>Stored Energy</h2>
+        <p>Disconnecting the air supply does NOT remove the danger.</p>
+        <ul class="bullets">
+            <li>Air is compressible (like a spring).</li>
+            <li>Trapped air in a cylinder can launch a piston.</li>
+            <li><strong>LOTO:</strong> You must "Bleed Off" the residual pressure.</li>
+        </ul>
+    </div>
+
+    <!-- LEAKS -->
+    <div class="slide">
+        <h2>The Cost of Leaks</h2>
+        <ul class="bullets">
+            <li>Air is one of the most expensive utilities.</li>
+            <li>A 1/4" leak = $8,000/year.</li>
+            <li><strong>Action:</strong> If you hear a hiss, Tag It.</li>
+        </ul>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="slide">
+        <h2>Final Review</h2>
+        <ul class="bullets">
+            <li>1. Never use air to clean your body.</li>
+            <li>2. Use Whip Checks on all hoses.</li>
+            <li>3. Bleed pressure before working.</li>
+            <li>4. Drain water traps daily.</li>
+        </ul>
+        <p style="margin-top: 2rem; color: #38bdf8;">Any Questions?</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button onclick="prevSlide()">&#8592; Prev</button>
+        <button onclick="nextSlide()">Next &#8594;</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+
+</html>

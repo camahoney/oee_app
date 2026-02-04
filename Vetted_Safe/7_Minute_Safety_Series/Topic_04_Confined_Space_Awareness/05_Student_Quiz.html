@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Student Quiz - Confined Space</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #fff;
+            color: #333;
+        }
+
+        .quiz-container {
+            width: 8.5in;
+            margin: 0 auto;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .header-bar {
+            border-bottom: 2px solid #0F172A;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0F172A;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            color: #64748B;
+            font-weight: normal;
+        }
+
+        .student-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-line {
+            flex: 1;
+            border-bottom: 1px solid #ccc;
+            padding: 5px;
+            font-family: monospace;
+        }
+
+        .question {
+            margin-bottom: 2rem;
+        }
+
+        .q-text {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .q-option {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            margin-right: 1rem;
+            border-radius: 50%;
+        }
+
+        .score-box {
+            border: 2px solid #0F172A;
+            padding: 1rem;
+            width: 150px;
+            text-align: center;
+            margin-top: 3rem;
+            float: right;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <div class="header-bar">
+            <div class="logo">Vetted Safe: Competency Check</div>
+            <div class="title">Topic 04: Confined Space</div>
+        </div>
+
+        <div class="student-info">
+            <div style="width: 100px;">Name:</div>
+            <div class="input-line"></div>
+            <div style="width: 100px;">Date:</div>
+            <div class="input-line"></div>
+        </div>
+
+        <div class="question">
+            <div class="q-text">1. What is a "Atmosphere Test"?</div>
+            <div class="q-option">
+                <div class="checkbox"></div> A. Checking the weather.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> B. Using a 4-Gas Monitor to check for O2, LEL, H2S, and CO.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> C. Smelling the air to see if it smells bad.
+            </div>
+        </div>
+
+        <div class="question">
+            <div class="q-text">2. Why do we test Top, Middle, and Bottom?</div>
+            <div class="q-option">
+                <div class="checkbox"></div> A. Because gases settle in layers (Stratification).
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> B. To be thorough.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> C. Because the meter needs time to warm up.
+            </div>
+        </div>
+
+        <div class="question">
+            <div class="q-text">3. Can the Attendant enter the space to rescue the Entrant?</div>
+            <div class="q-option">
+                <div class="checkbox"></div> A. Yes, if they hold their breath.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> B. NO. The Attendant must NEVER enter.
+            </div>
+        </div>
+
+        <div class="question">
+            <div class="q-text">4. What is required before entering a Permit Space?</div>
+            <div class="q-option">
+                <div class="checkbox"></div> A. A signed Permit.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> B. Air Monitoring.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> C. An Attendant.
+            </div>
+            <div class="q-option">
+                <div class="checkbox"></div> D. All of the above.
+            </div>
+        </div>
+
+        <div class="score-box">
+            <div>SCORE</div>
+            <div style="height: 40px;"></div>
+            <div style="border-top: 1px solid black;">/ 100</div>
+        </div>
+    </div>
+</body>
+
+</html>

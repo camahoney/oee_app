@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop Slides - Hydraulics Safety</title>
+    <style>
+        :root {
+            --brand-navy: #0F172A;
+            --brand-red: #DC2626;
+            --brand-slate: #64748B;
+            --brand-yellow: #F59E0B;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: white;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--brand-red);
+            margin-top: 0;
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            border: 4px solid white;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .img-container img {
+            max-height: 50vh;
+            max-width: 80vw;
+            display: block;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: var(--brand-red);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Slide Specifics */
+        .title-slide {
+            background: var(--brand-navy);
+        }
+
+        .title-slide h1 {
+            color: white;
+            border-bottom: 4px solid var(--brand-red);
+            display: inline-block;
+            padding-bottom: 1rem;
+        }
+
+        .bullets {
+            text-align: left;
+            font-size: 1.5rem;
+            color: #cbd5e1;
+        }
+
+        .bullets li {
+            margin-bottom: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid var(--brand-red);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- TITLE SLIDE -->
+    <div class="slide active title-slide">
+        <h1>Hydraulics Safety</h1>
+        <h2>High Pressure Fundamentals</h2>
+        <p>Vetted Safe | Continuous Improvement Series</p>
+    </div>
+
+    <!-- OBJECTIVE -->
+    <div class="slide">
+        <h2>Learning Objective</h2>
+        <p>"To respect the extreme force of fluid power and understand the invisible lethality of injection injuries."
+        </p>
+        <div class="warning-box">
+            <strong>Key Takeaway:</strong> Never search for leaks with your hands.
+        </div>
+    </div>
+
+    <!-- PASCAL'S LAW -->
+    <div class="slide">
+        <h2>The Science: Pascal's Law</h2>
+        <div class="img-container">
+            <img src="images/pascals_law.png" alt="Pascal's Law Diagram">
+        </div>
+        <p>Force = Pressure x Area. A small pump can lift a massive load.</p>
+    </div>
+
+    <!-- PRESSURE COMPARISON -->
+    <div class="slide">
+        <h2>Respect the Pressure</h2>
+        <ul class="bullets">
+            <li><strong>Car Tire:</strong> 32 PSI</li>
+            <li><strong>Pressure Washer:</strong> 1,500 PSI</li>
+            <li><strong>Hydraulics:</strong> 3,000 - 5,000+ PSI</li>
+        </ul>
+        <div class="warning-box" style="border-color: var(--brand-yellow);">
+            At 3,000 PSI, fluid moves faster than a bullet.
+        </div>
+    </div>
+
+    <!-- INJECTION INJURY -->
+    <div class="slide">
+        <h2>The Silent Killer: Injection Injury</h2>
+        <div class="img-container">
+            <img src="images/injection_injury.png" alt="Injection Injury Diagram">
+        </div>
+        <p>A pinhole leak acts like a hypodermic needle. It injects toxic oil deep into your flesh.</p>
+    </div>
+
+    <!-- INJECTION REALITY -->
+    <div class="slide">
+        <h2>"It's just a pinprick..."</h2>
+        <ul class="bullets">
+            <li>It looks small on the outside.</li>
+            <li>Inside, the tissue is dying immediately.</li>
+            <li><strong>If untreated:</strong> Amputation is likely.</li>
+            <li><strong>Action:</strong> Go to ER immediately. Tell them "High Pressure Injection".</li>
+        </ul>
+    </div>
+
+    <!-- LEAK CHECK -->
+    <div class="slide">
+        <h2>How to Find a Leak Safely</h2>
+        <div class="img-container">
+            <img src="images/safety_check.png" alt="Cardboard Check Method">
+        </div>
+        <p>Use wood or cardboard. Never use your hand.</p>
+    </div>
+
+    <!-- STORED ENERGY -->
+    <div class="slide">
+        <h2>Stored Energy</h2>
+        <ul class="bullets">
+            <li>Hydraulics have "Accumulators" (Batteries for pressure).</li>
+            <li>Even with the pump OFF, the system can crush you.</li>
+            <li><strong>Rule:</strong> Bleed the pressure before breaking the line.</li>
+        </ul>
+    </div>
+
+    <!-- LOTO -->
+    <div class="slide">
+        <h2>Lockout / Tagout</h2>
+        <div class="img-container">
+            <img src="images/lockout_valve.png" alt="Hydraulic Valve Lockout">
+        </div>
+        <p>Lock the electrical. Lock the valve. Bleed the fluid.</p>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="slide">
+        <h2>Final Review</h2>
+        <ul class="bullets">
+            <li>1. Fluid Power > Muscle Power.</li>
+            <li>2. Injection Injuries are Medical Emergencies.</li>
+            <li>3. Use Cardboard, not Hands.</li>
+            <li>4. Respect Stored Energy (Accumulators).</li>
+        </ul>
+        <p style="margin-top: 2rem; color: var(--brand-yellow);">Any Questions?</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button onclick="prevSlide()">&#8592; Prev</button>
+        <button onclick="nextSlide()">Next &#8594;</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressBar = document.getElementById('progressBar');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+            // Update Progress
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = progress + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Handout - 5 Whys Analysis</title>
+    <link rel="stylesheet" href="../../00_Design_System/styles_7min.css">
+</head>
+
+<body>
+
+    <!-- V4 Header -->
+    <div class="header-bar">
+        <div>
+            <div class="logo-text">Vetted Safe</div>
+            <div class="logo-sub">Employee Field Guide</div>
+        </div>
+        <div class="series-badge">
+            <div class="topic-main">5 Whys Analysis</div>
+            <div class="topic-sub">Root Cause Problem Solving</div>
+        </div>
+    </div>
+
+    <div class="doc-container">
+
+        <!-- Golden Rule -->
+        <div class="objective-banner"
+            style="background: var(--light-bg); border: none; border-left: 4px solid var(--brand-red);">
+            <div class="icon">&#10067;</div>
+            <div>
+                <strong>The Golden Rule:</strong> "Human Error" is not a root cause. It is a starting point. Keep asking
+                why until you find the process failure.
+            </div>
+        </div>
+
+        <!-- 5 Whys Grid -->
+        <h2 style="border-bottom: none; margin-bottom: 1rem;">The 5 Steps Down</h2>
+        <div class="handout-grid" style="grid-template-columns: 1fr; gap: 0.5rem; margin-bottom: 2rem;">
+
+            <div
+                style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 0.5rem; border-radius: 4px;">
+                <div
+                    style="background: var(--brand-navy); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; margin-right: 1rem;">
+                    1. Why?</div>
+                <div>The machine stopped. (Fuse blew).</div>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 0.5rem; border-radius: 4px; margin-left: 2rem;">
+                <div
+                    style="background: var(--brand-navy); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; margin-right: 1rem;">
+                    2. Why?</div>
+                <div>The motor overheated.</div>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 0.5rem; border-radius: 4px; margin-left: 4rem;">
+                <div
+                    style="background: var(--brand-navy); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; margin-right: 1rem;">
+                    3. Why?</div>
+                <div>There was no oil in the shaft.</div>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 0.5rem; border-radius: 4px; margin-left: 6rem;">
+                <div
+                    style="background: var(--brand-navy); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; margin-right: 1rem;">
+                    4. Why?</div>
+                <div>The oil seal was leaking.</div>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; background: #fee2e2; border: 2px solid var(--brand-red); padding: 0.5rem; border-radius: 4px; margin-left: 8rem;">
+                <div
+                    style="background: var(--brand-red); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; margin-right: 1rem;">
+                    5. Why?</div>
+                <div><strong>ROOT CAUSE:</strong> We bought cheap seals that don't match the spec.</div>
+            </div>
+
+        </div>
+
+        <!-- Layout Grid for Tips -->
+        <div class="layout-grid">
+            <!-- Left: Visual/Icons -->
+            <div>
+                <h2 style="border: none;">The Band-Aid Trap</h2>
+                <div style="text-align: center; border: 2px solid #e2e8f0; padding: 2rem; border-radius: 4px;">
+                    <div style="font-size: 2.5rem;">&#129657;</div>
+                    <div style="font-weight: 700; margin-top: 1rem;">Replacing the Fuse?</div>
+                    <p style="font-size: 0.8rem; color: #64748b;">If you just replace the fuse (Why #1), it will blow
+                        again tomorrow.</p>
+                    <p style="font-size: 0.8rem; font-weight: 700; color: var(--brand-red);">Fix the Cheap Seal.</p>
+                </div>
+            </div>
+
+            <!-- Right: Behaviors -->
+            <div style="background: var(--light-bg); padding: 1rem; border-radius: 4px;">
+                <h2 style="border: none; margin-top: 0; font-size: 1rem;">Critical Behaviors</h2>
+
+                <div style="margin-bottom: 1rem;">
+                    <div style="color: #166534; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">ALWAYS
+                        (DO)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>Go to the 'Gemba' (the spot) to see facts.</li>
+                        <li>Ask "Why" until causes are technical/process based.</li>
+                        <li>Test your fix.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div style="color: #991b1b; font-weight: 900; font-size: 0.8rem; margin-bottom: 0.25rem;">NEVER
+                        (DON'T)</div>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.85rem;">
+                        <li>NO assuming you know the answer.</li>
+                        <li>NO stopping at "Operator Error".</li>
+                        <li>NO arguing about opinions. Look at data.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Specifics -->
+        <div style="margin-top: 2rem; border-top: 2px dashed #cbd5e1; padding-top: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">My Practice Run (Write In):</div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
+                <div style="display: flex;">
+                    <span style="font-size: 0.75rem; width: 60px;">Problem:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem; flex: 1;"></div>
+                </div>
+                <div style="display: flex;">
+                    <span style="font-size: 0.75rem; width: 60px;">Why 1:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem; flex: 1;"></div>
+                </div>
+                <div style="display: flex;">
+                    <span style="font-size: 0.75rem; width: 60px;">Why 2:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem; flex: 1;"></div>
+                </div>
+                <div style="display: flex;">
+                    <span style="font-size: 0.75rem; width: 60px;">Why 3:</span>
+                    <div style="border-bottom: 1px solid #94a3b8; height: 1.5rem; flex: 1;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bar">
+        <div>&copy; 2026 Vetted Safe | Employee Field Guide</div>
+        <div>Page 1 of 1</div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Workshop Slides - Fire Extinguisher</title>
+    <style>
+        :root {
+            --brand-navy: #0F172A;
+            --brand-red: #DC2626;
+            --brand-green: #16a34a;
+            --brand-blue: #3b82f6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: white;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: var(--brand-red);
+            text-align: center;
+        }
+
+        .img-container {
+            margin: 2rem 0;
+            border: 4px solid white;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .img-container img {
+            max-height: 50vh;
+            display: block;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: var(--brand-red);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .title-slide {
+            background: var(--brand-navy);
+        }
+
+        .title-slide h1 {
+            border-bottom: 4px solid var(--brand-red);
+        }
+
+        .bullets {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Slide 1: Title -->
+    <div class="slide active title-slide">
+        <h1>Fire Response</h1>
+        <h2>Fight or Flee?</h2>
+        <p>Vetted Safe | Safety Core Series</p>
+    </div>
+
+    <!-- Slide 2: Value Prop -->
+    <div class="slide">
+        <h2>Why Train?</h2>
+        <ul class="bullets">
+            <li>90% of fires are small at the start.</li>
+            <li>Panic is the enemy.</li>
+            <li>You need to know your limits.</li>
+        </ul>
+    </div>
+
+    <!-- Slide 3: Decision Matrix -->
+    <div class="slide">
+        <h2>The Decision</h2>
+        <div class="img-container">
+            <img src="images/fight_or_flee_traffic_light.png" alt="Decision Traffic Light">
+        </div>
+        <p>Green = Go. Red = Get Out.</p>
+    </div>
+
+    <!-- Slide 4: Classes -->
+    <div class="slide">
+        <h2>Know Your Enemy</h2>
+        <div class="img-container">
+            <img src="images/fire_classes_chart.png" alt="Fire Classes">
+        </div>
+        <p>Never put water on a Grease or Electrical Fire.</p>
+    </div>
+
+    <!-- Slide 5: PASS -->
+    <div class="slide">
+        <h2>The Technique</h2>
+        <div class="img-container">
+            <img src="images/pass_technique_comic.png" alt="PASS Steps">
+        </div>
+        <p>Pull. Aim. Squeeze. Sweep.</p>
+    </div>
+
+    <!-- Slide 6: Scenario A -->
+    <div class="slide">
+        <h2>Scenario: Office Trash</h2>
+        <p class="bullets">Small wastebasket fire. No smoke. Exit is clear.</p>
+        <p class="bullets" style="color:#22c55e;"><strong>Decision: FIGHT (Green Light)</strong></p>
+    </div>
+
+    <!-- Slide 7: Scenario B -->
+    <div class="slide">
+        <h2>Scenario: Warehouse Drum</h2>
+        <p class="bullets">Chemical drum exploded. Smoke at ceiling. 20ft flames.</p>
+        <p class="bullets" style="color:red;"><strong>Decision: FLEE (Red Light)</strong></p>
+    </div>
+
+    <div class="controls">
+        <button onclick="changeSlide(-1)">&#8592; Prev</button>
+        <button onclick="changeSlide(1)">Next &#8594;</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        function changeSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + n + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('progressBar').style.width = ((currentSlide + 1) / slides.length) * 100 + '%';
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+    </script>
+</body>
+
+</html>

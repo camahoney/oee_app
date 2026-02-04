@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LOTO Written Program - Expanded</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+    <style>
+        .page {
+            page-break-after: always;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Cover Page -->
+    <div class="page cover-page">
+        <img src="../00_Design_System/assets/kit_3_loto_cover.png" class="cover-image" alt="Cover">
+        <div class="cover-header">
+            <img src="../00_Design_System/assets/vetted_safe_logo_icon.png" class="cover-brand"
+                style="width: 80px; height: auto; background: none; padding: 0; filter: brightness(0) invert(1);">
+            <div class="cover-title-large">Control of<br>Hazardous<br>Energy</div>
+        </div>
+        <div class="cover-footer">
+            <div class="cover-subtitle">Lockout / Tagout (LOTO) Program</div>
+            <div class="cover-desc">
+                Comprehensive Written Program compliant with OSHA 29 CFR 1910.147 for the control of hazardous energy
+                during service and maintenance.
+            </div>
+            <div
+                style="margin-top: auto; border-top: 1px solid var(--silver); padding-top: 1rem; display: flex; gap: 2rem;">
+                <div><span style="color:var(--slate); font-size:0.7rem; display:block;">VERSION</span>2026.2</div>
+                <div><span style="color:var(--slate); font-size:0.7rem; display:block;">STATUS</span>ACTIVE</div>
+                <div><span style="color:var(--slate); font-size:0.7rem; display:block;">ID</span>LOTO-PROG</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 1: Policy & Scope -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <img src="../00_Design_System/assets/vetted_safe_logo_full.png" alt="Vetted Safe"
+                    class="doc-brand-logo">
+                <div class="doc-title">Program Scope</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Section:</td>
+                    <td><strong>1.0 General</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>1.1 Purpose</h2>
+        <p>This program establishes the minimum requirements for the control of hazardous energy. It ensures that
+            machines are isolated from all potentially hazardous energy, and locked out or tagged out, before employees
+            perform any servicing or maintenance activities where the unexpected energization, start-up, or release of
+            stored energy could cause injury.</p>
+
+        <h2>1.2 Scope & Application</h2>
+        <p>This program applies to the control of energy during servicing and/or maintenance of machines and equipment.
+            Normal production operations are not covered by this standard unless:</p>
+        <ul style="color: var(--navy-light);">
+            <li>An employee is required to remove or bypass a guard or other safety device.</li>
+            <li>An employee is required to place any part of their body into an area on a machine or piece of equipment
+                where work is actually performed upon the material being processed (point of operation).</li>
+        </ul>
+
+        <div class="info-block warning">
+            <div class="info-icon">&#9888;</div>
+            <div class="info-text">
+                <strong>Zero Tolerance Policy:</strong> Any employee found violating LOTO procedures, including removing
+                another person's lock or bypassing a lock, constitutes a Class A safety violation and is subject to
+                immediate termination.
+            </div>
+        </div>
+
+        <div class="footer-strip">
+            <span>Written LOTO Program</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 1 of 5</span>
+        </div>
+    </div>
+
+    <!-- Page 2: Procedures -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Core Procedures</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Section:</td>
+                    <td><strong>2.0 Execution</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>1.3 Definitions</h2>
+        <div class="form-grid-2">
+            <div>
+                <h3>Authorized Employee</h3>
+                <p>A person who locks out or tags out machines or equipment in order to perform servicing or maintenance
+                    on that machine or equipment.</p>
+            </div>
+            <div>
+                <h3>Affected Employee</h3>
+                <p>An employee whose job requires them to operate or use a machine or equipment on which servicing or
+                    maintenance is being performed under lockout or tagout.</p>
+            </div>
+        </div>
+
+        <h2>2.1 The 6-Step LOTO Procedure</h2>
+        <p>All authorized employees must follow these six steps for every lockout event:</p>
+
+        <div style="margin-left: 1rem; border-left: 4px solid var(--navy); padding-left: 1rem;">
+            <h3 style="margin-bottom: 0;">Step 1: Preparation</h3>
+            <p>Notify affected employees. Identify all energy sources (Electrical, Pneumatic, Hydraulic, Thermal,
+                Gravity, Chemical).</p>
+
+            <h3 style="margin-bottom: 0;">Step 2: Shutdown</h3>
+            <p>Shut down the machine using normal operating controls (Stop Button, Disconnect switch).</p>
+
+            <h3 style="margin-bottom: 0;">Step 3: Isolation</h3>
+            <p>Physically isolate the machine from energy sources. Open breakers, close valves, disconnect lines.</p>
+
+            <h3 style="margin-bottom: 0;">Step 4: Application</h3>
+            <p>Apply LOTO devices. <strong>Requirements:</strong> Lock must be substantial, standardized (Red for LOTO),
+                and identifiable (Name tag).</p>
+
+            <h3 style="margin-bottom: 0;">Step 5: Dissipation</h3>
+            <p>Relieve stored energy. Bleed air lines, drain capacitors, block gravity-fed rams.</p>
+
+            <h3 style="margin-bottom: 0;">Step 6: Verification (Tryout)</h3>
+            <p><strong>CRITICAL:</strong> Attempt to start the machine using operator controls. Verify it does not
+                energize. Return controls to "Neutral/Off".</p>
+        </div>
+
+        <h2>2.2 Removal of Locks (Startup)</h2>
+        <ol>
+            <li>Inspect machine area to ensure non-essential items (tools) have been removed.</li>
+            <li>Check that all employees are safely positioned away from the machine.</li>
+            <li>Verify controls are in neutral.</li>
+            <li>Remove LOTO devices.</li>
+            <li>Notify affected employees that the machine is ready for use.</li>
+        </ol>
+
+        <div class="footer-strip">
+            <span>Written LOTO Program</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 2 of 5</span>
+        </div>
+    </div>
+
+    <!-- Page 3: Special Situations -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Special Situations</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Section:</td>
+                    <td><strong>3.0 Advanced</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 style="margin-top: 1rem;">3.1 Group Lockout</h2>
+        <p>When multiple authorized employees are servicing the same machine:</p>
+        <ul style="margin-bottom: 0.5rem;">
+            <li>A <strong>Primary Authorized Employee</strong> applies a single lock to the machine.</li>
+            <li>The key to that lock is placed in a <strong>Group Lockbox</strong>.</li>
+            <li>Each authorized employee applies their OWN personal lock to the Group Lockbox.</li>
+            <li><strong>Result:</strong> The key cannot be retrieved (and the machine cannot start) until the LAST
+                employee removes their lock.</li>
+        </ul>
+
+        <h2 style="margin-top: 1rem;">3.2 Shift Change</h2>
+        <p>To ensure continuity of protection between shifts:</p>
+        <ul style="margin-bottom: 0.5rem;">
+            <li>The incoming employee applies their lock <strong>before</strong> the outgoing employee removes theirs.
+            </li>
+            <li>If a face-to-face handoff is not possible, the outgoing employee leaves their lock on. The incoming
+                employee applies their lock, then the supervisor cuts the old lock (following Section 3.3).</li>
+        </ul>
+
+        <div class="footer-strip">
+            <span>Written LOTO Program</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 3 of 5</span>
+        </div>
+    </div>
+
+    <!-- Page 4: Training & Inspection -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Quality Assurance</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Section:</td>
+                    <td><strong>4.0 Auditing</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 style="margin-top: 0;">3.3 Emergency Lock Removal (Abandoned Lock)</h2>
+        <p>If an employee leaves the facility with their lock still attached, it may only be removed by the Site Manager
+            under these strict conditions:</p>
+        <div class="info-block warning" style="margin-top: 0.5rem; margin-bottom: 2rem;">
+            <ol style="margin: 0; padding-left: 1.5rem;">
+                <li>Verify the employee is physically NOT on the premises.</li>
+                <li>Make all reasonable efforts to contact the employee (phone call).</li>
+                <li>Ensure the employee is informed <strong>before</strong> they resume work that their lock was
+                    removed.</li>
+            </ol>
+        </div>
+
+        <h2>4.1 Periodic Inspection (Annual Audit)</h2>
+        <p>An authorized employee (other than the one(s) utilizing the energy control procedure) must inspect the
+            procedure at least <strong>annually</strong>.</p>
+        <ul>
+            <li><strong>Purpose:</strong> To correct any deviations or inadequacies.</li>
+            <li><strong>Scope:</strong> Review of the written procedure + observation of the employee applying it.</li>
+            <li><strong>Documentation:</strong> Needs to identify the machine, the date, employees included, and
+                inspector.</li>
+        </ul>
+
+        <h2>4.2 Training Requirements</h2>
+        <div class="form-grid-2">
+            <div>
+                <h3>Authorized Employees</h3>
+                <p>Training on recognition of hazardous energy, type and magnitude of energy in the facility, and
+                    methods for isolation and control.</p>
+            </div>
+            <div>
+                <h3>Affected Employees</h3>
+                <p>Instruction on the purpose and use of the energy control procedure and the prohibition against
+                    attempting to restart locked machines.</p>
+            </div>
+        </div>
+
+        <h2>4.3 Retraining</h2>
+        <p>Retraining shall be provided whenever there is a change in job assignments, machines, equipment, or processes
+            that present a new hazard, or when the periodic inspection reveals inadequacies in the employee's knowledge.
+        </p>
+
+        <div class="footer-strip">
+            <span>Written LOTO Program</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 4 of 5</span>
+        </div>
+    </div>
+
+    <!-- Page 5: Contractors -->
+    <div class="page">
+        <div class="header-block">
+            <div>
+                <div class="doc-brand">Vetted Safe Standard Library</div>
+                <div class="doc-title">Contractor Mgmt</div>
+            </div>
+            <table class="doc-meta-table">
+                <tr>
+                    <td>Section:</td>
+                    <td><strong>5.0 External</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>5.1 Outside Personnel (Contractors)</h2>
+        <p>Whenever outside servicing personnel are to be engaged in activities covered by the scope and application of
+            this standard, the on-site employer and the outside employer shall inform each other of their respective
+            lockout or tagout procedures.</p>
+
+        <div class="info-block">
+            <div class="info-text">
+                <strong>Rule of Thumb:</strong> Vetted Safe recommends that contractors use their own locks (distinct
+                color preferred) but must follow the facility's specific energy isolation procedures.
+            </div>
+        </div>
+
+        <h2>5.2 Tagout Systems (Limitations)</h2>
+        <p>Tags are essentially warning devices affixed to energy isolating devices and do not provide the physical
+            restraint on those devices that is provided by a lock.</p>
+        <ul>
+            <li>Tags must be legible and understandable.</li>
+            <li>Tags must be attached to withstand environmental conditions.</li>
+            <li><strong>Requirement:</strong> If a tag is used (because a lock is not possible), additional safety
+                measures must be taken to provide a level of safety equivalent to a lock (e.g., removing a valve
+                handle).</li>
+        </ul>
+
+        <div class="footer-strip">
+            <span>Written LOTO Program</span>
+            <span>Vetted Safe &copy; 2026</span>
+            <span>Page 5 of 5</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

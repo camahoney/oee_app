@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Forklift Operator Training - Expanded</title>
+    <link rel="stylesheet" href="../00_Design_System/styles.css">
+    <style>
+        @page {
+            size: landscape;
+            margin: 0;
+        }
+
+        .page {
+            width: 11in;
+            height: 8.5in;
+            padding: 0.5in 0.75in;
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+        }
+
+        .cover-image {
+            height: 100%;
+            width: 55%;
+            right: 0;
+            left: auto;
+            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+            opacity: 1;
+            mix-blend-mode: normal;
+        }
+
+        .cover-header {
+            width: 45%;
+            height: 100%;
+            padding: 4rem 2rem 4rem 4rem;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        .cover-footer {
+            display: none;
+        }
+
+        .slide-title {
+            font-size: 2.5rem;
+            color: var(--navy);
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .slide-body {
+            font-size: 1.3rem;
+            color: var(--navy-light);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .slide-body li {
+            margin-bottom: 0.75rem;
+        }
+
+        .speaker-notes {
+            margin-top: auto;
+            border-top: 1px dotted var(--slate);
+            padding-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--slate);
+            font-style: italic;
+        }
+
+        .footer-strip {
+            position: relative;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Slide 1: Cover -->
+    <div class="page cover-page">
+        <div class="cover-header">
+            <img src="../00_Design_System/assets/vetted_safe_logo_icon.png" class="cover-brand"
+                style="width: 80px; height: auto; background: none; padding: 0; filter: brightness(0) invert(1);">
+            <h1 class="cover-title-large" style="font-size: 3.5rem;">FORKLIFT<br>COMMANDER</h1>
+            <p style="color: white; font-size: 1.25rem; margin-top: 2rem; opacity: 0.9;">Powered Industrial Truck
+                (PIT)<br>OSHA 1910.178 Training</p>
+        </div>
+        <img src="../00_Design_System/assets/kit_4_forklift_cover.png" class="cover-image" alt="Cover">
+    </div>
+
+    <!-- Slide 2: The Rules -->
+    <div class="page">
+        <h1 class="slide-title">01. The Three Rules</h1>
+        <div class="form-grid-3">
+            <div style="background: #FFFBEB; padding: 1rem; border-radius: 4px;">
+                <h3>1. Certified Only</h3>
+                <p>You must have a wallet card ON YOUR PERSON to operate any lift.</p>
+            </div>
+            <div style="background: #EFF6FF; padding: 1rem; border-radius: 4px;">
+                <h3>2. Inspect Daily</h3>
+                <p>No inspection = No driving. If it fails, tag it out.</p>
+            </div>
+            <div style="background: #FEF2F2; padding: 1rem; border-radius: 4px;">
+                <h3>3. Pedestrians Rule</h3>
+                <p>Pedestrians always have the right of way. Even if they are wrong.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 2</span>
+        </div>
+    </div>
+
+    <!-- Slide 3: Forklift vs Car -->
+    <div class="page">
+        <h1 class="slide-title">02. Forklift vs. Automobile</h1>
+        <div class="form-grid-2">
+            <div>
+                <h3>Automobile</h3>
+                <ul>
+                    <li>Steers with front wheels.</li>
+                    <li>4-point suspension (Stable).</li>
+                    <li>Stops quickly.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Forklift</h3>
+                <ul>
+                    <li>Steers with <strong>REAR</strong> wheels (Tail swing!).</li>
+                    <li>3-point suspension (Tipsy).</li>
+                    <li><strong>Cannot stop quickly</strong> (Load will slide off).</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 3</span>
+        </div>
+    </div>
+
+    <!-- Slide 4: Stability Triangle -->
+    <div class="page">
+        <h1 class="slide-title">03. The Stability Triangle</h1>
+        <div class="form-grid-2">
+            <div>
+                <img src="../00_Design_System/assets/forklift_stability_triangle.png"
+                    style="width: 100%; height: auto; max-height: 450px; background: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px solid var(--silver);"
+                    alt="Stability Triangle Diagram">
+                <p style="font-size: 0.9rem; margin-top: 0.5rem; text-align: center;">Center of Gravity (CG) must stay
+                    inside the triangle.</p>
+            </div>
+            <div>
+                <p class="slide-body"><strong>What shifts the CG?</strong></p>
+                <ul class="slide-body">
+                    <li>Raising the load (CG moves up).</li>
+                    <li>Turning fast (CG moves out).</li>
+                    <li>Stopping fast (CG moves forward).</li>
+                    <li>Driving on a slope (CG moves sideways).</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 4</span>
+        </div>
+    </div>
+
+    <!-- Slide 5: Load Center -->
+    <div class="page">
+        <h1 class="slide-title">04. Load Center & Capacity</h1>
+        <div class="info-block">
+            <div class="info-text">
+                <strong>The Data Plate:</strong> Never operate a truck without reading the Data Plate. It tells you the
+                capacity at a specific load center (usually 24").
+            </div>
+        </div>
+        <div
+            style="margin-top: 1rem; background: white; border: 2px dashed #E2E8F0; border-radius: 8px; height: 150px; display: flex; align-items: center; justify-content: center; color: #64748B; text-align: center; font-size: 0.9rem;">
+            [PLACEHOLDER]<br>Forklift Data Plate Example
+        </div>
+        <p class="slide-body" style="margin-top: 2rem;"><strong>The 6000lb Trap:</strong> A 6000lb forklift cannot lift
+            a 6000lb load if the load is 6 feet long. As the load gets longer, capacity drops dramatically.</p>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 5</span>
+        </div>
+    </div>
+
+    <!-- Slide 6: Pre-Shift Inspection -->
+    <div class="page">
+        <h1 class="slide-title">05. Daily Inspection</h1>
+        <p class="slide-body">Check it at the start of <strong>EVERY</strong> shift.</p>
+        <div class="form-grid-2">
+            <div>
+                <h3 style="color: var(--primary);">Visual (Off)</h3>
+                <ul class="slide-body">
+                    <li>Tires (Chunks/Cuts)</li>
+                    <li>Forks (Cracks/Wear)</li>
+                    <li>Chains (Tension)</li>
+                    <li>Leaks (Puddles)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: var(--primary);">Operational (On)</h3>
+                <ul class="slide-body">
+                    <li>Horn / backup alarm</li>
+                    <li>Lights</li>
+                    <li>Brakes (Service & Parking)</li>
+                    <li>Hydraulics (Lift/Tilt smooth?)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 6</span>
+        </div>
+    </div>
+
+    <!-- Slide 7: Traveling -->
+    <div class="page">
+        <h1 class="slide-title">06. Traveling Rules</h1>
+        <ul class="slide-body">
+            <li><strong>Keep Forks Low:</strong> 4-6 inches off the ground. Never travel with a raised load.</li>
+            <li><strong>Look Back:</strong> Look in the direction of travel. If blocking view, drive backward.</li>
+            <li><strong>Speed:</strong> Walking speed indoors.</li>
+            <li><strong>Stop Signs:</strong> Full stop and horn at all intersections/blind spots.</li>
+        </ul>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 7</span>
+        </div>
+    </div>
+
+    <!-- Slide 8: Ramps -->
+    <div class="page">
+        <h1 class="slide-title">07. Ramps & inclines</h1>
+        <p class="slide-body"><strong>Golden Rule:</strong> The Load always points UP the ramp.</p>
+        <div class="form-grid-2" style="margin-top: 2rem;">
+            <div style="background: #F0FDF4; padding: 1rem; border-radius: 8px;">
+                <h3>Traveling Loaded</h3>
+                <p class="slide-body">Drive FORWARD up the ramp.<br>Drive REVERSE down the ramp.</p>
+            </div>
+            <div style="background: #FFFBEB; padding: 1rem; border-radius: 8px;">
+                <h3>Traveling Empty</h3>
+                <p class="slide-body">Drive REVERSE up the ramp.<br>Drive FORWARD down the ramp.<br><em>(Keeps heavy
+                        counterweight uphill)</em></p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 8</span>
+        </div>
+    </div>
+
+    <!-- Slide 9: Pedestrians -->
+    <div class="page">
+        <h1 class="slide-title">08. Pedestrian Safety</h1>
+        <div class="info-block warning">
+            <div class="info-icon">&#9888;</div>
+            <div class="info-text">
+                The #1 cause of forklift fatalities is propertry striking a pedestrian.
+            </div>
+        </div>
+        <ul class="slide-body" style="margin-top: 1rem;">
+            <li><strong>Eye Contact:</strong> Make eye contact before moving near someone.</li>
+            <li><strong>3-Foot Halo:</strong> Keep 3 feet of distance. If they get closer, STOP.</li>
+            <li><strong>No Rides:</strong> Never let anyone ride on the forks or the back.</li>
+        </ul>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide 9</span>
+        </div>
+    </div>
+
+    <!-- Slide 10: Docks -->
+    <div class="page">
+        <h1 class="slide-title">09. Loading Docks</h1>
+        <p class="slide-body">Docks are dangerous. Trailers can move.</p>
+        <div class="form-grid-2">
+            <div>
+                <img src="../00_Design_System/assets/loading_dock_safety.png"
+                    style="width: 100%; height: auto; border: 1px solid var(--silver); border-radius: 4px;"
+                    alt="Loading Dock Safety">
+            </div>
+            <div class="form-grid-3" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="border: 2px solid var(--navy); padding: 1rem; text-align: center;">
+                    <h3>Chocks</h3>
+                    <p>Wheels must be chocked.</p>
+                </div>
+                <div style="border: 2px solid var(--navy); padding: 1rem; text-align: center;">
+                    <h3>Locks</h3>
+                    <p>Dock Lock engaged (Green Light).</p>
+                </div>
+                <div style="border: 2px solid var(--navy); padding: 1rem; text-align: center;">
+                    <h3>Jacks</h3>
+                    <p>Trailer stands used if uncoupled.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                10</span></div>
+    </div>
+
+    <!-- Slide 11: Refueling (Propane) -->
+    <div class="page">
+        <h1 class="slide-title">10. Propane Refueling</h1>
+        <ul class="slide-body">
+            <li><strong>PPE:</strong> Wear gloves and safety glasses (Liquid propane causes frostbite instanty).</li>
+            <li><strong>Procedure:</strong> Close valve. Run engine until it dies. Turn off ignition. Disconnect hose.
+            </li>
+            <li><strong>Tank Orientation:</strong> Pin must align with hole. Relief valve must point UP.</li>
+            <li><strong>No Smoking:</strong> Obviously.</li>
+        </ul>
+        <div
+            style="margin-top: 1rem; background: white; border: 2px dashed #E2E8F0; border-radius: 8px; height: 200px; display: flex; align-items: center; justify-content: center; color: #64748B; text-align: center; font-size: 0.9rem;">
+            [PLACEHOLDER]<br>Propane Tank Orientation (Relief Valve UP)
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                11</span></div>
+    </div>
+
+    <!-- Slide 12: Recharging (Electric) -->
+    <div class="page">
+        <h1 class="slide-title">11. Battery Charging</h1>
+        <ul class="slide-body">
+            <li><strong>Hydrogen Gas:</strong> Batteries emit explosive hydrogen. Charge in well-ventilated areas ONLY.
+            </li>
+            <li><strong>Acid:</strong> Contains sulfuric acid. Know where the eye wash is.</li>
+            <li><strong>Cables:</strong> Don't yank the cables. Grip the connector.</li>
+            <li><strong>Metal:</strong> No jewelry. It can arc and cause severe burns.</li>
+        </ul>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                12</span></div>
+    </div>
+
+    <!-- Slide 13: Tip Over -->
+    <div class="page">
+        <h1 class="slide-title">12. Tip-Over Survival</h1>
+        <div class="info-block warning">
+            <div class="info-text">
+                <strong>IF YOU TIP OVER: DO NOT JUMP!</strong><br>
+                People who jump die (crushed by the overhead guard).
+            </div>
+        </div>
+        <div class="form-grid-2" style="margin-top: 2rem;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: var(--navy);">
+                1. Stay in the seat.<br>
+                2. Hold the wheel tight.<br>
+                3. Brace feet.<br>
+                4. Lean AWAY from impact.
+            </div>
+            <div
+                style="display: flex; align-items: center; justify-content: center; background: white; border-radius: 4px; border: 1px solid var(--silver); padding: 0.5rem;">
+                <img src="../00_Design_System/assets/forklift_tip_over_brace.png"
+                    style="max-height: 450px; width: 100%; object-fit: contain;" alt="Tip Over Survival">
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                13</span></div>
+    </div>
+
+    <!-- Slide 14: Quiz -->
+    <div class="page">
+        <h1 class="slide-title">13. Knowledge Check</h1>
+        <div class="form-grid-2" style="font-size: 1.1rem;">
+            <div class="info-block" style="display:block;">
+                <p><strong>Q1:</strong> When do you inspect the forklift?</p>
+                <p style="color: var(--slate); font-style: italic;">A: Before EVERY shift.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q2:</strong> You are traveling down a ramp with a load?</p>
+                <p style="color: var(--slate); font-style: italic;">A: Backup (Reverse).</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q3:</strong> What do you do in a tip-over?</p>
+                <p style="color: var(--slate); font-style: italic;">A: Stay in the seat. Brace. Lean away.</p>
+            </div>
+            <div class="info-block" style="display:block;">
+                <p><strong>Q4:</strong> How high should forks be when traveling?</p>
+                <p style="color: var(--slate); font-style: italic;">A: 4-6 inches.</p>
+            </div>
+        </div>
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                14</span></div>
+    </div>
+
+    <!-- Slide 15: Sign Off -->
+    <div class="page">
+        <h1 class="slide-title">Final Certification</h1>
+        <p class="slide-body" style="text-align: center; margin-top: 3rem;">
+            "I abide by the Three Rules: Certified Only, Inspect Daily, Pedestrians Rule."
+        </p>
+
+        <div style="margin-top: auto; text-align: center;">
+            <div style="border-bottom: 2px solid var(--navy); width: 60%; margin: 0 auto;"></div>
+            <p>Operator Signature</p>
+        </div>
+
+        <div class="footer-strip"><span>Forklift Training</span><span>Vetted Safe &copy; 2026</span><span>Slide
+                15</span></div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import Session, select
+from .database import create_db_and_tables, engine
+from .db import RateEntry, User
+from .seeds import get_seed_rates, get_seed_users
+
+from .routers import rates, reports, metrics, auth, settings, analytics, weekly
+
+app = FastAPI(title="OEE Analytics API", version="0.1.0")
+
+@app.on_event("startup")
+def on_startup():
+    # Schema Migration Check for "job" column
+    from sqlalchemy import inspect, text
+    try:
+        insp = inspect(engine)
+        if insp.has_table("reportentry"):
+            cols = [c["name"] for c in insp.get_columns("reportentry")]
+            if "job" not in cols:
+                print("DETECTED OLD SCHEMA (Missing 'job'). Dropping tables to rebuild...")
+                with Session(engine) as session:
+                    # Drop in dependency order (metrics -> entries -> reports) usually,
+                    # but sqlite foreign keys might be off or cascading.
+                    # Safest to just hammer them.
+                    session.exec(text("DROP TABLE IF EXISTS oeemetric"))
+                    session.exec(text("DROP TABLE IF EXISTS reportentry"))
+                    session.exec(text("DROP TABLE IF EXISTS productionreport"))
+                    session.commit()
+                print("Tables dropped. Re-creating...")
+    except Exception as e:
+        print(f"Migration check failed: {e}")
+
+    create_db_and_tables()
+    # Seed data if empty
+    with Session(engine) as session:
+        if not session.exec(select(User)).first():
+            print("Seeding database with default users...")
+            users = get_seed_users()
+            for u in users:
+                session.add(u)
+            session.commit()
+            print(f"User seeding complete.")
+
+        if not session.exec(select(RateEntry)).first():
+            print("Seeding database with default rates...")
+            rates = get_seed_rates()
+            for r in rates:
+                session.add(r)
+            session.commit()
+            print(f"Seeding complete: Added {len(rates)} rates.")
+
+# CORS (allow all for demo; tighten in production)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(rates.router, prefix="/rates", tags=["rates"])
+app.include_router(reports.router, prefix="/reports", tags=["reports"])
+app.include_router(metrics.router, prefix="/metrics", tags=["metrics"])
+app.include_router(settings.router, prefix="/settings", tags=["settings"])
+app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+app.include_router(weekly.router, prefix="/weekly", tags=["weekly"])
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+@app.get("/")
+async def root():
+    return {"message": "OEE Analytics API is running. Go to /docs for Swagger UI."}
