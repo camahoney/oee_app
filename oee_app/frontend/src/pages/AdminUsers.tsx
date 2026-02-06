@@ -56,10 +56,15 @@ const AdminUsers: React.FC = () => {
             await authService.updateUser(user.id, { is_pro: isPro });
             message.success(`Updated ${user.email} to ${isPro ? 'Pro' : 'Standard'} status`);
             fetchUsers();
-        } catch (error) {
-            message.error('Failed to update user status');
+        } catch (error: any) {
+            console.error("Update failed:", error);
+            message.error(error.response?.data?.detail || 'Failed to update user status');
         }
     };
+
+    const columns = [
+        // ... (columns remain same, omitted for brevity in tool call, but context needs careful handling)
+        // actually replace_file_content requires context match. I should limit scope.
 
     const columns = [
         {
@@ -115,9 +120,9 @@ const AdminUsers: React.FC = () => {
     return (
         <div style={{ padding: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={2}>User Management</Title>
+                <Title level={2}>Persona Management</Title>
                 <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
-                    Add User
+                    Add Persona
                 </Button>
             </div>
 
@@ -129,7 +134,7 @@ const AdminUsers: React.FC = () => {
             />
 
             <Modal
-                title="Create New User"
+                title="Create New Persona"
                 visible={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={null}

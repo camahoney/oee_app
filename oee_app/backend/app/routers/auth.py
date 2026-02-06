@@ -129,6 +129,7 @@ def impersonate_user(email: str, session: Session = Depends(get_session)):
 @router.put("/users/{user_id}", dependencies=[Depends(get_current_admin)], response_model=User)
 def update_user(user_id: int, user_update: dict, session: Session = Depends(get_session)):
     """Update a user details (Admin only)"""
+    print(f"DTO Update Received for user {user_id}: {user_update}")
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -141,6 +142,12 @@ def update_user(user_id: int, user_update: dict, session: Session = Depends(get_
             
     user.updated_at = datetime.utcnow()
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    try:
+        session.commit()
+        session.refresh(user)
+        print(f"User {user_id} updated successfully. Is Pro: {user.is_pro}")
+    except Exception as e:
+        print(f"DB Update Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        
     return user
