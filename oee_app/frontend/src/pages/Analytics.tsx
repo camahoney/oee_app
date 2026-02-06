@@ -12,7 +12,40 @@ const { RangePicker } = DatePicker;
 // Vibracoustic Brand Colors
 const BRAND_BLUE = '#003366';
 
-const Analytics: React.FC = () => {
+// Simple Error Boundary Component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error: Error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error("Uncaught error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div style={{ padding: 40, background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: 8, margin: 20 }}>
+                    <Title level={4} type="danger">Something went wrong.</Title>
+                    <Text type="secondary">Please retry or report this error:</Text>
+                    <pre style={{ marginTop: 10, background: '#fff', padding: 10, borderRadius: 4, overflow: 'auto' }}>
+                        {this.state.error?.toString()}
+                    </pre>
+                    <Button onClick={() => window.location.reload()} style={{ marginTop: 20 }}>Reload Page</Button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+const AnalyticsContent: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [shiftData, setShiftData] = useState<any[]>([]);
     const [qualityData, setQualityData] = useState<any[]>([]);
@@ -29,30 +62,30 @@ const Analytics: React.FC = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
+        // Robust null safety for date formats
         const startDate = (dateRange && dateRange[0]) ? dateRange[0].format('YYYY-MM-DD') : undefined;
         const endDate = (dateRange && dateRange[1]) ? dateRange[1].format('YYYY-MM-DD') : undefined;
 
         try {
-            const shifts = await analyticsService.getComparison('shift', startDate, endDate);
-            setShiftData(shifts);
-        } catch (e) { console.error("Shift fetch failed", e); }
+            // Parallelize requests for speed, but catch individually to avoid full failure
+            const [shifts, quality, parts, downtime] = await Promise.allSettled([
+                analyticsService.getComparison('shift', startDate, endDate),
+                analyticsService.getQualityAnalysis(10, startDate, endDate),
+                analyticsService.getComparison('part', startDate, endDate),
+                analyticsService.getDowntimeAnalysis(10, startDate, endDate)
+            ]);
 
-        try {
-            const quality = await analyticsService.getQualityAnalysis(10, startDate, endDate);
-            setQualityData(quality);
-        } catch (e) { console.error("Quality fetch failed", e); }
+            if (shifts.status === 'fulfilled') setShiftData(Array.isArray(shifts.value) ? shifts.value : []);
+            if (quality.status === 'fulfilled') setQualityData(Array.isArray(quality.value) ? quality.value : []);
+            if (parts.status === 'fulfilled') setPartData(Array.isArray(parts.value) ? parts.value : []);
+            if (downtime.status === 'fulfilled') setDowntimeData(Array.isArray(downtime.value) ? downtime.value : []);
 
-        try {
-            const parts = await analyticsService.getComparison('part', startDate, endDate);
-            setPartData(parts);
-        } catch (e) { console.error("Part fetch failed", e); }
-
-        try {
-            const downtime = await analyticsService.getDowntimeAnalysis(10, startDate, endDate);
-            setDowntimeData(downtime);
-        } catch (e) { console.error("Downtime fetch failed", e); }
-
-        setLoading(false);
+        } catch (globalError) {
+            console.error("Global fetch error", globalError);
+            message.error("Failed to load some analytics data");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handlePrint = () => {
@@ -365,6 +398,15 @@ const Analytics: React.FC = () => {
                 </div>
             </Modal>
         </div>
+    );
+};
+
+// Wrapper component
+const Analytics: React.FC = () => {
+    return (
+        <ErrorBoundary>
+            <AnalyticsContent />
+        </ErrorBoundary>
     );
 };
 
