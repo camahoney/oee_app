@@ -33,21 +33,46 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v0.9.0",
+        date: "2026-02-06",
+        description: (
+            <ul>
+                <li><strong>System Stability:</strong> Implemented global Error Boundaries in Analytics to trap crashes and display helpful debug info instead of white screens.</li>
+                <li><strong>UI Redesign:</strong> Complete overhaul of the "Version History" tab with a premium gradient header, shadow cards, and timeline cards.</li>
+                <li><strong>Analytics Fixes:</strong> Patched critical null-pointer crash on date range selection.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <SafetyCertificateOutlined />,
+        color: "blue",
+        tags: ["Polish", "Stability"]
+    },
+    {
         version: "v0.8.0",
         date: "2026-02-06",
         description: (
             <ul>
                 <li><strong>Executive Reports:</strong> Developed a branded "Executive Summary" PDF modal with OEE/Downtime/Quality aggregation.</li>
                 <li><strong>Print Optimization:</strong> Implemented <code>@media print</code> CSS to clean up UI (hide sidebars/buttons) for professional A4 printing.</li>
-                <li><strong>Version History:</strong> Added this changelog tab to track project evolution.</li>
                 <li><strong>UI Enhancements:</strong> Enlarged dashboard report headers and converted downtime metrics to Hours for readability.</li>
             </ul>
         ),
         author: "Dev Team",
         hours: 6,
         icon: <PrinterOutlined />,
-        color: "blue",
-        tags: ["Reporting", "UI", "Feature"]
+        color: "cyan",
+        tags: ["Reporting", "UI"]
+    },
+    {
+        version: "v0.7.5",
+        date: "2026-02-04",
+        description: "Implemented 'Leaderboard Fairness' logic toggles (Volume vs Efficiency) and designed the high-contrast 'Hall of Fame' print poster for shop floor display.",
+        author: "Dev Team",
+        hours: 5,
+        icon: <TrophyOutlined />,
+        color: "gold",
+        tags: ["Gamification", "Print"]
     },
     {
         version: "v0.7.0",
@@ -64,6 +89,16 @@ const HISTORY_DATA: VersionEntry[] = [
         icon: <SafetyCertificateOutlined />,
         color: "green",
         tags: ["Stability", "Backend"]
+    },
+    {
+        version: "v0.6.5",
+        date: "2026-01-28",
+        description: "Optimized Operator Performance page with 'Shift Breakdown' (Day/Night) analysis and 'Part Proficiency' tables.",
+        author: "Dev Team",
+        hours: 5,
+        icon: <TeamOutlined />,
+        color: "purple",
+        tags: ["Analytics", "Operators"]
     },
     {
         version: "v0.6.0",
@@ -94,8 +129,18 @@ const HISTORY_DATA: VersionEntry[] = [
         author: "Dev Team",
         hours: 8,
         icon: <RocketOutlined />,
-        color: "purple",
+        color: "geekblue",
         tags: ["Dashboard", "UX"]
+    },
+    {
+        version: "v0.4.5",
+        date: "2026-01-18",
+        description: "Added CSV/Excel Export functionality for raw production data and fixed 'Add Rate' button button bugs.",
+        author: "Dev Team",
+        hours: 3,
+        icon: <DatabaseOutlined />,
+        color: "volcano",
+        tags: ["Data", "Export"]
     },
     {
         version: "v0.4.0",
@@ -104,19 +149,19 @@ const HISTORY_DATA: VersionEntry[] = [
             <ul>
                 <li><strong>Data Integrity:</strong> Implemented "Day vs Night" shift breakdown logic.</li>
                 <li><strong>Permissions:</strong> Hardcoded default Admin User ID for uploads to simplify deployment usage.</li>
-                <li><strong>Exports:</strong> Added CSV/Excel export for raw production data.</li>
+                <li><strong>Calc Engine:</strong> Fixed retroactive rate calculation to run in background tasks.</li>
             </ul>
         ),
         author: "Dev Team",
         hours: 5,
-        icon: <DatabaseOutlined />,
+        icon: <ToolOutlined />,
         color: "red",
-        tags: ["Fix", "Data"]
+        tags: ["Fix", "Backend"]
     },
     {
         version: "v0.3.0",
         date: "2026-01-16",
-        description: "Launched 'Shop Floor Leaderboard'. Added fair ranking toggle (Volume vs. Efficiency) and poster print mode.",
+        description: "Launched 'Shop Floor Leaderboard' with podium visual styles and operator ranking system.",
         author: "Dev Team",
         hours: 6,
         icon: <TrophyOutlined />,
