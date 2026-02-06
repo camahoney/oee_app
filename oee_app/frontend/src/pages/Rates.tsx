@@ -6,6 +6,7 @@ import { rateService } from '../services/api';
 const { Title } = Typography;
 
 const Rates: React.FC = () => {
+    // Force Rebuild Trigger: v1.1 Cavity Support
     const [rates, setRates] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');

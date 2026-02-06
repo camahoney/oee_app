@@ -33,6 +33,7 @@ def on_startup():
 
     # Schema Migration Check for "RateEntry" (Cavity Count / Entry Mode)
     try:
+        print("STARTUP: Checking Schema for Cavity Columns...")
         insp = inspect(engine)
         if insp.has_table("rateentry"):
             cols = [c["name"] for c in insp.get_columns("rateentry")]
