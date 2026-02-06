@@ -60,28 +60,9 @@ const Analytics: React.FC = () => {
         setIsReportOpen(true);
     };
 
-    // Explicit trigger for react-to-print inside modal
-    // Note: In a real app we might install 'react-to-print', but here we can just use window.print with a specific CSS media query
-    // For simplicity without adding dependencies, we'll use a CSS-based Print approach on the Modal content.
+    // Simplified print handler relying on CSS media queries
     const printContent = () => {
-        const content = document.getElementById('printable-report');
-        if (content) {
-            const pri = (document.getElementById('ifmcontentstoprint') as HTMLIFrameElement).contentWindow;
-            if (pri) {
-                pri.document.open();
-                pri.document.write(content.innerHTML);
-                pri.document.close();
-                pri.focus();
-                pri.print();
-            } else {
-                // Fallback
-                const originalContents = document.body.innerHTML;
-                document.body.innerHTML = content.innerHTML;
-                window.print();
-                document.body.innerHTML = originalContents;
-                window.location.reload(); // Reload to restore event listeners
-            }
-        }
+        window.print();
     };
 
     // Better Approach: Use a dedicated CSS class for "print-only" and "no-print"
@@ -131,17 +112,7 @@ const Analytics: React.FC = () => {
 
     return (
         <div style={{ padding: '24px' }}>
-            {/* Styles for Printing - Hides everything except the report when printing */}
-            <style>
-                {`
-                    @media print {
-                        body * { visibility: hidden; }
-                        #printable-section, #printable-section * { visibility: visible; }
-                        #printable-section { position: absolute; left: 0; top: 0; width: 100%; }
-                        .no-print { display: none !important; }
-                    }
-                `}
-            </style>
+
 
             <div className="no-print" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
@@ -302,15 +273,20 @@ const Analytics: React.FC = () => {
                 width={800}
                 footer={[
                     <Button key="close" onClick={() => setIsReportOpen(false)}>Close</Button>,
-                    <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={triggerBrowserPrint}>Print / Save PDF</Button>
+                    <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={printContent}>Print / Save PDF</Button>
                 ]}
             >
                 <div id="printable-section" style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                        <Title level={3} style={{ color: BRAND_BLUE }}>Vibracoustic Executive Summary</Title>
-                        <Text type="secondary">Generated on {dayjs().format('MMMM D, YYYY')}</Text>
-                        <br />
-                        <Text strong>Period: {dateRange[0].format('MMM D')} - {dateRange[1].format('MMM D, YYYY')}</Text>
+                    {/* Branded Report Header */}
+                    <div style={{ marginBottom: 20, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: 15 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <img src="/logo.png" alt="Vibracoustic Logo" style={{ height: 50 }} />
+                            <div style={{ textAlign: 'right' }}>
+                                <Title level={3} style={{ margin: 0, color: BRAND_BLUE }}>Executive Summary</Title>
+                                <Text strong style={{ fontSize: 16 }}>Period: {dateRange[0].format('MMM D')} - {dateRange[1].format('MMM D, YYYY')}</Text>
+                                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Generated: {dayjs().format('MMMM D, YYYY HH:mm')}</div>
+                            </div>
+                        </div>
                     </div>
 
                     <Divider orientation="left">Production Overview</Divider>

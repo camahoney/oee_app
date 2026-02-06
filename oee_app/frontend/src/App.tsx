@@ -7,12 +7,11 @@ import {
     TableOutlined,
     FileTextOutlined,
     SettingOutlined,
-    SettingOutlined,
     BarChartOutlined,
     TrophyOutlined,
-    TrophyOutlined,
     TeamOutlined,
-    LineChartOutlined
+    LineChartOutlined,
+    HistoryOutlined
 } from '@ant-design/icons';
 
 import Leaderboard from './pages/Leaderboard';
@@ -25,6 +24,8 @@ import Reports from './pages/Reports';
 import SettingsPage from './pages/Settings';
 import Analytics from './pages/Analytics';
 import WeeklyOEE from './pages/WeeklyOEE';
+
+import VersionHistory from './pages/VersionHistory';
 
 const { Header, Content, Sider } = Layout;
 
@@ -80,6 +81,7 @@ const App: React.FC = () => {
                             <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>
                             <Menu.Item key="reports" icon={<FileTextOutlined />}> <a href="/reports">Reports</a> </Menu.Item>
                             <Menu.Item key="settings" icon={<SettingOutlined />}> <a href="/settings">Settings</a> </Menu.Item>
+                            <Menu.Item key="versions" icon={<HistoryOutlined />}> <a href="/versions">Versions</a> </Menu.Item>
                         </Menu>
                     </Sider>
                     <Layout>
@@ -95,6 +97,7 @@ const App: React.FC = () => {
                                 <Route path="/rates" element={<Rates />} />
                                 <Route path="/reports" element={<Reports />} />
                                 <Route path="/settings" element={<SettingsPage />} />
+                                <Route path="/versions" element={<VersionHistory />} />
                             </Routes>
                         </Content>
                     </Layout>

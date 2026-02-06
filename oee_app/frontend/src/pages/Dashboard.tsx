@@ -104,6 +104,17 @@ const Dashboard: React.FC = () => {
         <div style={{ padding: '16px 24px', background: '#f0f2f5', minHeight: '100vh' }}>
             <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
+                    {/* Print Header */}
+                    <div className="print-only" style={{ marginBottom: 24, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: 16 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <img src="/logo.png" alt="Vibracoustic Logo" style={{ height: 60 }} />
+                            <div style={{ textAlign: 'right' }}>
+                                <Title level={3} style={{ margin: 0, color: BRAND_BLUE }}>Production Dashboard Report</Title>
+                                <Text>Generated: {new Date().toLocaleString()}</Text>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Title level={2} style={{ marginBottom: 0, color: BRAND_BLUE, fontSize: '28px', lineHeight: '1.2' }}>
                             {reportId ? `Report Details (ID: ${reportId})` : 'Latest Production Report'}
@@ -112,7 +123,6 @@ const Dashboard: React.FC = () => {
                     </div>
                     <Text type="secondary" style={{ fontSize: '16px' }}>
                         {reportId ? 'Historical Analysis View' : (stats?.report_date ? `Showing data from upload on ${stats.report_date}` : 'Most recent production data')}
-                        {reportId && <span className="print-only" style={{ marginLeft: 16 }}>Generated at {new Date().toLocaleString()}</span>}
                     </Text>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
