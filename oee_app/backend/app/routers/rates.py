@@ -187,8 +187,7 @@ def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks
             ideal_cycle_time_seconds=float(row.get('ideal_cycle_time_seconds')) if pd.notna(row.get('ideal_cycle_time_seconds')) else None,
             start_date=pd.to_datetime(row.get('start_date')).date(),
             active=bool(row.get('active', True)),
-            start_date=pd.to_datetime(row.get('start_date')).date(),
-            active=bool(row.get('active', True)),
+
             cavity_count=int(row.get('cavity_count', 1)),
             entry_mode=str(row.get('entry_mode', 'seconds')),
             machine_cycle_time=float(row.get('machine_cycle_time')) if pd.notna(row.get('machine_cycle_time')) else None,
