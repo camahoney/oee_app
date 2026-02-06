@@ -279,62 +279,89 @@ const Analytics: React.FC = () => {
                 <div id="printable-section" style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
                     {/* Branded Report Header */}
                     <div style={{ marginBottom: 20, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: 15 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <img src="/logo.png" alt="Vibracoustic Logo" style={{ height: 50 }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, borderBottom: '2px solid #003366', paddingBottom: 16 }}>
+                            <img src="/logo.png" alt="Company Logo" style={{ height: 60, maxWidth: 250, paddingLeft: 10 }} />
                             <div style={{ textAlign: 'right' }}>
-                                <Title level={3} style={{ margin: 0, color: BRAND_BLUE }}>Executive Summary</Title>
-                                <Text strong style={{ fontSize: 16 }}>Period: {dateRange[0].format('MMM D')} - {dateRange[1].format('MMM D, YYYY')}</Text>
-                                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Generated: {dayjs().format('MMMM D, YYYY HH:mm')}</div>
+                                <Title level={3} style={{ margin: 0, color: '#003366' }}>Executive Summary</Title>
+                                <Text type="secondary" style={{ fontSize: 16 }}>Period: {dateRange[0]?.format('MMM D')} - {dateRange[1]?.format('MMM D, YYYY')}</Text>
+                                <br />
+                                <Text type="secondary" style={{ fontSize: 12 }}>Generated: {dayjs().format('MMMM D, YYYY HH:mm')}</Text>
                             </div>
                         </div>
+
+                        <Row gutter={24} style={{ marginBottom: 32 }}>
+                            <Col span={8} style={{ textAlign: 'center' }}>
+                                <Statistic
+                                    title="Avg OEE"
+                                    value={avgOEE}
+                                    precision={1}
+                                    suffix="%"
+                                    valueStyle={{ fontSize: 32, color: avgOEE >= 85 ? '#3f8600' : '#cf1322' }}
+                                />
+                                <Text type="secondary">Target: 85%</Text>
+                            </Col>
+                            <Col span={8} style={{ textAlign: 'center' }}>
+                                <Statistic
+                                    title="Total Downtime"
+                                    value={totalDowntime / 60}
+                                    precision={1}
+                                    suffix=" hrs"
+                                    valueStyle={{ fontSize: 32 }}
+                                />
+                                <Text type="secondary">{totalDowntime.toLocaleString()} minutes</Text>
+                            </Col>
+                            <Col span={8} style={{ textAlign: 'center' }}>
+                                <Statistic
+                                    title="Reject Rate"
+                                    value={rejectRate}
+                                    precision={1}
+                                    suffix="%"
+                                    valueStyle={{ fontSize: 32 }}
+                                />
+                            </Col>
+                        </Row>
+
+                        <Divider orientation="left">Shift Performance</Divider>
+                        <Table
+                            dataSource={shiftData}
+                            columns={shiftColumns}
+                            pagination={false}
+                            bordered
+                            size="small"
+                            rowKey="name"
+                        />
+
+                        <Divider orientation="left">Top Downtime Drivers</Divider>
+                        <Table
+                            dataSource={downtimeData.slice(0, 5)}
+                            columns={[
+                                { title: 'Machine', dataIndex: 'machine' },
+                                {
+                                    title: 'Hours Lost',
+                                    dataIndex: 'total_downtime',
+                                    render: (val: number) => (val / 60).toFixed(1)
+                                }
+                            ]} pagination={false}
+                            size="small"
+                            rowKey="machine"
+                        />
+
+                        <Divider orientation="left">Quality Alerts (Top Rejects)</Divider>
+                        <Table
+                            dataSource={qualityData.slice(0, 5)}
+                            columns={[
+                                { title: 'Part Number', dataIndex: 'part_number' },
+                                { title: 'Reject Rate', dataIndex: 'reject_rate', render: (v: number) => `${v}%` }
+                            ]}
+                            pagination={false}
+                            size="small"
+                            rowKey="part_number"
+                        />
+
+                        <div style={{ marginTop: 40, textAlign: 'center', color: '#999', fontSize: '12px' }}>
+                            End of Report - Vibracoustic OEE Analytics
+                        </div>
                     </div>
-
-                    <Divider orientation="left">Production Overview</Divider>
-                    <Row gutter={16} style={{ textAlign: 'center' }}>
-                        {/* Simple Average of Shifts for Headline */}
-                        <Col span={6}><Statistic title="Avg OEE" value={shiftData.reduce((acc, c) => acc + c.oee, 0) / (shiftData.length || 1) * 100} precision={1} suffix="%" /></Col>
-                        <Col span={6}><Statistic title="Total Downtime" value={downtimeData.reduce((acc, c) => acc + c.total_downtime, 0)} suffix=" min" /></Col>
-                        <Col span={6}><Statistic title="Reject Rate" value={qualityData.reduce((acc, c) => acc + c.reject_rate, 0) / (qualityData.length || 1)} precision={1} suffix="%" /></Col>
-                    </Row>
-
-                    <Divider orientation="left">Shift Performance</Divider>
-                    <Table
-                        dataSource={shiftData}
-                        columns={shiftColumns}
-                        pagination={false}
-                        bordered
-                        size="small"
-                        rowKey="name"
-                    />
-
-                    <Divider orientation="left">Top Downtime Drivers</Divider>
-                    <Table
-                        dataSource={downtimeData.slice(0, 5)}
-                        columns={[
-                            { title: 'Machine', dataIndex: 'machine' },
-                            { title: 'Minutes Lost', dataIndex: 'total_downtime' }
-                        ]}
-                        pagination={false}
-                        size="small"
-                        rowKey="machine"
-                    />
-
-                    <Divider orientation="left">Quality Alerts (Top Rejects)</Divider>
-                    <Table
-                        dataSource={qualityData.slice(0, 5)}
-                        columns={[
-                            { title: 'Part Number', dataIndex: 'part_number' },
-                            { title: 'Reject Rate', dataIndex: 'reject_rate', render: (v: number) => `${v}%` }
-                        ]}
-                        pagination={false}
-                        size="small"
-                        rowKey="part_number"
-                    />
-
-                    <div style={{ marginTop: 40, textAlign: 'center', color: '#999', fontSize: '12px' }}>
-                        End of Report - Vibracoustic OEE Analytics
-                    </div>
-                </div>
             </Modal>
         </div>
     );
