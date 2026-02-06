@@ -9,8 +9,10 @@ import {
     SafetyCertificateOutlined,
     TrophyOutlined,
     BugOutlined,
-    DatabaseOutlined
+    DatabaseOutlined,
+    TeamOutlined
 } from '@ant-design/icons';
+import { Divider } from 'antd';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 
@@ -163,76 +165,98 @@ const VersionHistory: React.FC = () => {
     }, []);
 
     return (
-        <div style={{ padding: '24px', width: '100%', maxWidth: '1600px', margin: '0 auto' }}>
-            <div style={{ marginBottom: 32 }}>
-                <Title level={2}><ClockCircleOutlined /> Versions & Updates</Title>
-                <Paragraph style={{ fontSize: 16, color: '#666' }}>
-                    Tracking the rapid evolution of the OEE Analytics Dashboard.
-                </Paragraph>
+        <div style={{ background: '#f0f2f5', minHeight: '100vh', paddingBottom: 40 }}>
+            {/* Premium Header */}
+            <div style={{ background: 'linear-gradient(135deg, #001529 0%, #003366 100%)', padding: '40px 24px 80px', color: 'white' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+                        <div style={{ background: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 12 }}>
+                            <RocketOutlined style={{ fontSize: 32, color: '#40a9ff' }} />
+                        </div>
+                        <div>
+                            <Title level={1} style={{ color: 'white', margin: 0, fontSize: 32 }}>Version History</Title>
+                            <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 16 }}>Tracking the evolution of the OEE Analytics Platform</Text>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <Row gutter={16} style={{ marginBottom: 32 }}>
-                <Col span={8}>
-                    <Card bordered={false} style={{ background: '#f0f5ff' }}>
-                        <Statistic
-                            title="Project Started"
-                            value="Jan 15, 2026"
-                            prefix={<RocketOutlined />}
-                        />
-                    </Card>
-                </Col>
-                <Col span={8}>
-                    <Card bordered={false} style={{ background: '#f6ffed' }}>
-                        <Statistic
-                            title="Updates Released"
-                            value={HISTORY_DATA.length}
-                            prefix={<ToolOutlined />}
-                        />
-                    </Card>
-                </Col>
-                <Col span={8}>
-                    <Card bordered={false} style={{ background: '#fff7e6' }}>
-                        <Statistic
-                            title="Time Active"
-                            value={timeActive}
-                            prefix={<ClockCircleOutlined />}
-                        />
-                    </Card>
-                </Col>
-            </Row>
+            <div style={{ maxWidth: 1200, margin: '-40px auto 0', padding: '0 24px' }}>
+                {/* Stats Cards */}
+                <Row gutter={[24, 24]} style={{ marginBottom: 40 }}>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">Project Started</Text>}
+                                value="Jan 15, 2026"
+                                valueStyle={{ fontWeight: 600, color: '#003366' }}
+                                prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">Total Updates</Text>}
+                                value={HISTORY_DATA.length}
+                                valueStyle={{ fontWeight: 600, color: '#1890ff' }}
+                                prefix={<RocketOutlined />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">System Uptime</Text>}
+                                value={timeActive}
+                                valueStyle={{ fontWeight: 600, color: '#722ed1' }}
+                                prefix={<ClockCircleOutlined />}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
 
-            <Card title="Update Log" bordered={false} style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.03)' }}>
-                <Timeline mode="left">
-                    {HISTORY_DATA.map((item) => (
-                        <Timeline.Item
-                            key={item.version}
-                            color={item.color}
-                            dot={item.icon}
-                            label={<Text strong style={{ fontSize: 14 }}>{item.date}</Text>}
-                        >
-                            <div style={{ paddingBottom: 24 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                                    <Text strong style={{ fontSize: 18, color: '#1890ff' }}>{item.version}</Text>
-                                    {item.tags?.map(tag => <Tag key={tag} color={item.color}>{tag}</Tag>)}
-                                </div>
+                {/* Timeline */}
+                <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <div style={{ padding: '24px 0 0' }}>
+                        <Timeline mode="left">
+                            {HISTORY_DATA.map((item, index) => (
+                                <Timeline.Item
+                                    key={item.version}
+                                    color={item.color}
+                                    dot={item.icon}
+                                    style={{ paddingBottom: index === HISTORY_DATA.length - 1 ? 0 : 40 }}
+                                    label={<div style={{ fontWeight: 500, fontSize: 14, color: '#8c8c8c' }}>{item.date}</div>}
+                                >
+                                    <div style={{ marginLeft: 12 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+                                            <Tag color={item.color} style={{ fontSize: 16, padding: '4px 12px', fontWeight: 600 }}>{item.version}</Tag>
+                                            {item.tags?.map(tag => <Tag key={tag} style={{ borderRadius: 12 }}>{tag}</Tag>)}
+                                        </div>
 
-                                <div style={{ fontSize: 15, color: '#444', marginBottom: 8 }}>
-                                    {typeof item.description === 'string' ? <p>{item.description}</p> : item.description}
-                                </div>
+                                        <div style={{ background: '#f9f9f9', padding: '16px 20px', borderRadius: 12, borderLeft: `4px solid ${item.color === 'blue' ? '#1890ff' : item.color === 'green' ? '#52c41a' : '#d9d9d9'}` }}>
+                                            <div style={{ fontSize: 15, color: '#262626', lineHeight: 1.6 }}>
+                                                {typeof item.description === 'string' ? <p style={{ margin: 0 }}>{item.description}</p> : item.description}
+                                            </div>
 
-                                <div style={{ fontSize: 12, color: '#888', display: 'flex', gap: 16, background: '#fafafa', padding: '4px 8px', borderRadius: 4, width: 'fit-content' }}>
-                                    <Tooltip title="Developer">
-                                        <span><ToolOutlined /> {item.author}</span>
-                                    </Tooltip>
-                                    <Tooltip title="Estimated Effort">
-                                        <span><ClockCircleOutlined /> ~{item.hours} hrs</span>
-                                    </Tooltip>
-                                </div>
-                            </div>
-                        </Timeline.Item>
-                    ))}
-                </Timeline>
-            </Card>
+                                            <Divider style={{ margin: '16px 0' }} />
+
+                                            <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#8c8c8c' }}>
+                                                <span><TeamOutlined /> {item.author}</span>
+                                                <span><ClockCircleOutlined /> ~{item.hours} hrs effort</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Timeline.Item>
+                            ))}
+                        </Timeline>
+                    </div>
+                </Card>
+
+                <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v0.8.0</Text>
+                </div>
+            </div>
         </div>
     );
 };

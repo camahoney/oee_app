@@ -29,8 +29,8 @@ const Analytics: React.FC = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startDate = dateRange ? dateRange[0].format('YYYY-MM-DD') : undefined;
-        const endDate = dateRange ? dateRange[1].format('YYYY-MM-DD') : undefined;
+        const startDate = (dateRange && dateRange[0]) ? dateRange[0].format('YYYY-MM-DD') : undefined;
+        const endDate = (dateRange && dateRange[1]) ? dateRange[1].format('YYYY-MM-DD') : undefined;
 
         try {
             const shifts = await analyticsService.getComparison('shift', startDate, endDate);
@@ -283,7 +283,7 @@ const Analytics: React.FC = () => {
                             <img src="/logo.png" alt="Company Logo" style={{ height: 60, maxWidth: 250, paddingLeft: 10 }} />
                             <div style={{ textAlign: 'right' }}>
                                 <Title level={3} style={{ margin: 0, color: '#003366' }}>Executive Summary</Title>
-                                <Text type="secondary" style={{ fontSize: 16 }}>Period: {dateRange[0]?.format('MMM D')} - {dateRange[1]?.format('MMM D, YYYY')}</Text>
+                                <Text type="secondary" style={{ fontSize: 16 }}>Period: {dateRange?.[0]?.format('MMM D') ?? 'All Time'} - {dateRange?.[1]?.format('MMM D, YYYY') ?? 'Present'}</Text>
                                 <br />
                                 <Text type="secondary" style={{ fontSize: 12 }}>Generated: {dayjs().format('MMMM D, YYYY HH:mm')}</Text>
                             </div>
