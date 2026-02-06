@@ -324,10 +324,10 @@ const AnalyticsContent: React.FC = () => {
                     {/* Branded Report Header */}
                     <div style={{ marginBottom: 20, borderBottom: `2px solid ${BRAND_BLUE}`, paddingBottom: 15 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, borderBottom: '2px solid #003366', paddingBottom: 16 }}>
-                            <img src="/logo.png" alt="Company Logo" style={{ height: 60, maxWidth: 250, paddingLeft: 10 }} />
+                            <img src="/logo.png" alt="Company Logo" style={{ height: 120, maxWidth: 'none', paddingLeft: 0 }} />
                             <div style={{ textAlign: 'right' }}>
-                                <Title level={3} style={{ margin: 0, color: '#003366' }}>Executive Summary</Title>
-                                <Text type="secondary" style={{ fontSize: 16 }}>Period: {dateRange?.[0]?.format('MMM D') ?? 'All Time'} - {dateRange?.[1]?.format('MMM D, YYYY') ?? 'Present'}</Text>
+                                <Title level={2} style={{ margin: 0, color: '#003366', fontSize: 36 }}>Executive Summary</Title>
+                                <Text type="secondary" style={{ fontSize: 18 }}>Period: {dateRange?.[0]?.format('MMM D') ?? 'All Time'} - {dateRange?.[1]?.format('MMM D, YYYY') ?? 'Present'}</Text>
                                 <br />
                                 <Text type="secondary" style={{ fontSize: 12 }}>Generated: {dayjs().format('MMMM D, YYYY HH:mm')}</Text>
                             </div>
