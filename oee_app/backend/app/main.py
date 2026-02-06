@@ -64,6 +64,19 @@ def on_startup():
             session.commit()
             print(f"User seeding complete.")
 
+    # Schema Migration Check for "User" (is_pro)
+    try:
+        insp = inspect(engine)
+        if insp.has_table("user"):
+            cols = [c["name"] for c in insp.get_columns("user")]
+            if "is_pro" not in cols:
+                print("Migrating User: Adding 'is_pro'...")
+                with Session(engine) as session:
+                    session.exec(text("ALTER TABLE user ADD COLUMN is_pro BOOLEAN DEFAULT 0"))
+                    session.commit()
+    except Exception as e:
+        print(f"User Migration check failed: {e}")
+
         if not session.exec(select(RateEntry)).first():
             print("Seeding database with default rates...")
             rates = get_seed_rates()

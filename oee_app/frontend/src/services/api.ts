@@ -12,6 +12,60 @@ const api = axios.create({
     },
 });
 
+// Request interceptor to add the auth token header to every request
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+export interface User {
+    id?: number;
+    email: string;
+    role: string;
+    is_active?: boolean;
+}
+
+export const authService = {
+    login: async (email: string, password: string) => {
+        const formData = new FormData();
+        formData.append('username', email);
+        formData.append('password', password);
+
+        const response = await api.post('/auth/login', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+    register: async (email: string, password: string, role: string = 'analyst') => {
+        const response = await api.post(`/auth/register?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(role)}`);
+        return response.data;
+    },
+    getUsers: async () => {
+        const response = await api.get<User[]>('/auth/users');
+        return response.data;
+    },
+    createUser: async (user: User & { password: string }) => {
+        const response = await api.post<User>('/auth/users', user);
+        return response.data;
+    },
+    impersonate: async (email: string) => {
+        const response = await api.post<{ access_token: string }>('/auth/impersonate', null, {
+            params: { email }
+        });
+        return response.data;
+    },
+    updateUser: async (userId: number, data: Partial<User> & { password?: string }) => {
+        const response = await api.put<User>(`/auth/users/${userId}`, data);
+        return response.data;
+    }
+};
+
 export const rateService = {
     getRates: async (limit: number = 5000) => {
         const response = await api.get('/rates', { params: { limit } });
