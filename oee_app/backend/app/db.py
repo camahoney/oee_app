@@ -22,6 +22,12 @@ class RateEntry(SQLModel, table=True):
     end_date: Optional[date] = None
     active: bool = Field(default=True)
     notes: Optional[str] = None
+    
+    # New Fields for Entry Logic
+    cavity_count: int = Field(default=1) 
+    entry_mode: str = Field(default="seconds") # seconds, parts_shift, heats_shift
+    machine_cycle_time: Optional[float] = None # Stores raw machine cycle in seconds
+
     created_by: Optional[int] = Field(default=None, foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_by: Optional[int] = Field(default=None, foreign_key="user.id")

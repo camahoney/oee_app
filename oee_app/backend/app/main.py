@@ -29,7 +29,29 @@ def on_startup():
                     session.commit()
                 print("Tables dropped. Re-creating...")
     except Exception as e:
+    except Exception as e:
         print(f"Migration check failed: {e}")
+
+    # Schema Migration Check for "RateEntry" (Cavity Count / Entry Mode)
+    try:
+        insp = inspect(engine)
+        if insp.has_table("rateentry"):
+            cols = [c["name"] for c in insp.get_columns("rateentry")]
+            with Session(engine) as session:
+                if "cavity_count" not in cols:
+                    print("Migrating RateEntry: Adding 'cavity_count'...")
+                    session.exec(text("ALTER TABLE rateentry ADD COLUMN cavity_count INTEGER DEFAULT 1"))
+                    session.commit()
+                if "entry_mode" not in cols:
+                    print("Migrating RateEntry: Adding 'entry_mode'...")
+                    session.exec(text("ALTER TABLE rateentry ADD COLUMN entry_mode VARCHAR DEFAULT 'seconds'"))
+                    session.commit()
+                if "machine_cycle_time" not in cols:
+                    print("Migrating RateEntry: Adding 'machine_cycle_time'...")
+                    session.exec(text("ALTER TABLE rateentry ADD COLUMN machine_cycle_time FLOAT"))
+                    session.commit()
+    except Exception as e:
+        print(f"RateEntry Migration check failed: {e}")
 
     create_db_and_tables()
     # Seed data if empty

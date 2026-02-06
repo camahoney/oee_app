@@ -78,10 +78,25 @@ const Rates: React.FC = () => {
 
     const handleEdit = (record: any) => {
         setEditingRate(record);
-        // Default to seconds mode on edit
-        setCalcMode('seconds');
+
+        // Load Saved Logic
+        const savedMode = record.entry_mode || 'seconds';
+        setCalcMode(savedMode);
         setShiftHours(8);
-        setTargetVal(0);
+
+        // Reverse Calculate Target if applicable
+        let derivedTarget = 0;
+        if (record.ideal_cycle_time_seconds > 0) {
+            const secondsInShift = 8 * 3600;
+            const cavs = record.cavity_count || 1;
+
+            if (savedMode === 'parts_shift') {
+                derivedTarget = Math.round(secondsInShift / record.ideal_cycle_time_seconds);
+            } else if (savedMode === 'heats_shift') {
+                derivedTarget = Math.round(secondsInShift / (record.ideal_cycle_time_seconds * cavs));
+            }
+        }
+        setTargetVal(derivedTarget);
 
         form.setFieldsValue({
             job: record.job,
@@ -89,12 +104,7 @@ const Rates: React.FC = () => {
             machine: record.machine,
             ideal_cycle_time_seconds: record.ideal_cycle_time_seconds,
             active: record.active,
-            cavities: record.ideal_units_per_hour ? 1 : 1 // Logic to preserve cavities if we stored it? We don't store cavities in backend explicitly yet, relying on ideal_cycle.
-            // Wait, front-end form has 'cavities'. Does backend store it? 
-            // Looking at metrics.py/db.py earlier, RateEntry has ideal_cycle_time. 
-            // If the user wants to Edit "Cavities", we need to store it? 
-            // Or just assume it's set logic.
-            // For now, on Edit, just load the cycle time.
+            cavities: record.cavity_count || 1,
         });
         setIsModalVisible(true);
     };
@@ -103,18 +113,9 @@ const Rates: React.FC = () => {
         try {
             const values = await form.validateFields();
 
-            // Prepare Payload
-            const payload: any = {
-                job: values.job,
-                part_number: values.part_number,
-                machine: values.machine,
-                active: values.active !== undefined ? values.active : true,
-                start_date: new Date().toISOString().split('T')[0], // Required by backend
-                notes: "Manual Entry"
-            };
-
             // Calculate Cycle Time logic
             let finalCycleTime = values.ideal_cycle_time_seconds;
+            let finalMachineCycle = values.ideal_cycle_time_seconds; // Default
 
             if (calcMode !== 'seconds') {
                 const secondsInShift = shiftHours * 3600;
@@ -134,11 +135,27 @@ const Rates: React.FC = () => {
                     return;
                 }
                 finalCycleTime = parseFloat(calculatedCycle.toFixed(4));
+                // Machine Cycle = Part Cycle (if 1 cav) or Part Cycle * Cav (if entry mode logic?)
+                // Actually machine cycle is implied.
             }
 
-            payload.ideal_cycle_time_seconds = finalCycleTime;
+            // Prepare Payload
+            const payload: any = {
+                job: values.job,
+                part_number: values.part_number,
+                machine: values.machine,
+                active: values.active !== undefined ? values.active : true,
+                start_date: new Date().toISOString().split('T')[0],
+                notes: "Manual Entry",
 
-            // Optional: Calculate units/hr for convenience if backend doesn't (backend calculates cycle if units present, but we are sending cycle)
+                // New Fields
+                cavity_count: values.cavities || 1,
+                entry_mode: calcMode,
+                ideal_cycle_time_seconds: finalCycleTime,
+                machine_cycle_time: null // We could calculate and store this but 'ideal_cycle' is the truth.
+            };
+
+            // Calculate units/hr for convenience
             if (finalCycleTime > 0) {
                 payload.ideal_units_per_hour = parseFloat((3600 / finalCycleTime).toFixed(2));
             }
@@ -228,6 +245,13 @@ const Rates: React.FC = () => {
             key: 'ideal_cycle_time_seconds',
             sorter: (a: any, b: any) => a.ideal_cycle_time_seconds - b.ideal_cycle_time_seconds,
             render: (val: number) => val ? val.toFixed(2) : '-'
+        },
+        {
+            title: 'Cavities',
+            dataIndex: 'cavity_count',
+            key: 'cavity_count',
+            sorter: (a: any, b: any) => (a.cavity_count || 1) - (b.cavity_count || 1),
+            render: (val: number) => val || 1
         },
         {
             title: 'Units/Hr',
