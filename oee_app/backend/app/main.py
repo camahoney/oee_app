@@ -29,7 +29,6 @@ def on_startup():
                     session.commit()
                 print("Tables dropped. Re-creating...")
     except Exception as e:
-    except Exception as e:
         print(f"Migration check failed: {e}")
 
     # Schema Migration Check for "RateEntry" (Cavity Count / Entry Mode)
