@@ -13,8 +13,8 @@ const api = axios.create({
 });
 
 export const rateService = {
-    getRates: async () => {
-        const response = await api.get('/rates');
+    getRates: async (limit: number = 5000) => {
+        const response = await api.get('/rates', { params: { limit } });
         return response.data;
     },
     createRate: async (data: any) => {
