@@ -143,6 +143,17 @@ const AnalyticsContent: React.FC = () => {
         );
     }
 
+    const avgOEE = shiftData.length > 0
+        ? (shiftData.reduce((acc, item) => acc + (item.oee || 0), 0) / shiftData.length) * 100
+        : 0;
+
+    const totalDowntime = downtimeData.reduce((acc: number, item: any) => acc + (item.duration || 0), 0);
+
+    // Calculate generic reject rate (1 - Avg Quality)
+    const rejectRate = shiftData.length > 0
+        ? (1 - (shiftData.reduce((acc, item) => acc + (item.quality || 0), 0) / shiftData.length)) * 100
+        : 0;
+
     return (
         <div style={{ padding: '24px' }}>
 
