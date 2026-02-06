@@ -362,9 +362,9 @@ const Analytics: React.FC = () => {
                             End of Report - Vibracoustic OEE Analytics
                         </div>
                     </div>
+                </div>
             </Modal>
-        </div>
-    );
+            );
 };
 
-export default Analytics;
+            export default Analytics;
