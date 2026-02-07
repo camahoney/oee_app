@@ -258,9 +258,9 @@ const Dashboard: React.FC = () => {
                         itemLayout="vertical"
                         size="large"
                         pagination={{
-                            pageSize: 2000, // Show all operators (up to 2000) in one view
+                            pageSize: 10, // Optimized for performance (was 2000)
                             position: 'bottom',
-                            showSizeChanger: false
+                            showSizeChanger: true
                         }}
                         dataSource={stats.recent_activity || []}
                         renderItem={(item: any) => {
