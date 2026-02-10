@@ -1,0 +1,309 @@
+import React, { useState, useEffect } from 'react';
+import { Typography, Timeline, Card, Tag, Row, Col, Statistic, Tooltip } from 'antd';
+import {
+    ClockCircleOutlined,
+    RocketOutlined,
+    ToolOutlined,
+    PrinterOutlined,
+    LineChartOutlined,
+    SafetyCertificateOutlined,
+    TrophyOutlined,
+    BugOutlined,
+    DatabaseOutlined,
+    TeamOutlined
+} from '@ant-design/icons';
+import { Divider } from 'antd';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+
+dayjs.extend(duration);
+
+const { Title, Paragraph, Text } = Typography;
+
+interface VersionEntry {
+    version: string;
+    date: string;
+    description: React.ReactNode;
+    author: string;
+    hours: number;
+    icon?: React.ReactNode;
+    color?: string;
+    tags?: string[];
+}
+
+const HISTORY_DATA: VersionEntry[] = [
+    {
+        version: "v0.9.0",
+        date: "2026-02-06",
+        description: (
+            <ul>
+                <li><strong>System Stability:</strong> Implemented global Error Boundaries in Analytics to trap crashes and display helpful debug info instead of white screens.</li>
+                <li><strong>UI Redesign:</strong> Complete overhaul of the "Version History" tab with a premium gradient header, shadow cards, and timeline cards.</li>
+                <li><strong>Analytics Fixes:</strong> Patched critical null-pointer crash on date range selection.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <SafetyCertificateOutlined />,
+        color: "blue",
+        tags: ["Polish", "Stability"]
+    },
+    {
+        version: "v0.8.0",
+        date: "2026-02-06",
+        description: (
+            <ul>
+                <li><strong>Executive Reports:</strong> Developed a branded "Executive Summary" PDF modal with OEE/Downtime/Quality aggregation.</li>
+                <li><strong>Print Optimization:</strong> Implemented <code>@media print</code> CSS to clean up UI (hide sidebars/buttons) for professional A4 printing.</li>
+                <li><strong>UI Enhancements:</strong> Enlarged dashboard report headers and converted downtime metrics to Hours for readability.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 6,
+        icon: <PrinterOutlined />,
+        color: "cyan",
+        tags: ["Reporting", "UI"]
+    },
+    {
+        version: "v0.7.5",
+        date: "2026-02-04",
+        description: "Implemented 'Leaderboard Fairness' logic toggles (Volume vs Efficiency) and designed the high-contrast 'Hall of Fame' print poster for shop floor display.",
+        author: "Dev Team",
+        hours: 5,
+        icon: <TrophyOutlined />,
+        color: "gold",
+        tags: ["Gamification", "Print"]
+    },
+    {
+        version: "v0.7.0",
+        date: "2026-01-30",
+        description: (
+            <ul>
+                <li><strong>Deployment Stability:</strong> Fixed 404 errors on the root path and resolved API "regex" deprecation warnings.</li>
+                <li><strong>Database Persistence:</strong> Migrated from SQLite to PostgreSQL instructions for production reliability.</li>
+                <li><strong>Health Check:</strong> Added <code>/health</code> and root endpoints for Render auto-deploy verification.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <SafetyCertificateOutlined />,
+        color: "green",
+        tags: ["Stability", "Backend"]
+    },
+    {
+        version: "v0.6.5",
+        date: "2026-01-28",
+        description: "Optimized Operator Performance page with 'Shift Breakdown' (Day/Night) analysis and 'Part Proficiency' tables.",
+        author: "Dev Team",
+        hours: 5,
+        icon: <TeamOutlined />,
+        color: "purple",
+        tags: ["Analytics", "Operators"]
+    },
+    {
+        version: "v0.6.0",
+        date: "2026-01-24",
+        description: (
+            <ul>
+                <li><strong>Weekly OEE Tab:</strong> New analysis view to track performance week-over-week.</li>
+                <li><strong>Weighted Math:</strong> Implemented weighted averages for OEE calculation (sum of parts vs total target) rather than simple arithmetic means.</li>
+                <li><strong>Search Fixes:</strong> Updated "Rates" list to sort by newest first.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 6,
+        icon: <LineChartOutlined />,
+        color: "blue",
+        tags: ["Analytics", "New Feature"]
+    },
+    {
+        version: "v0.5.0",
+        date: "2026-01-20",
+        description: (
+            <ul>
+                <li><strong>Dashboard 2.0:</strong> Added 7-day sparkline charts to main KPI gauges.</li>
+                <li><strong>Smart Insights:</strong> Rule-based text generation (e.g., "Availability is the main loss driver") to assist supervisors.</li>
+                <li><strong>Zero-Metric Fix:</strong> "Self-Healing" logic for reports initiating with 0 count to prevent empty gauges.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 8,
+        icon: <RocketOutlined />,
+        color: "geekblue",
+        tags: ["Dashboard", "UX"]
+    },
+    {
+        version: "v0.4.5",
+        date: "2026-01-18",
+        description: "Added CSV/Excel Export functionality for raw production data and fixed 'Add Rate' button button bugs.",
+        author: "Dev Team",
+        hours: 3,
+        icon: <DatabaseOutlined />,
+        color: "volcano",
+        tags: ["Data", "Export"]
+    },
+    {
+        version: "v0.4.0",
+        date: "2026-01-17",
+        description: (
+            <ul>
+                <li><strong>Data Integrity:</strong> Implemented "Day vs Night" shift breakdown logic.</li>
+                <li><strong>Permissions:</strong> Hardcoded default Admin User ID for uploads to simplify deployment usage.</li>
+                <li><strong>Calc Engine:</strong> Fixed retroactive rate calculation to run in background tasks.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 5,
+        icon: <ToolOutlined />,
+        color: "red",
+        tags: ["Fix", "Backend"]
+    },
+    {
+        version: "v0.3.0",
+        date: "2026-01-16",
+        description: "Launched 'Shop Floor Leaderboard' with podium visual styles and operator ranking system.",
+        author: "Dev Team",
+        hours: 6,
+        icon: <TrophyOutlined />,
+        color: "gold",
+        tags: ["Gamification", "New Feature"]
+    },
+    {
+        version: "v0.2.0",
+        date: "2026-01-16",
+        description: "Advanced Analytics Module: Added Date Range Picker, Downtime Pareto Charts, and detailed Quality breakdown.",
+        author: "Dev Team",
+        hours: 6,
+        icon: <LineChartOutlined />,
+        color: "cyan",
+        tags: ["Analytics"]
+    },
+    {
+        version: "v0.1.0",
+        date: "2026-01-15",
+        description: "Initial Release. Core OEE Dashboard, Excel/CSV Upload, Master Rate Table, and basic Calculation Engine.",
+        author: "Dev Team",
+        hours: 12,
+        icon: <RocketOutlined />,
+        color: "green",
+        tags: ["Launch"]
+    }
+];
+
+const VersionHistory: React.FC = () => {
+    const [timeActive, setTimeActive] = useState("");
+    const startDate = dayjs("2026-01-15");
+
+    useEffect(() => {
+        const calculateTime = () => {
+            const now = dayjs();
+            const diff = dayjs.duration(now.diff(startDate));
+            const days = Math.floor(diff.asDays());
+            const hours = diff.hours();
+            const minutes = diff.minutes();
+            setTimeActive(`${days}d ${hours}h ${minutes}m`);
+        };
+
+        calculateTime();
+        const timer = setInterval(calculateTime, 60000); // Update every minute
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div style={{ background: '#f0f2f5', minHeight: '100vh', paddingBottom: 40 }}>
+            {/* Premium Header */}
+            <div style={{ background: 'linear-gradient(135deg, #001529 0%, #003366 100%)', padding: '40px 24px 80px', color: 'white' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+                        <div style={{ background: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 12 }}>
+                            <RocketOutlined style={{ fontSize: 32, color: '#40a9ff' }} />
+                        </div>
+                        <div>
+                            <Title level={1} style={{ color: 'white', margin: 0, fontSize: 32 }}>Version History</Title>
+                            <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 16 }}>Tracking the evolution of the OEE Analytics Platform</Text>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ maxWidth: 1200, margin: '-40px auto 0', padding: '0 24px' }}>
+                {/* Stats Cards */}
+                <Row gutter={[24, 24]} style={{ marginBottom: 40 }}>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">Project Started</Text>}
+                                value="Jan 15, 2026"
+                                valueStyle={{ fontWeight: 600, color: '#003366' }}
+                                prefix={<SafetyCertificateOutlined style={{ color: '#52c41a' }} />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">Total Updates</Text>}
+                                value={HISTORY_DATA.length}
+                                valueStyle={{ fontWeight: 600, color: '#1890ff' }}
+                                prefix={<RocketOutlined />}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} md={8}>
+                        <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', height: '100%' }}>
+                            <Statistic
+                                title={<Text type="secondary">System Uptime</Text>}
+                                value={timeActive}
+                                valueStyle={{ fontWeight: 600, color: '#722ed1' }}
+                                prefix={<ClockCircleOutlined />}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Timeline */}
+                <Card bordered={false} style={{ borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <div style={{ padding: '24px 0 0' }}>
+                        <Timeline mode="left">
+                            {HISTORY_DATA.map((item, index) => (
+                                <Timeline.Item
+                                    key={item.version}
+                                    color={item.color}
+                                    dot={item.icon}
+                                    style={{ paddingBottom: index === HISTORY_DATA.length - 1 ? 0 : 40 }}
+                                    label={<div style={{ fontWeight: 500, fontSize: 14, color: '#8c8c8c' }}>{item.date}</div>}
+                                >
+                                    <div style={{ marginLeft: 12 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+                                            <Tag color={item.color} style={{ fontSize: 16, padding: '4px 12px', fontWeight: 600 }}>{item.version}</Tag>
+                                            {item.tags?.map(tag => <Tag key={tag} style={{ borderRadius: 12 }}>{tag}</Tag>)}
+                                        </div>
+
+                                        <div style={{ background: '#f9f9f9', padding: '16px 20px', borderRadius: 12, borderLeft: `4px solid ${item.color === 'blue' ? '#1890ff' : item.color === 'green' ? '#52c41a' : '#d9d9d9'}` }}>
+                                            <div style={{ fontSize: 15, color: '#262626', lineHeight: 1.6 }}>
+                                                {typeof item.description === 'string' ? <p style={{ margin: 0 }}>{item.description}</p> : item.description}
+                                            </div>
+
+                                            <Divider style={{ margin: '16px 0' }} />
+
+                                            <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#8c8c8c' }}>
+                                                <span><TeamOutlined /> {item.author}</span>
+                                                <span><ClockCircleOutlined /> ~{item.hours} hrs effort</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Timeline.Item>
+                            ))}
+                        </Timeline>
+                    </div>
+                </Card>
+
+                <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v0.8.0</Text>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default VersionHistory;

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlmodel
+pandas
+openpyxl
+python-multipart
+passlib[bcrypt]
+python-jose
+python-dotenv
+psycopg2-binary

@@ -1,0 +1,4 @@
+date,operator,machine,part_number,job,planned_production_time_min,run_time_min,downtime_min,total_count,good_count,reject_count,shift
+2023-10-27,John Doe,Machine 1,PN-101,Job-A,480,450,30,1000,980,20,Day
+2023-10-27,Jane Smith,Machine 2,PN-202,Job-B,480,400,80,600,550,50,Day
+2023-10-28,John Doe,Machine 1,PN-101,Job-C,480,480,0,1200,1190,10,Night
