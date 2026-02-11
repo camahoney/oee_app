@@ -22,30 +22,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        if (token) {
-            try {
-                const decoded: any = jwtDecode(token);
-                // Check expiry
-                const currentTime = Date.now() / 1000;
-                if (decoded.exp < currentTime) {
-                    logout();
-                } else {
-                    setUser({
-                        email: decoded.sub,
-                        role: decoded.role,
-                        is_pro: decoded.is_pro
-                    });
-                    localStorage.setItem('token', token);
-                }
-            } catch (error) {
-                console.error("Invalid token", error);
-                logout();
-            }
-        } else {
-            logout();
-        }
+        // Mock authentication for no-login mode
+        setUser({
+            email: 'admin@oee.local',
+            role: 'admin',
+            is_pro: true,
+            id: 1,
+            hashed_password: '',
+            is_active: true
+        });
         setIsLoading(false);
-    }, [token]);
+    }, []);
 
     const login = (newToken: string) => {
         setToken(newToken);
