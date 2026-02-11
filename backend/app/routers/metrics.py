@@ -429,7 +429,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             analysis.append({
                 "type": "low_perf",
                 "icon": "📉",
-                "message": "Performance below target. Check if cycle time is accurate, look for small stops/jams, and ensure training."
+                "message": f"Performance ({int(perf*100)}%) below target. Check if cycle time is accurate, look for small stops/jams, and ensure training."
             })
             
         # 2. High Performance
@@ -437,7 +437,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             analysis.append({
                 "type": "high_perf",
                 "icon": "🚀",
-                "message": "Performance above 100%. Verify rate isn't set too low and counts are recorded correctly."
+                "message": f"Performance ({int(perf*100)}%) above 100%. Verify rate isn't set too low and counts are recorded correctly."
             })
             
         # 3. High Downtime
@@ -467,7 +467,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
              analysis.append({
                 "type": "short_run",
                 "icon": "🧭",
-                "message": "Short run (< 1hr). OEE may be misleading; consider grouping orders or factoring setup separately."
+                "message": f"Short run ({int(run_time)}m). OEE may be misleading; consider grouping orders or factoring setup separately."
             })
 
         # 6. Global Rate Check
@@ -485,7 +485,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                     analysis.append({
                         "type": "rate_too_high",
                         "icon": "⏱️",
-                        "message": "Global rate may be too high. This part/press consistently underperforms across shifts."
+                        "message": f"Global rate may be too high (Avg Perf: {int(global_avg*100)}%). This part/press consistently underperforms across shifts."
                     })
             
             # If Global Avg is HIGH (>100%) -> Rate might be too low
@@ -494,7 +494,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                     analysis.append({
                         "type": "rate_too_low",
                         "icon": "🔍",
-                        "message": "Operators consistently exceed 100%. Rate may be too low; verify ideal cycle time."
+                        "message": f"Operators consistently exceed 100% (Avg Perf: {int(global_avg*100)}%). Rate may be too low; verify ideal cycle time."
                     })
 
         recent.append({
