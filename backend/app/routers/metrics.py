@@ -470,13 +470,44 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                 "message": f"Short run ({int(run_time)}m). OEE may be misleading; consider grouping orders or factoring setup separately."
             })
 
-        # 6. Global Rate Check
+        # --- Advanced Correlations ---
+
+        # 6. "Running Slow" (High Availability, Low Performance)
+        # Machine is up and running, but parts aren't coming out fast enough.
+        avail = m.availability or 0
+        if avail > 0.90 and perf < t_perf_low:
+             analysis.append({
+                "type": "running_slow",
+                "icon": "🐢",
+                "message": f"High Availability ({int(avail*100)}%) but Low Performance ({int(perf*100)}%). Machine is running steady but cycle times are slow."
+            })
+
+        # 7. "Quality Slip" (High Performance, Low Quality)
+        # Rushing might be causing defects.
+        qual = m.quality or 0
+        if perf > 1.05 and qual < 0.95:
+             analysis.append({
+                "type": "quality_slip",
+                "icon": "⚠️",
+                "message": f"High Speed ({int(perf*100)}%) correlated with Quality drop ({int(qual*100)}%). Consider slowing down to ensure part quality."
+            })
+            
+        # 8. "Perfect Run" (High OEE, Perfect Quality)
+        # Positive Reinforcement
+        oee = m.oee or 0
+        if oee > 0.85 and qual >= 0.99 and perf > 0.90 and avail > 0.90:
+             analysis.append({
+                "type": "perfect_run",
+                "icon": "🌟",
+                "message": "Great Run! High OEE with perfect quality and strong performance. Keep it up!"
+            })
+
+        # 9. Rate Check (Prev. Global Rate)
         # Compare this run's performance against the global average for this Part/Machine
         key = f"{m.part_number}|{m.machine}"
         global_avg = global_perf_map.get(key, 0)
         
         # Only trigger if we have enough data (not just this one run)
-        # Ideally we'd check count, but for now we assume global_avg exists
         if global_avg > 0:
             # If Global Avg is LOW (<80%) -> Rate might be too high
             if global_avg < t_perf_low:
@@ -485,7 +516,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                     analysis.append({
                         "type": "rate_too_high",
                         "icon": "⏱️",
-                        "message": f"Global rate may be too high (Avg Perf: {int(global_avg*100)}%). This part/press consistently underperforms across shifts."
+                        "message": f"Rate may be too high (Avg Perf: {int(global_avg*100)}%). This part/press consistently underperforms across shifts."
                     })
             
             # If Global Avg is HIGH (>100%) -> Rate might be too low
@@ -494,7 +525,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                     analysis.append({
                         "type": "rate_too_low",
                         "icon": "🔍",
-                        "message": f"Operators consistently exceed 100% (Avg Perf: {int(global_avg*100)}%). Rate may be too low; verify ideal cycle time."
+                        "message": f"Rate may be too low (Avg Perf: {int(global_avg*100)}%). Operators consistently exceed 100%."
                     })
 
         recent.append({
