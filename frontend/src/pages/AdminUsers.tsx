@@ -62,9 +62,6 @@ const AdminUsers: React.FC = () => {
         }
     };
 
-    const columns = [
-        // ... (columns remain same, omitted for brevity in tool call, but context needs careful handling)
-        // actually replace_file_content requires context match. I should limit scope.
 
     const columns = [
         {
