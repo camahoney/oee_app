@@ -386,6 +386,31 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
     if limit:
         sorted_metrics = sorted_metrics[:limit]
 
+    # --- Pre-fetch Global Averages for Rate Check ---
+    # We need average performance per (part, machine) to compare against
+    # This is a bit expensive, so we'll do a single aggregate query for relevant parts
+    relevant_parts = list(set(m.part_number for m in sorted_metrics))
+    
+    # Calculate global average performance per part/machine
+    # We use a trick: group by part_number and machine
+    from sqlalchemy import func
+    global_stats_stmt = (
+        select(Oeemetric.part_number, Oeemetric.machine, func.avg(Oeemetric.performance))
+        .where(Oeemetric.part_number.in_(relevant_parts))
+        .group_by(Oeemetric.part_number, Oeemetric.machine)
+    )
+    global_stats_results = session.exec(global_stats_stmt).all()
+    
+    # Map (part, machine) -> avg_performance
+    global_perf_map = {f"{r[0]}|{r[1]}": (r[2] or 0) for r in global_stats_results}
+
+    # Fetch Threshold Settings
+    t_perf_low = float(session.get(Setting, "threshold_performance_low").value) if session.get(Setting, "threshold_performance_low") else 0.80
+    t_perf_high = float(session.get(Setting, "threshold_performance_high").value) if session.get(Setting, "threshold_performance_high") else 1.10
+    t_downtime = float(session.get(Setting, "threshold_downtime_min").value) if session.get(Setting, "threshold_downtime_min") else 20.0
+    t_scrap = float(session.get(Setting, "threshold_scrap_rate").value) if session.get(Setting, "threshold_scrap_rate") else 0.05
+    t_short_run = float(session.get(Setting, "threshold_short_run_min").value) if session.get(Setting, "threshold_short_run_min") else 60.0
+
     for m in sorted_metrics:
         diag = {}
         if m.diagnostics_json:
@@ -394,7 +419,84 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                 diag = json.loads(m.diagnostics_json)
             except:
                 pass
-                
+        
+        # --- Generate Smart Insights ---
+        analysis = []
+        
+        # 1. Low Performance
+        perf = m.performance or 0
+        if perf < t_perf_low:
+            analysis.append({
+                "type": "low_perf",
+                "icon": "📉",
+                "message": "Performance below target. Check if cycle time is accurate, look for small stops/jams, and ensure training."
+            })
+            
+        # 2. High Performance
+        if perf >= t_perf_high:
+            analysis.append({
+                "type": "high_perf",
+                "icon": "🚀",
+                "message": "Performance above 100%. Verify rate isn't set too low and counts are recorded correctly."
+            })
+            
+        # 3. High Downtime
+        dt = diag.get("downtime_min", 0)
+        if dt > t_downtime:
+             analysis.append({
+                "type": "high_downtime",
+                "icon": "🕑",
+                "message": f"Downtime ({dt}m) exceeds threshold. Document breakdown reasons and schedule maintenance."
+            })
+
+        # 4. High Scrap
+        good = diag.get("good_count", 0)
+        reject = diag.get("reject_count", 0)
+        total = good + reject
+        scrap_rate = reject / total if total > 0 else 0
+        if scrap_rate >= t_scrap:
+             analysis.append({
+                "type": "high_scrap",
+                "icon": "❌",
+                "message": f"High Rejects ({int(scrap_rate*100)}%). Identify defect patterns and perform root-cause analysis."
+            })
+            
+        # 5. Short Run
+        run_time = diag.get("run_time_min", 0)
+        if run_time < t_short_run:
+             analysis.append({
+                "type": "short_run",
+                "icon": "🧭",
+                "message": "Short run (< 1hr). OEE may be misleading; consider grouping orders or factoring setup separately."
+            })
+
+        # 6. Global Rate Check
+        # Compare this run's performance against the global average for this Part/Machine
+        key = f"{m.part_number}|{m.machine}"
+        global_avg = global_perf_map.get(key, 0)
+        
+        # Only trigger if we have enough data (not just this one run)
+        # Ideally we'd check count, but for now we assume global_avg exists
+        if global_avg > 0:
+            # If Global Avg is LOW (<80%) -> Rate might be too high
+            if global_avg < t_perf_low:
+                 # Check if this icon isn't already added
+                 if not any(a['type'] == 'rate_too_high' for a in analysis):
+                    analysis.append({
+                        "type": "rate_too_high",
+                        "icon": "⏱️",
+                        "message": "Global rate may be too high. This part/press consistently underperforms across shifts."
+                    })
+            
+            # If Global Avg is HIGH (>100%) -> Rate might be too low
+            if global_avg > 1.05: # Use 105% as buffer
+                 if not any(a['type'] == 'rate_too_low' for a in analysis):
+                    analysis.append({
+                        "type": "rate_too_low",
+                        "icon": "🔍",
+                        "message": "Operators consistently exceed 100%. Rate may be too low; verify ideal cycle time."
+                    })
+
         recent.append({
             "id": m.id,
             "operator": m.operator,
@@ -411,7 +513,8 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "good_count": diag.get("good_count"),
             "reject_count": diag.get("reject_count"),
             "target_count": diag.get("target_count"),
-            "shift": m.shift # Added shift
+            "shift": m.shift, # Added shift
+            "analysis": analysis # New field
         })
 
     return {

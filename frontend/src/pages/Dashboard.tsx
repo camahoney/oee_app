@@ -419,6 +419,20 @@ const Dashboard: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {/* Smart Insights Row */}
+                                                {item.analysis && item.analysis.length > 0 && (
+                                                    <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f0f0f0', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                        {item.analysis.map((insight: any, idx: number) => (
+                                                            <Tooltip key={idx} title={insight.message}>
+                                                                <Tag color="blue" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '13px', borderRadius: '6px', cursor: 'help' }}>
+                                                                    <span style={{ fontSize: '16px' }}>{insight.icon}</span>
+                                                                    <span>{insight.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                                                </Tag>
+                                                            </Tooltip>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         }
                                     />
