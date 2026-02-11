@@ -33,6 +33,22 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v0.9.5",
+        date: "2026-02-10",
+        description: (
+            <ul>
+                <li><strong>Authentication Removal:</strong> Removed login screen and enabled direct dashboard access for streamlined usability.</li>
+                <li><strong>Deployment Stability:</strong> Resolved Netlify build errors and fixed database migration order for robust Render deployments.</li>
+                <li><strong>KPI Configuration:</strong> Added customizable thresholds for Availability, Performance, and Quality in Settings to drive dashboard gauges.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <RocketOutlined />,
+        color: "green",
+        tags: ["Feature", "Auth", "Fix"]
+    },
+    {
         version: "v0.9.0",
         date: "2026-02-06",
         description: (
@@ -299,7 +315,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v0.8.0</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v0.9.5</Text>
                 </div>
             </div>
         </div>
