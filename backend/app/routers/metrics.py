@@ -423,9 +423,18 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         # --- Generate Smart Insights ---
         analysis = []
         
-        # 1. Low Performance
+        # 1. Low Performance & Running Slow Logic
+        # "Running Slow" is a more specific version of "Low Perf" (High Avail + Low Perf)
         perf = m.performance or 0
-        if perf < t_perf_low:
+        avail = m.availability or 0
+        
+        if avail > 0.90 and perf < t_perf_low:
+             analysis.append({
+                "type": "running_slow",
+                "icon": "🐢",
+                "message": f"High Availability ({int(avail*100)}%) but Low Performance ({int(perf*100)}%). Machine is running steady but cycle times are slow."
+            })
+        elif perf < t_perf_low:
             analysis.append({
                 "type": "low_perf",
                 "icon": "📉",
@@ -470,19 +479,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                 "message": f"Short run ({int(run_time)}m). OEE may be misleading; consider grouping orders or factoring setup separately."
             })
 
-        # --- Advanced Correlations ---
-
-        # 6. "Running Slow" (High Availability, Low Performance)
-        # Machine is up and running, but parts aren't coming out fast enough.
-        avail = m.availability or 0
-        if avail > 0.90 and perf < t_perf_low:
-             analysis.append({
-                "type": "running_slow",
-                "icon": "🐢",
-                "message": f"High Availability ({int(avail*100)}%) but Low Performance ({int(perf*100)}%). Machine is running steady but cycle times are slow."
-            })
-
-        # 7. "Quality Slip" (High Performance, Low Quality)
+        # 6. "Quality Slip" (High Performance, Low Quality)
         # Rushing might be causing defects.
         qual = m.quality or 0
         if perf > 1.05 and qual < 0.95:
@@ -492,14 +489,14 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                 "message": f"High Speed ({int(perf*100)}%) correlated with Quality drop ({int(qual*100)}%). Consider slowing down to ensure part quality."
             })
             
-        # 8. "Perfect Run" (High OEE, Perfect Quality)
-        # Positive Reinforcement
+        # 7. "Perfect Run" (High OEE, Perfect Quality)
+        # Positive Reinforcement - Capped at 110% Performance to avoid rewarding bad rates
         oee = m.oee or 0
-        if oee > 0.85 and qual >= 0.99 and perf > 0.90 and avail > 0.90:
+        if oee > 0.85 and qual >= 0.99 and perf > 0.90 and perf <= 1.10 and avail > 0.90:
              analysis.append({
                 "type": "perfect_run",
                 "icon": "🌟",
-                "message": "Great Run! High OEE with perfect quality and strong performance. Keep it up!"
+                "message": "Great Run! High OEE with perfect quality and steady performance. Keep it up!"
             })
 
         # 9. Rate Check (Prev. Global Rate)
