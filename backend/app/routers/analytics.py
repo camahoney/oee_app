@@ -170,14 +170,29 @@ def downtime_analysis(
         
     metrics = session.exec(stmt).all()
     
+    # Pre-fetch Rates to calculate Parts Lost
+    # Optimization: Fetch all active rates
+    from ..db import RateEntry
+    all_rates = session.exec(select(RateEntry).where(RateEntry.active == True)).all()
+    rate_map = {} # (part, machine) -> cycle_time
+    for r in all_rates:
+        key = (r.part_number, r.machine)
+        # Prefer specific machine match
+        ct = r.ideal_cycle_time_seconds
+        if not ct and r.ideal_units_per_hour:
+            ct = 3600.0 / r.ideal_units_per_hour
+        rate_map[key] = ct
+
     machine_stats = {}
     
     for m in metrics:
         machine = m.machine or "Unknown"
+        part = m.part_number
         
         downtime = 0
         event_count = 0
-        
+        details = []
+
         if m.diagnostics_json:
             try:
                 import json
@@ -188,16 +203,44 @@ def downtime_analysis(
                 events = diag.get("downtime_events", [])
                 if events:
                     event_count = len(events)
+                    for e in events:
+                        # Append partial event details
+                        details.append({
+                            "date": m.date,
+                            "shift": m.shift,
+                            "reason": e.get("reason", "Unknown"),
+                            "minutes": e.get("minutes", 0),
+                            "part_number": part
+                        })
                 elif downtime > 0:
                     event_count = 1 # Fallback
+                    details.append({
+                        "date": m.date,
+                        "shift": m.shift,
+                        "reason": "Uncategorized Downtime",
+                        "minutes": downtime,
+                        "part_number": part
+                    })
             except:
                 pass
-                
+        
+        # Calculate Parts Lost for this run
+        parts_lost = 0
+        if downtime > 0:
+            # Try exact match first
+            cycle_time = rate_map.get((part, machine))
+            # If not found, try ignoring machine (generic part rate?) - Skipped for now to be strict
+            
+            if cycle_time and cycle_time > 0:
+                parts_lost = (downtime * 60) / cycle_time
+
         if machine not in machine_stats:
-            machine_stats[machine] = {"downtime": 0, "events": 0}
+            machine_stats[machine] = {"downtime": 0, "events": 0, "parts_lost": 0, "details": []}
             
         machine_stats[machine]["downtime"] += downtime
         machine_stats[machine]["events"] += event_count
+        machine_stats[machine]["parts_lost"] += parts_lost
+        machine_stats[machine]["details"].extend(details)
         
     results = []
     for machine, stats in machine_stats.items():
@@ -213,12 +256,17 @@ def downtime_analysis(
             else:
                 pattern = "Breakdown driven"
         
+        # Sort details by date desc
+        sorted_details = sorted(stats["details"], key=lambda x: x["date"] or date.min, reverse=True)
+
         results.append({
             "machine": machine,
             "total_downtime": round(stats["downtime"], 1),
             "event_count": stats["events"],
             "avg_event_min": round(avg_len, 1),
-            "pattern": pattern
+            "pattern": pattern,
+            "parts_lost": int(stats["parts_lost"]),
+            "details": sorted_details
         })
         
     return sorted(results, key=lambda x: x["total_downtime"], reverse=True)[:limit]

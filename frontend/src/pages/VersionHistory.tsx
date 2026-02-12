@@ -34,6 +34,22 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.1.1",
+        date: "2026-02-12",
+        description: (
+            <ul>
+                <li><strong>Parts Lost (Est):</strong> New metric to quantify lost production opportunity (Downtime / Cycle Time).</li>
+                <li><strong>Interactive Breakdown:</strong> Expandable table rows to view detailed logs of every downtime event per machine.</li>
+                <li><strong>Contextual Tooltips:</strong> Added hover explanations for Downtime Patterns (Micro-stop vs Breakdown).</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 2,
+        icon: <LineChartOutlined />,
+        color: "red",
+        tags: ["Analytics", "UX"]
+    },
+    {
         version: "v1.1.0",
         date: "2026-02-12",
         description: (

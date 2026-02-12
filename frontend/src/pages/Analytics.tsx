@@ -239,10 +239,21 @@ const AnalyticsContent: React.FC = () => {
                                         columns={[
                                             { title: 'Machine', dataIndex: 'machine', key: 'machine' },
                                             { title: 'Total Downtime (min)', dataIndex: 'total_downtime', key: 'downtime', sorter: (a: any, b: any) => a.total_downtime - b.total_downtime, defaultSortOrder: 'descend' },
+                                            { title: 'Parts Lost (Est.)', dataIndex: 'parts_lost', key: 'parts_lost', sorter: (a: any, b: any) => a.parts_lost - b.parts_lost, render: (val: number) => <Text strong type="danger">{val}</Text> },
                                             { title: 'Event Count', dataIndex: 'event_count', key: 'count' },
                                             { title: 'Avg Event (min)', dataIndex: 'avg_event_min', key: 'avg' },
                                             {
-                                                title: 'Downtime Pattern',
+                                                title: (
+                                                    <Tooltip title={
+                                                        <div>
+                                                            <p><strong>Micro-stop:</strong> Avg &lt; 10 min</p>
+                                                            <p><strong>Mixed:</strong> Avg 10-45 min</p>
+                                                            <p><strong>Breakdown:</strong> Avg &gt; 45 min</p>
+                                                        </div>
+                                                    }>
+                                                        Downtime Pattern <span>ℹ️</span>
+                                                    </Tooltip>
+                                                ),
                                                 dataIndex: 'pattern',
                                                 key: 'pattern',
                                                 render: (val: string) => {
@@ -254,6 +265,27 @@ const AnalyticsContent: React.FC = () => {
                                                 }
                                             }
                                         ]}
+                                        expandable={{
+                                            expandedRowRender: (record) => (
+                                                <div style={{ margin: 0 }}>
+                                                    <Title level={5}>Downtime Log for {record.machine}</Title>
+                                                    <Table
+                                                        dataSource={record.details}
+                                                        rowKey={(r: any) => `${r.date}-${r.shift}-${r.reason}`}
+                                                        pagination={{ pageSize: 5 }}
+                                                        size="small"
+                                                        columns={[
+                                                            { title: 'Date', dataIndex: 'date', key: 'date' },
+                                                            { title: 'Shift', dataIndex: 'shift', key: 'shift' },
+                                                            { title: 'Part Number', dataIndex: 'part_number', key: 'part' },
+                                                            { title: 'Reason', dataIndex: 'reason', key: 'reason', render: (text: string) => <Tag>{text}</Tag> },
+                                                            { title: 'Duration (min)', dataIndex: 'minutes', key: 'minutes' }
+                                                        ]}
+                                                    />
+                                                </div>
+                                            ),
+                                            rowExpandable: (record) => record.details && record.details.length > 0,
+                                        }}
                                         pagination={false}
                                     />
                                 </div>
