@@ -175,13 +175,18 @@ def downtime_analysis(
     from ..db import RateEntry
     all_rates = session.exec(select(RateEntry).where(RateEntry.active == True)).all()
     rate_map = {} # (part, machine) -> cycle_time
+    part_rate_map = {} # part -> cycle_time (fallback)
+    
     for r in all_rates:
         key = (r.part_number, r.machine)
-        # Prefer specific machine match
         ct = r.ideal_cycle_time_seconds
         if not ct and r.ideal_units_per_hour:
             ct = 3600.0 / r.ideal_units_per_hour
+        
         rate_map[key] = ct
+        # Populate fallback (last one wins, or maybe average? last one is fine for now)
+        if ct:
+            part_rate_map[r.part_number] = ct
 
     machine_stats = {}
     
@@ -229,7 +234,9 @@ def downtime_analysis(
         if downtime > 0:
             # Try exact match first
             cycle_time = rate_map.get((part, machine))
-            # If not found, try ignoring machine (generic part rate?) - Skipped for now to be strict
+            # Fallback to generic part rate if specific machine rate not found
+            if not cycle_time:
+                cycle_time = part_rate_map.get(part)
             
             if cycle_time and cycle_time > 0:
                 parts_lost = (downtime * 60) / cycle_time

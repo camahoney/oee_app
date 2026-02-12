@@ -175,12 +175,29 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                             
                             # Candidate indices for Reason string relative to offset
                             candidates = [18 + current_offset, 19 + current_offset, 26 + current_offset]
-                            for c_idx in candidates:
-                                if len(vals) > c_idx:
-                                    val = str(vals[c_idx]).strip()
-                                    if val and val.lower() != 'nan' and not val.replace('.','',1).isdigit():
-                                        reason = val
-                                        break
+                            # Expand search: scan standard 'text-heavy' columns in the row (e.g. 10-30)
+                            # excluding known numeric columns like 21, 22, 24, 25
+                            text_candidates = []
+                            for idx in range(10 + current_offset, 30 + current_offset):
+                                if idx in [21+current_offset, 22+current_offset, 24+current_offset, 25+current_offset]:
+                                    continue
+                                if len(vals) > idx:
+                                    val = str(vals[idx]).strip()
+                                    if val and val.lower() != 'nan' and not val.replace('.', '', 1).isdigit():
+                                         # valid text
+                                         text_candidates.append(val)
+                            
+                            if text_candidates:
+                                # Prioritize likely reasons (longest string? or first found?)
+                                # Often the reason is the *only* text in the row besides machine name
+                                reason = text_candidates[0]
+                                # Filter out if it matches machine name
+                                machine_name = current_entry.get("machine", "")
+                                if reason == machine_name and len(text_candidates) > 1:
+                                     reason = text_candidates[1]
+
+                            # Heuristic: Check columns 18 (Machine), 19 (Job), or 26 (Comments?)
+                            # We'll take the first non-numeric looking string in typical columns
                             
                             import json
                             # Append to dictionary list (we'll stringify later if needed, or keep as list until DF)
