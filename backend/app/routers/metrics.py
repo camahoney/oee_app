@@ -545,6 +545,92 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "analysis": analysis # New field
         })
 
+    # --- Generate Shift Action Log ---
+    action_log = {
+        "shifts": {},
+        "rate_reviews": [],
+        "recurring_downtime": [],
+        "reminders": [
+            "Document all stoppages and scrap reasons",
+            "Ensure materials and tools are staged before start-up",
+            "Review shift handover notes for ongoing issues"
+        ]
+    }
+
+    # Helper to organize issues by shift
+    shift_data = {} # { shift_id: { 'issues': [] } }
+    
+    # Trackers for aggregation
+    rate_candidates = {} # "Part|Machine" -> [perf_values]
+    downtime_machines = {} # "Machine" -> count
+
+    for item in recent:
+        s = item.get('shift', 'Unknown')
+        if s not in shift_data:
+            shift_data[s] = {'issues': []}
+        
+        # Check analyses
+        for insight in item.get('analysis', []):
+            t = insight['type']
+            msg = ""
+            
+            if t in ['low_perf', 'running_slow']:
+                msg = f"Low Perf: Part {item['part_number']} ({item['machine']})"
+            elif t == 'high_downtime':
+                msg = f"Downtime: {item['machine']} ({item['downtime_min']}m)"
+                downtime_machines[item['machine']] = downtime_machines.get(item['machine'], 0) + 1
+            elif t == 'high_scrap':
+                msg = f"High Scrap: Part {item['part_number']} ({item['machine']})"
+            
+            if msg:
+                shift_data[s]['issues'].append(msg)
+
+        # Rate Check Data Collection
+        # We only care if it's consistently low (<80) or high (>110)
+        perf = item.get('performance', 0) or 0
+        key = f"{item['part_number']} on {item['machine']}"
+        if key not in rate_candidates:
+            rate_candidates[key] = []
+        rate_candidates[key].append(perf)
+
+    # Process Shifts for Output
+    for s, data in shift_data.items():
+        # Deduplicate and limit
+        unique_issues = list(set(data['issues']))
+        if unique_issues:
+            # Sort likely by importance (Downtime first, then Scrap, then Perf)
+            unique_issues.sort(key=lambda x: 0 if "Downtime" in x else 1 if "Scrap" in x else 2)
+            
+            summary = "; ".join(unique_issues[:3]) # Take top 3
+            if len(unique_issues) > 3:
+                summary += f" (+{len(unique_issues)-3} more)"
+            
+            # Simple action based on dominant issue
+            action_tips = "Verify rate/cycle time"
+            if "Downtime" in summary:
+                action_tips = "Check for micro-stops or worn components"
+            elif "Scrap" in summary:
+                action_tips = "Investigate root cause of defects"
+
+            action_log['shifts'][s] = {
+                "issues": summary,
+                "action": action_tips
+            }
+
+    # Process Rate Reviews (Consistently bad across multiple runs/shifts)
+    for key, perfs in rate_candidates.items():
+        if len(perfs) >= 2: # Need at least 2 runs to call it a pattern
+            avg_p = sum(perfs) / len(perfs)
+            if avg_p < 0.80:
+                action_log['rate_reviews'].append(f"Review Rate: {key} (Avg {int(avg_p*100)}% - Consistently Low)")
+            elif avg_p > 1.10:
+                action_log['rate_reviews'].append(f"Review Rate: {key} (Avg {int(avg_p*100)}% - Consistently High)")
+
+    # Process Recurring Downtime
+    for mach, count in downtime_machines.items():
+        if count >= 2:
+            action_log['recurring_downtime'].append(f"Investigate {mach}: {count} significant downtime events.")
+
     return {
         "oee": round(avg_oee * 100, 1),
         "availability": round(avg_avail * 100, 1),
@@ -555,6 +641,7 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         "report_date": current_report_date,
         "sparkline_data": sparkline_data,
         "insights": insights,
+        "action_log": action_log, # New field
         "targets": {
             "oee": oee_target,
             "availability": avail_target,

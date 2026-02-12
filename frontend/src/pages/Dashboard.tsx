@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu } from 'antd';
-import { FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined } from '@ant-design/icons';
+import {
+    FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, CheckCircleOutlined,
+    ClockCircleOutlined,
+    BulbOutlined,
+    ScheduleOutlined,
+    AlertOutlined,
+    ToolOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined
+} from '@ant-design/icons';
 import { AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import OeeGauge from '../components/OeeGauge';
 import { reportService } from '../services/api';
@@ -249,200 +256,304 @@ const Dashboard: React.FC = () => {
             </Row>
 
             <div style={{ marginTop: 32 }}>
-                <Card
-                    title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
-                    bordered={false}
-                    style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
-                >
-                    <List
-                        itemLayout="vertical"
-                        size="large"
-                        pagination={{
-                            pageSize: 10, // Optimized for performance (was 2000)
-                            position: 'bottom',
-                            showSizeChanger: true
-                        }}
-                        dataSource={stats.recent_activity || []}
-                        renderItem={(item: any) => {
-                            // 3. Metric Drivers Logic
-                            const metrics = [
-                                { name: 'A', val: item.availability || 0, label: 'Availability' },
-                                { name: 'P', val: item.performance || 0, label: 'Performance' },
-                                { name: 'Q', val: item.quality || 0, label: 'Quality' }
-                            ];
-                            // Find lowest metric to highlight as the "Driver"
-                            const lowest = metrics.reduce((prev, curr) => prev.val < curr.val ? prev : curr);
+                <Row gutter={[24, 24]}>
+                    <Col xs={24} lg={16}>
+                        <Card
+                            title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
+                            bordered={false}
+                            style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                        >
+                            <List
+                                itemLayout="vertical"
+                                size="large"
+                                pagination={{
+                                    pageSize: 10, // Optimized for performance (was 2000)
+                                    position: 'bottom',
+                                    showSizeChanger: true
+                                }}
+                                dataSource={stats.recent_activity || []}
+                                renderItem={(item: any) => {
+                                    // 3. Metric Drivers Logic
+                                    const metrics = [
+                                        { name: 'A', val: item.availability || 0, label: 'Availability' },
+                                        { name: 'P', val: item.performance || 0, label: 'Performance' },
+                                        { name: 'Q', val: item.quality || 0, label: 'Quality' }
+                                    ];
+                                    // Find lowest metric to highlight as the "Driver"
+                                    const lowest = metrics.reduce((prev, curr) => prev.val < curr.val ? prev : curr);
 
-                            // 2. Target vs Actual Logic
-                            const target = item.target_count || 0;
-                            const good = item.good_count || 0;
-                            const isOnTrack = target > 0 ? (good >= target * 0.9) : true;
+                                    // 2. Target vs Actual Logic
+                                    const target = item.target_count || 0;
+                                    const good = item.good_count || 0;
+                                    const isOnTrack = target > 0 ? (good >= target * 0.9) : true;
 
-                            if (viewMode === 'grid') {
-                                return (
-                                    <List.Item>
-                                        <Card
-                                            hoverable
-                                            style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}
-                                            bodyStyle={{ padding: '16px' }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                                                <div>
-                                                    <Text strong style={{ fontSize: '16px', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</Text>
-                                                    {item.warning && <Tag color="warning" style={{ marginLeft: '8px', borderRadius: '4px' }}>Missing Rate</Tag>}
-                                                    {item.good_count === 0 && <Tag color="default" style={{ marginLeft: '8px' }}>No Production</Tag>}
-                                                    <div style={{ fontSize: '12px', color: '#595959', marginTop: '4px' }}>
-                                                        {item.part_number} &bull; {item.machine}
-                                                    </div>
-                                                </div>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
-                                                        {(item.oee * 100).toFixed(1)}%
-                                                        {item.oee > 1.0 && (
-                                                            <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
-                                                                <WarningOutlined style={{ fontSize: '14px', marginLeft: '4px', color: '#faad14' }} />
-                                                            </Tooltip>
-                                                        )}
-                                                    </div>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>OEE</Text>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '12px' }}>
-                                                <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Run/Down</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
-                                                        {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
-                                                    </div>
-                                                </div>
-                                                <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Perf.</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
-                                                        {((item.performance || 0) * 100).toFixed(0)}%
-                                                    </div>
-                                                </div>
-                                                <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                    <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Qual.</Text>
-                                                    <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
-                                                        {((item.quality || 0) * 100).toFixed(1)}%
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ marginTop: '12px', borderTop: '1px solid #f0f0f0', paddingTop: '12px' }}>
-                                                <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Actual / Target</Text>
-                                                <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
-                                                    <span style={{ color: isOnTrack ? '#52c41a' : '#faad14' }}>{item.good_count}</span>
-                                                    <span style={{ color: '#bfbfbf', margin: '0 4px' }}>/</span>
-                                                    <span>{item.target_count > 0 ? item.target_count : '-'}</span>
-                                                    {item.target_count > 0 && item.reject_count > 0 && (
-                                                        <span style={{ fontSize: '10px', color: '#ff4d4f', marginLeft: '4px' }}>({item.reject_count} Rejects)</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </List.Item>
-                                );
-                            }
-
-                            return (
-                                <List.Item
-                                    key={item.id}
-                                    style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}
-                                    extra={
-                                        <div style={{ textAlign: 'right', minWidth: '150px' }}>
-                                            <div style={{ fontSize: '24px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
-                                                {(item.oee * 100).toFixed(1)}%
-                                                {item.oee > 1.0 && (
-                                                    <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
-                                                        <WarningOutlined style={{ fontSize: '16px', marginLeft: '8px', color: '#faad14' }} />
-                                                    </Tooltip>
-                                                )}
-                                            </div>
-                                            <Text type="secondary">OEE Score</Text>
-                                        </div>
-                                    }
-                                >
-                                    <List.Item.Meta
-                                        title={
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                                <span style={{ fontSize: '18px', fontWeight: '600', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</span>
-                                                {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
-                                                {item.good_count === 0 && <Tag color="default">No Production</Tag>}
-                                            </div>
-                                        }
-                                        description={
-                                            <div>
-                                                <div style={{ fontSize: '14px', marginBottom: '16px', color: '#595959' }}>
-                                                    <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date} &bull; <strong>Shift:</strong> {item.shift}
-                                                </div>
-
-                                                <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: 'repeat(5, 1fr)',
-                                                    gap: '24px',
-                                                    maxWidth: '900px'
-                                                }}>
-                                                    {/* Availability */}
-                                                    <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Run / Down</Text>
-                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
-                                                            {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
+                                    if (viewMode === 'grid') {
+                                        return (
+                                            <List.Item>
+                                                <Card
+                                                    hoverable
+                                                    style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}
+                                                    bodyStyle={{ padding: '16px' }}
+                                                >
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                        <div>
+                                                            <Text strong style={{ fontSize: '16px', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</Text>
+                                                            {item.warning && <Tag color="warning" style={{ marginLeft: '8px', borderRadius: '4px' }}>Missing Rate</Tag>}
+                                                            {item.good_count === 0 && <Tag color="default" style={{ marginLeft: '8px' }}>No Production</Tag>}
+                                                            <div style={{ fontSize: '12px', color: '#595959', marginTop: '4px' }}>
+                                                                {item.part_number} &bull; {item.machine}
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <div style={{ fontSize: '20px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
+                                                                {(item.oee * 100).toFixed(1)}%
+                                                                {item.oee > 1.0 && (
+                                                                    <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
+                                                                        <WarningOutlined style={{ fontSize: '14px', marginLeft: '4px', color: '#faad14' }} />
+                                                                    </Tooltip>
+                                                                )}
+                                                            </div>
+                                                            <Text type="secondary" style={{ fontSize: '12px' }}>OEE</Text>
                                                         </div>
                                                     </div>
 
-                                                    {/* Performance */}
-                                                    <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Performance</Text>
-                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
-                                                            {((item.performance || 0) * 100).toFixed(0)}%
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                                                        <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                            <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Run/Down</Text>
+                                                            <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
+                                                                {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
+                                                            </div>
+                                                        </div>
+                                                        <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                            <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Perf.</Text>
+                                                            <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
+                                                                {((item.performance || 0) * 100).toFixed(0)}%
+                                                            </div>
+                                                        </div>
+                                                        <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                            <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Qual.</Text>
+                                                            <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
+                                                                {((item.quality || 0) * 100).toFixed(1)}%
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    {/* Quality */}
-                                                    <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
-                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Quality</Text>
-                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
-                                                            {((item.quality || 0) * 100).toFixed(1)}%
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Actual vs Target */}
-                                                    <div style={{ gridColumn: 'span 2' }}>
-                                                        <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Actual / Target</Text>
-                                                        <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
+                                                    <div style={{ marginTop: '12px', borderTop: '1px solid #f0f0f0', paddingTop: '12px' }}>
+                                                        <Text type="secondary" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Actual / Target</Text>
+                                                        <div style={{ fontWeight: '600', fontSize: '14px', marginTop: '2px' }}>
                                                             <span style={{ color: isOnTrack ? '#52c41a' : '#faad14' }}>{item.good_count}</span>
-                                                            <span style={{ color: '#bfbfbf', margin: '0 8px' }}>/</span>
+                                                            <span style={{ color: '#bfbfbf', margin: '0 4px' }}>/</span>
                                                             <span>{item.target_count > 0 ? item.target_count : '-'}</span>
                                                             {item.target_count > 0 && item.reject_count > 0 && (
-                                                                <span style={{ fontSize: '12px', color: '#ff4d4f', marginLeft: '8px' }}>({item.reject_count} Rejects)</span>
+                                                                <span style={{ fontSize: '10px', color: '#ff4d4f', marginLeft: '4px' }}>({item.reject_count} Rejects)</span>
                                                             )}
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </Card>
+                                            </List.Item>
+                                        );
+                                    }
 
-                                                {/* Smart Insights Row */}
-                                                {item.analysis && item.analysis.length > 0 && (
-                                                    <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f0f0f0', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                                        {item.analysis.map((insight: any, idx: number) => (
-                                                            <Tooltip key={idx} title={insight.message}>
-                                                                <Tag color="blue" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '13px', borderRadius: '6px', cursor: 'help' }}>
-                                                                    <span style={{ fontSize: '16px' }}>{insight.icon}</span>
-                                                                    <span>{insight.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                                                                </Tag>
+                                    return (
+                                        <List.Item
+                                            key={item.id}
+                                            style={{ padding: '24px 0', borderBottom: '1px solid #f0f0f0' }}
+                                            extra={
+                                                <div style={{ textAlign: 'right', minWidth: '150px' }}>
+                                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: item.oee > 1.0 ? '#faad14' : BRAND_BLUE }}>
+                                                        {(item.oee * 100).toFixed(1)}%
+                                                        {item.oee > 1.0 && (
+                                                            <Tooltip title="OEE > 100% usually indicates the Rate Standard is too low (easy).">
+                                                                <WarningOutlined style={{ fontSize: '16px', marginLeft: '8px', color: '#faad14' }} />
                                                             </Tooltip>
-                                                        ))}
+                                                        )}
                                                     </div>
-                                                )}
+                                                    <Text type="secondary">OEE Score</Text>
+                                                </div>
+                                            }
+                                        >
+                                            <List.Item.Meta
+                                                title={
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                                        <span style={{ fontSize: '18px', fontWeight: '600', color: BRAND_BLUE }}>{item.operator || 'Unknown Operator'}</span>
+                                                        {item.warning && <Tag color="warning" style={{ borderRadius: '4px' }}>Missing Rate</Tag>}
+                                                        {item.good_count === 0 && <Tag color="default">No Production</Tag>}
+                                                    </div>
+                                                }
+                                                description={
+                                                    <div>
+                                                        <div style={{ fontSize: '14px', marginBottom: '16px', color: '#595959' }}>
+                                                            <strong>Part:</strong> {item.part_number} &bull; <strong>Machine:</strong> {item.machine} &bull; <strong>Date:</strong> {item.date} &bull; <strong>Shift:</strong> {item.shift}
+                                                        </div>
+
+                                                        <div style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: 'repeat(5, 1fr)',
+                                                            gap: '24px',
+                                                            maxWidth: '900px'
+                                                        }}>
+                                                            {/* Availability */}
+                                                            <div style={lowest.name === 'A' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                                <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Run / Down</Text>
+                                                                <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
+                                                                    {((item.run_time_min || 0) / 60).toFixed(1)}h / <span style={{ color: item.downtime_min > 30 ? '#ff4d4f' : 'inherit' }}>{(item.downtime_min || 0).toFixed(1)}m</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Performance */}
+                                                            <div style={lowest.name === 'P' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                                <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Performance</Text>
+                                                                <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'P' ? '#ff4d4f' : 'inherit' }}>
+                                                                    {((item.performance || 0) * 100).toFixed(0)}%
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Quality */}
+                                                            <div style={lowest.name === 'Q' ? { borderBottom: '2px solid #ff4d4f', paddingBottom: '4px' } : {}}>
+                                                                <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Quality</Text>
+                                                                <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px', color: lowest.name === 'Q' ? '#ff4d4f' : 'inherit' }}>
+                                                                    {((item.quality || 0) * 100).toFixed(1)}%
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Actual vs Target */}
+                                                            <div style={{ gridColumn: 'span 2' }}>
+                                                                <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase' }}>Actual / Target</Text>
+                                                                <div style={{ fontWeight: '600', fontSize: '16px', marginTop: '4px' }}>
+                                                                    <span style={{ color: isOnTrack ? '#52c41a' : '#faad14' }}>{item.good_count}</span>
+                                                                    <span style={{ color: '#bfbfbf', margin: '0 8px' }}>/</span>
+                                                                    <span>{item.target_count > 0 ? item.target_count : '-'}</span>
+                                                                    {item.target_count > 0 && item.reject_count > 0 && (
+                                                                        <span style={{ fontSize: '12px', color: '#ff4d4f', marginLeft: '8px' }}>({item.reject_count} Rejects)</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                        {/* Smart Insights Row */}
+                                                        {item.analysis && item.analysis.length > 0 && (
+                                                            <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f0f0f0', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                                {item.analysis.map((insight: any, idx: number) => (
+                                                                    <Tooltip key={idx} title={insight.message}>
+                                                                        <Tag color="blue" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '13px', borderRadius: '6px', cursor: 'help' }}>
+                                                                            <span style={{ fontSize: '16px' }}>{insight.icon}</span>
+                                                                            <span>{insight.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                                                        </Tag>
+                                                                    </Tooltip>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                }
+                                            />
+                                        </List.Item>
+                                    )
+                                }}
+                            />
+                        </Card>
+                    </Col>
+                    {/* Right Column: Insights & Action Log */}
+                    <Col xs={24} lg={8}>
+                        {/* Key Insights Card */}
+                        <Card
+                            title={<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><BulbOutlined style={{ color: '#faad14' }} /> Key Insights</div>}
+                            bordered={false}
+                            style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '24px' }}
+                        >
+                            {loading ? (
+                                <Skeleton active paragraph={{ rows: 2 }} />
+                            ) : stats?.insights && stats.insights.length > 0 ? (
+                                <ul style={{ paddingLeft: '20px', margin: 0 }}>
+                                    {stats.insights.map((insight: string, idx: number) => (
+                                        <li key={idx} style={{ marginBottom: '8px', color: '#595959' }}>{insight}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <Text type="secondary">No specific insights generated for this report.</Text>
+                            )}
+                        </Card>
+
+                        {/* Shift Action Log Card */}
+                        <Card
+                            title={<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><ScheduleOutlined style={{ color: '#eb2f96' }} /> Shift Action Log</div>}
+                            bordered={false}
+                            style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                            bodyStyle={{ padding: '0' }}
+                        >
+                            {loading ? (
+                                <div style={{ padding: '24px' }}><Skeleton active paragraph={{ rows: 3 }} /></div>
+                            ) : stats?.action_log ? (
+                                <div>
+                                    {/* Reminders Header */}
+                                    <div style={{ padding: '16px 24px', background: '#fff0f6', borderBottom: '1px solid #ffadd2' }}>
+                                        <div style={{ fontWeight: 600, color: '#c41d7f', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <AlertOutlined /> Shift Reminders
+                                        </div>
+                                        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#eb2f96' }}>
+                                            {stats.action_log.reminders?.map((r: string, idx: number) => (
+                                                <li key={idx}>{r}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {/* Shift Issues */}
+                                    {stats.action_log.shifts && Object.keys(stats.action_log.shifts).length > 0 && (
+                                        <div style={{ padding: '16px 24px' }}>
+                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Shift Issues</Text>
+                                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                                {Object.entries(stats.action_log.shifts).map(([shift, data]: [string, any]) => (
+                                                    <div key={shift} style={{ padding: '12px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                            <Text strong>Shift {shift}</Text>
+                                                            <Tag color="volcano">Action Required</Tag>
+                                                        </div>
+                                                        <div style={{ fontSize: '13px', color: '#595959', marginBottom: '8px' }}>
+                                                            {data.issues}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#1890ff', fontWeight: 500 }}>
+                                                            <ToolOutlined /> {data.action}
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        }
-                                    />
-                                </List.Item>
-                            )
-                        }}
-                    />
-                </Card>
-            </div>
-        </div>
+                                        </div>
+                                    )}
+
+                                    {/* Rate Reviews */}
+                                    {stats.action_log.rate_reviews && stats.action_log.rate_reviews.length > 0 && (
+                                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f0f0f0' }}>
+                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Rate Candidates</Text>
+                                            <ul style={{ margin: '8px 0 0', paddingLeft: '20px', fontSize: '13px', color: '#faad14' }}>
+                                                {stats.action_log.rate_reviews.map((r: string, idx: number) => (
+                                                    <li key={idx}>{r}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {/* Recurring Downtime */}
+                                    {stats.action_log.recurring_downtime && stats.action_log.recurring_downtime.length > 0 && (
+                                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f0f0f0' }}>
+                                            <Text type="secondary" style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 600 }}>Recurring Downtime</Text>
+                                            <ul style={{ margin: '8px 0 0', paddingLeft: '20px', fontSize: '13px', color: '#ff4d4f' }}>
+                                                {stats.action_log.recurring_downtime.map((r: string, idx: number) => (
+                                                    <li key={idx}>{r}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                </div>
+                            ) : (
+                                <div style={{ padding: '24px', textAlign: 'center' }}>
+                                    <Text type="secondary">No action items for this report.</Text>
+                                </div>
+                            )}
+                        </Card>
+                    </Col>
+                </Row >
+            </div >
+        </div >
     );
 };
 
