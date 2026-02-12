@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic } from 'antd';
+import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic, Tag } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { PrinterOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -239,7 +239,20 @@ const AnalyticsContent: React.FC = () => {
                                         columns={[
                                             { title: 'Machine', dataIndex: 'machine', key: 'machine' },
                                             { title: 'Total Downtime (min)', dataIndex: 'total_downtime', key: 'downtime', sorter: (a: any, b: any) => a.total_downtime - b.total_downtime, defaultSortOrder: 'descend' },
-                                            { title: 'Event Count', dataIndex: 'event_count', key: 'count' }
+                                            { title: 'Event Count', dataIndex: 'event_count', key: 'count' },
+                                            { title: 'Avg Event (min)', dataIndex: 'avg_event_min', key: 'avg' },
+                                            {
+                                                title: 'Downtime Pattern',
+                                                dataIndex: 'pattern',
+                                                key: 'pattern',
+                                                render: (val: string) => {
+                                                    let color = 'default';
+                                                    if (val === 'Micro-stop driven') color = 'orange';
+                                                    if (val === 'Breakdown driven') color = 'red';
+                                                    if (val === 'Mixed') color = 'blue';
+                                                    return <Tag color={color}>{val}</Tag>;
+                                                }
+                                            }
                                         ]}
                                         pagination={false}
                                     />

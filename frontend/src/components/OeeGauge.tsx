@@ -38,13 +38,17 @@ const OeeGauge: React.FC<GaugeProps> = ({ title, value, target }) => {
     const ticks = [0, 20, 40, 60, 80, 100];
 
     // Determine value color based on target
-    let valueColor = '#1f1f1f'; // Default Black/Dark Grey
-    if (target !== undefined) {
-        if (value >= target) {
-            valueColor = '#52c41a'; // Green (Good)
-        } else {
-            valueColor = '#ff4d4f'; // Red (Bad)
-        }
+    let valueColor = '#ff4d4f'; // Default Red (< 65)
+
+    // Default OEE standards if no target provided
+    const targetVal = target || 85;
+
+    if (value >= targetVal) {
+        valueColor = '#52c41a'; // Green (Good)
+    } else if (value >= 65) {
+        valueColor = '#faad14'; // Yellow (Warning)
+    } else {
+        valueColor = '#ff4d4f'; // Red (Bad)
     }
 
     return (

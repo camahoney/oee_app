@@ -176,27 +176,49 @@ def downtime_analysis(
         machine = m.machine or "Unknown"
         
         downtime = 0
+        event_count = 0
         
         if m.diagnostics_json:
             try:
                 import json
                 diag = json.loads(m.diagnostics_json)
                 downtime = diag.get("downtime_min", 0)
+                
+                # Count distinct events if available
+                events = diag.get("downtime_events", [])
+                if events:
+                    event_count = len(events)
+                elif downtime > 0:
+                    event_count = 1 # Fallback
             except:
                 pass
                 
         if machine not in machine_stats:
-            machine_stats[machine] = {"downtime": 0, "count": 0}
+            machine_stats[machine] = {"downtime": 0, "events": 0}
             
         machine_stats[machine]["downtime"] += downtime
-        machine_stats[machine]["count"] += 1
+        machine_stats[machine]["events"] += event_count
         
     results = []
     for machine, stats in machine_stats.items():
+        avg_len = stats["downtime"] / stats["events"] if stats["events"] > 0 else 0
+        
+        # Determine Pattern
+        pattern = "N/A"
+        if stats["events"] > 0:
+            if avg_len < 10:
+                pattern = "Micro-stop driven"
+            elif avg_len <= 45:
+                pattern = "Mixed"
+            else:
+                pattern = "Breakdown driven"
+        
         results.append({
             "machine": machine,
             "total_downtime": round(stats["downtime"], 1),
-            "event_count": stats["count"]
+            "event_count": stats["events"],
+            "avg_event_min": round(avg_len, 1),
+            "pattern": pattern
         })
         
     return sorted(results, key=lambda x: x["total_downtime"], reverse=True)[:limit]

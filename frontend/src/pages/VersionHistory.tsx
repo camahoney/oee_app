@@ -34,6 +34,22 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.1.0",
+        date: "2026-02-12",
+        description: (
+            <ul>
+                <li><strong>Downtime Patterns:</strong> Automated classification of "Micro-stop" vs "Breakdown" driven machines based on average event length.</li>
+                <li><strong>Granular Parsing:</strong> Enhanced parser to extract specific downtime reasons and durations from nested report rows.</li>
+                <li><strong>Visual Analytics:</strong> Added new columns for "Avg Event (min)" and color-coded "Pattern" tags in the Downtime Analysis tab.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <LineChartOutlined />,
+        color: "orange",
+        tags: ["Analytics", "Feature"]
+    },
+    {
         version: "v1.0.0",
         date: "2026-02-11",
         description: (

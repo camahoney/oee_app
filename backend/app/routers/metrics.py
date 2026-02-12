@@ -112,6 +112,18 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
             agg["good_count"] += (entry.good_count or 0)
             agg["reject_count"] += (entry.reject_count or 0)
             
+            # Aggregate partial downtime events
+            if entry.downtime_events:
+                try:
+                    import json
+                    events = json.loads(entry.downtime_events)
+                    if events:
+                        if "downtime_events" not in agg:
+                            agg["downtime_events"] = []
+                        agg["downtime_events"].extend(events)
+                except:
+                   pass
+            
     except Exception as e:
         print(f"Aggregation Error: {str(e)}")
         return 0, 0, []
@@ -216,6 +228,8 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
         diagnostics["downtime_min"] = data["downtime_min"]
         diagnostics["good_count"] = data["good_count"]
         diagnostics["reject_count"] = data["reject_count"]
+        if "downtime_events" in data:
+            diagnostics["downtime_events"] = data["downtime_events"]
             
         import json
         metric = Oeemetric(
@@ -489,14 +503,14 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
                 "message": f"High Speed ({int(perf*100)}%) correlated with Quality drop ({int(qual*100)}%). Consider slowing down to ensure part quality."
             })
             
-        # 7. "Perfect Run" (High OEE, Perfect Quality)
-        # Positive Reinforcement - Capped at 110% Performance to avoid rewarding bad rates
+        # 7. "Perfect Run" (High OEE, Perfect Quality, tight Performance control)
+        # Performance must be "Goldilocks" (95% - 105%) - neither too slow nor suspiciously fast
         oee = m.oee or 0
-        if oee > 0.85 and qual >= 0.99 and perf > 0.90 and perf <= 1.10 and avail > 0.90:
+        if oee > 0.85 and qual >= 0.99 and perf >= 0.95 and perf <= 1.05 and avail > 0.90:
              analysis.append({
                 "type": "perfect_run",
                 "icon": "🌟",
-                "message": "Great Run! High OEE with perfect quality and steady performance. Keep it up!"
+                "message": "Great Run! High OEE with perfect quality and steady performance (95-105%). Keep it up!"
             })
 
         # 9. Rate Check (Prev. Global Rate)

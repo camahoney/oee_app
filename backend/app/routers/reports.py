@@ -102,19 +102,27 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         # Col 21=Good, Col 22=Reject.
         # Col 24=Run Time, Col 25=Downtime.
         
+        current_entry = None
+        current_offset = 0
+        
         for i, row in raw_df.iterrows():
             vals = [str(x) for x in row.values]
-            # Signature check: "Workstation" usually at index 3
+            
+            # 1. Check for NEW ENTRY signature (Contains "Workstation")
+            is_main_entry = False
             if len(vals) > 5 and "Workstation" in vals[:10]:
+                try:
+                    ws_idx = vals.index("Workstation")
+                    is_main_entry = True
+                except ValueError:
+                    pass
+            
+            if is_main_entry:
                 try:
                     if len(vals) < 26: continue
                     
-                    try:
-                        ws_idx = vals.index("Workstation")
-                    except ValueError:
-                        continue 
-                        
                     offset = ws_idx - 3
+                    current_offset = offset # Store for sub-rows
                     
                     raw_shift = str(vals[17 + offset])
                     shift_val = raw_shift.replace('.0', '').strip()
@@ -125,7 +133,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         try: return float(v)
                         except: return 0.0
 
-                    clean_rows.append({
+                    new_entry = {
                         "part_number": vals[4 + offset],
                         "operator": vals[15 + offset],
                         "machine": vals[18 + offset],
@@ -135,12 +143,61 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         "reject_count": safe_float(vals[22 + offset]) if vals[22 + offset] != 'nan' else 0,
                         "date": vals[16 + offset] if len(vals) > 16 + offset else datetime.today().date(), 
                         "run_time_min": safe_float(vals[24 + offset]) * 60 if len(vals) > 24 + offset and vals[24 + offset] != 'nan' else 0,
-                        # FIX: Downtime is at offset 25 (Col Z if offset 0)
-                        "downtime_min": safe_float(vals[25 + offset]) * 60 if len(vals) > 25 + offset and vals[25 + offset] != 'nan' else 0
-                    })
+                        "downtime_min": safe_float(vals[25 + offset]) * 60 if len(vals) > 25 + offset and vals[25 + offset] != 'nan' else 0,
+                        "downtime_events": [] # Initialize list
+                    }
+                    clean_rows.append(new_entry)
+                    current_entry = new_entry
+                    
                 except Exception as e:
                     print(f"Skipping malformed row {i}: {e}")
+                    current_entry = None # Reset if failed
                     continue
+            
+            # 2. Check for SUB-ROW (Downtime Event)
+            elif current_entry is not None:
+                # Logic: If it's not a main entry, but has time in the Downtime Column, it's an event.
+                try:
+                    # Use stored offset
+                    dt_idx = 25 + current_offset
+                    if len(vals) > dt_idx:
+                        raw_dt = vals[dt_idx]
+                        try:
+                            dt_minutes = float(raw_dt) * 60
+                        except:
+                            dt_minutes = 0
+                            
+                        if dt_minutes > 0:
+                            # It has downtime time. Find the reason.
+                            # Heuristic: Check columns 18 (Machine), 19 (Job), or 26 (Comments?)
+                            # We'll take the first non-numeric looking string in typical columns
+                            reason = "Unknown Reason"
+                            
+                            # Candidate indices for Reason string relative to offset
+                            candidates = [18 + current_offset, 19 + current_offset, 26 + current_offset]
+                            for c_idx in candidates:
+                                if len(vals) > c_idx:
+                                    val = str(vals[c_idx]).strip()
+                                    if val and val.lower() != 'nan' and not val.replace('.','',1).isdigit():
+                                        reason = val
+                                        break
+                            
+                            import json
+                            # Append to dictionary list (we'll stringify later if needed, or keep as list until DF)
+                            current_entry["downtime_events"].append({"reason": reason, "minutes": dt_minutes})
+                            
+                except Exception as e:
+                    # Not a critical failure, just skip sub-row
+                    pass
+
+        # Post-process: Convert list to JSON string for DB compatibility
+        for row in clean_rows:
+            import json
+            if row["downtime_events"]:
+                row["downtime_events"] = json.dumps(row["downtime_events"])
+            else:
+                 row["downtime_events"] = None
+
         return pd.DataFrame(clean_rows)
     
     # Check if Raw File

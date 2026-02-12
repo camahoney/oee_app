@@ -71,6 +71,7 @@ class ReportEntry(SQLModel, table=True):
     reject_count: Optional[int] = None
     shift: Optional[str] = None
     raw_row_json: Optional[str] = None
+    downtime_events: Optional[str] = None # JSON list of objects: [{"reason": "Low Air", "minutes": 10}, ...]
 
 class Oeemetric(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
