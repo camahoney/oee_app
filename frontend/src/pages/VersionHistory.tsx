@@ -10,7 +10,8 @@ import {
     TrophyOutlined,
     BugOutlined,
     DatabaseOutlined,
-    TeamOutlined
+    TeamOutlined,
+    BulbOutlined
 } from '@ant-design/icons';
 import { Divider } from 'antd';
 import dayjs from 'dayjs';
@@ -32,6 +33,22 @@ interface VersionEntry {
 }
 
 const HISTORY_DATA: VersionEntry[] = [
+    {
+        version: "v1.0.0",
+        date: "2026-02-11",
+        description: (
+            <ul>
+                <li><strong>Smart Insights:</strong> Automated analysis of production runs to flag "Running Slow," "Quality Slips," and "Perfect Runs."</li>
+                <li><strong>Rate Checks:</strong> Global performance comparison to identify if standard rates are set too high or too low.</li>
+                <li><strong>Visual Indicators:</strong> Added intuitive icons (🐢, 🚀, 🌟, ⚠️) to the Dashboard activity log for instant troubleshooting.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 6,
+        icon: <BulbOutlined />,
+        color: "purple",
+        tags: ["Major", "AI/Insights"]
+    },
     {
         version: "v0.9.5",
         date: "2026-02-10",
@@ -315,7 +332,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v0.9.5</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.0.0</Text>
                 </div>
             </div>
         </div>
