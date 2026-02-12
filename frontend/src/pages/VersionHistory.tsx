@@ -38,9 +38,11 @@ const HISTORY_DATA: VersionEntry[] = [
         date: "2026-02-11",
         description: (
             <ul>
+                <li><strong>Shift Action Log:</strong> specialized sidebar card aggregating shift-specific issues, rate reviews, and recurring downtime for managers.</li>
                 <li><strong>Smart Insights:</strong> Automated analysis of production runs to flag "Running Slow," "Quality Slips," and "Perfect Runs."</li>
                 <li><strong>Rate Checks:</strong> Global performance comparison to identify if standard rates are set too high or too low.</li>
                 <li><strong>Visual Indicators:</strong> Added intuitive icons (🐢, 🚀, 🌟, ⚠️) to the Dashboard activity log for instant troubleshooting.</li>
+                <li><strong>Layout Stability:</strong> Fixed critical dashboard rendering bugs and optimized component structure for faster load times.</li>
             </ul>
         ),
         author: "Dev Team",
