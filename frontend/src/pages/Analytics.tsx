@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic, Tag } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { PrinterOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { PrinterOutlined, DownloadOutlined, FilePdfOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
 
@@ -217,19 +217,7 @@ const AnalyticsContent: React.FC = () => {
                 <TabPane tab="Downtime Analysis" key="downtime">
                     <Row gutter={[24, 24]}>
                         <Col span={24}>
-                            <Alert
-                                message="Downtime Pattern Legend"
-                                description={
-                                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                                        <div><Tag color="orange">Micro-stop driven</Tag> Frequent small stops (Avg &lt; 10 min)</div>
-                                        <div><Tag color="blue">Mixed</Tag> Combination of stops (Avg 10-45 min)</div>
-                                        <div><Tag color="red">Breakdown driven</Tag> Major failures (Avg &gt; 45 min)</div>
-                                    </div>
-                                }
-                                type="info"
-                                showIcon
-                                style={{ marginBottom: 16 }}
-                            />
+
                             <Card title="Top Downtime by Machine (Pareto)" bordered={false} style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                                 <div style={{ height: 400 }}>
                                     {downtimeData.length > 0 ? (
@@ -256,7 +244,20 @@ const AnalyticsContent: React.FC = () => {
                                             { title: 'Event Count', dataIndex: 'event_count', key: 'count' },
                                             { title: 'Avg Event (min)', dataIndex: 'avg_event_min', key: 'avg' },
                                             {
-                                                title: 'Downtime Pattern',
+                                                title: (
+                                                    <Space>
+                                                        Downtime Pattern
+                                                        <Tooltip title={
+                                                            <div style={{ fontSize: '12px' }}>
+                                                                <div style={{ marginBottom: '4px' }}><Tag color="orange">Micro-stop</Tag> Avg &lt; 10 min</div>
+                                                                <div style={{ marginBottom: '4px' }}><Tag color="blue">Mixed</Tag> Avg 10-45 min</div>
+                                                                <div><Tag color="red">Breakdown</Tag> Avg &gt; 45 min</div>
+                                                            </div>
+                                                        }>
+                                                            <InfoCircleOutlined style={{ color: '#1890ff', cursor: 'pointer' }} />
+                                                        </Tooltip>
+                                                    </Space>
+                                                ),
                                                 dataIndex: 'pattern',
                                                 key: 'pattern',
                                                 render: (val: string) => {
