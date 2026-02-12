@@ -146,6 +146,29 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                         "downtime_min": safe_float(vals[25 + offset]) * 60 if len(vals) > 25 + offset and vals[25 + offset] != 'nan' else 0,
                         "downtime_events": [] # Initialize list
                     }
+
+                    # Capture reason from MAIN row if present (often finding 'Breakdown' or comments here)
+                    if new_entry["downtime_min"] > 0:
+                        row_text_candidates = []
+                        # Scan columns for text, skipping known fields
+                        # Known: 4(Part), 15(Op), 16(Date), 17(Shift), 18(Machine), 19(Job), 21(Good), 22(Reject), 24(Run), 25(Down)
+                        skip_cols = [4, 15, 16, 17, 18, 19, 21, 22, 24, 25]
+                        
+                        for idx in range(10 + offset, 30 + offset):
+                            if (idx - offset) in skip_cols:
+                                continue
+                            if len(vals) > idx:
+                                val = str(vals[idx]).strip()
+                                if val and val.lower() != 'nan' and not val.replace('.', '', 1).isdigit():
+                                    row_text_candidates.append(val)
+                        
+                        if row_text_candidates:
+                            # Heuristic: First candidate is likely the reason
+                            # (Sometimes machine name leaks in if offset is slightly off, but we skip col 18)
+                            r_reason = row_text_candidates[0]
+                            # Start with Clean Reasons
+                            new_entry["downtime_events"].append({"reason": r_reason, "minutes": new_entry["downtime_min"]})
+
                     clean_rows.append(new_entry)
                     current_entry = new_entry
                     
