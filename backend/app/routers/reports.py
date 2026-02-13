@@ -253,8 +253,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     
     if "Carmi Mold" in first_col_name or "Barcode" in first_col_name or "Carmi Mold" in first_cell_val:
         print("Detected Raw Report Format. Re-reading with header=None...")
-        file.file.seek(0)
-        contents = file.file.read()
+        # Use already-read contents buffer (file handle may be invalid after first read)
         if file.filename.endswith('.csv'):
              raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
         else:
@@ -272,8 +271,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     # Fallback: If part_number missing, try Raw Parse one last time (simple, no multi-sheet loop)
     if "part_number" not in df.columns:
         print("Standard parse failed (Part Number missing). Retrying with simple Raw Parser...")
-        file.file.seek(0)
-        contents = file.file.read()
+        # Use already-read contents buffer (file handle may be invalid after first read)
         if file.filename.endswith('.csv'):
              raw_df = pd.read_csv(io.BytesIO(contents), header=None, encoding='utf-8-sig')
         else:
