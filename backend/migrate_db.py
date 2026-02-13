@@ -2,25 +2,36 @@ from sqlmodel import Session, create_engine, text
 from sqlalchemy import inspect
 from app.database import engine
 
-def migrate():
-    print("Starting manual migration...")
+def add_column(table_name, col_name, col_type):
     insp = inspect(engine)
-    if insp.has_table("user"):
-        cols = [c["name"] for c in insp.get_columns("user")]
-        print(f"Current columns: {cols}")
-        if "is_pro" not in cols:
-            print("Adding 'is_pro' column...")
+    if insp.has_table(table_name):
+        cols = [c["name"] for c in insp.get_columns(table_name)]
+        print(f"Checking {table_name}: Found {cols}")
+        if col_name not in cols:
+            print(f"Adding '{col_name}' to '{table_name}'...")
             with Session(engine) as session:
                 try:
-                    session.exec(text("ALTER TABLE user ADD COLUMN is_pro BOOLEAN DEFAULT 0"))
+                    session.exec(text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"))
                     session.commit()
-                    print("Migration successful.")
+                    print(f"Added {col_name} successfully.")
                 except Exception as e:
-                    print(f"Migration failed: {e}")
+                    print(f"Failed to add {col_name}: {e}")
         else:
-            print("'is_pro' column already exists.")
+            print(f"'{col_name}' already exists in '{table_name}'.")
     else:
-        print("User table not found!")
+        print(f"Table '{table_name}' not found!")
+
+def migrate():
+    print("Starting manual migration...")
+    # existing check for user.is_pro
+    add_column("user", "is_pro", "BOOLEAN DEFAULT 0")
+    
+    # New columns for v1.x features
+    add_column("reportentry", "downtime_events", "TEXT")
+    add_column("oeemetric", "diagnostics_json", "TEXT")
+    add_column("rateentry", "cavity_count", "INTEGER DEFAULT 1")
+    add_column("rateentry", "entry_mode", "TEXT DEFAULT 'seconds'")
+    add_column("rateentry", "machine_cycle_time", "FLOAT")
 
 if __name__ == "__main__":
     migrate()

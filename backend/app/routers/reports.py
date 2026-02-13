@@ -351,6 +351,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                     reject_count=int(row.get('reject_count', 0)),
                     shift=str(row.get('shift', '')),
                     raw_row_json=row.to_json(),
+                    downtime_events=row.get('downtime_events')
                 )
                  entries.append(entry)
             except Exception as e:
