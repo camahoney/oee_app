@@ -138,3 +138,63 @@ async def health_check():
 @app.get("/")
 async def root():
     return {"message": "OEE Analytics API is running. Go to /docs for Swagger UI."}
+
+@app.get("/debug-db")
+async def debug_db():
+    from sqlalchemy import inspect
+    insp = inspect(engine)
+    tables = insp.get_table_names()
+    report_cols = [c["name"] for c in insp.get_columns("reportentry")] if "reportentry" in tables else []
+    metric_cols = [c["name"] for c in insp.get_columns("oeemetric")] if "oeemetric" in tables else []
+    rate_cols = [c["name"] for c in insp.get_columns("rateentry")] if "rateentry" in tables else []
+    
+    return {
+        "tables": tables,
+        "reportentry_columns": report_cols,
+        "oeemetric_columns": metric_cols,
+        "rateentry_columns": rate_cols,
+        "missing_downtime": "downtime_events" not in report_cols,
+        "missing_diagnostics": "diagnostics_json" not in metric_cols
+    }
+
+@app.get("/fix-db")
+async def fix_db():
+    from sqlalchemy import text
+    logs = []
+    try:
+        with Session(engine) as session:
+            # Fix ReportEntry
+            try:
+                session.exec(text("ALTER TABLE reportentry ADD COLUMN downtime_events TEXT"))
+                session.commit()
+                logs.append("Added downtime_events to reportentry")
+            except Exception as e:
+                logs.append(f"ReportEntry fix skipped/failed: {e}")
+            
+            # Fix OeeMetric
+            try:
+                session.exec(text("ALTER TABLE oeemetric ADD COLUMN diagnostics_json TEXT"))
+                session.commit()
+                logs.append("Added diagnostics_json to oeemetric")
+            except Exception as e:
+                logs.append(f"OeeMetric fix skipped/failed: {e}")
+
+            # Fix RateEntry
+            try:
+                session.exec(text("ALTER TABLE rateentry ADD COLUMN cavity_count INTEGER DEFAULT 1"))
+                session.commit()
+                logs.append("Added cavity_count to rateentry")
+            except Exception as e:
+                 logs.append(f"RateEntry cavity_count fix skipped/failed: {e}")
+                 
+            try:
+                session.exec(text("ALTER TABLE rateentry ADD COLUMN entry_mode VARCHAR DEFAULT 'seconds'"))
+                session.commit()
+                logs.append("Added entry_mode to rateentry")
+            except Exception as e:
+                 logs.append(f"RateEntry entry_mode fix skipped/failed: {e}")
+
+    except Exception as e:
+        return {"status": "error", "error": str(e), "logs": logs}
+    
+    return {"status": "success", "logs": logs}
