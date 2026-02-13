@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu } from 'antd';
+import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu, Switch } from 'antd';
 import {
     FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, CheckCircleOutlined,
     ClockCircleOutlined,
     BulbOutlined,
     ScheduleOutlined,
     AlertOutlined,
-    ToolOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined
+    ToolOutlined, DownloadOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined, CompressOutlined
 } from '@ant-design/icons';
 import { AreaChart, Area, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import OeeGauge from '../components/OeeGauge';
@@ -19,6 +19,7 @@ const Dashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [compactPrint, setCompactPrint] = useState(true);
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const reportId = searchParams.get('reportId');
@@ -160,6 +161,17 @@ const Dashboard: React.FC = () => {
                     >
                         Print Report
                     </Button>
+                    <Tooltip title="Condenses the print output into a compact table with all operators">
+                        <div className="no-print" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <CompressOutlined style={{ color: compactPrint ? '#003366' : '#bfbfbf' }} />
+                            <Switch
+                                size="small"
+                                checked={compactPrint}
+                                onChange={setCompactPrint}
+                            />
+                            <span style={{ fontSize: 12, color: '#595959' }}>Compact</span>
+                        </div>
+                    </Tooltip>
                     {reportId && (
                         <Button
                             type="primary"
@@ -200,7 +212,7 @@ const Dashboard: React.FC = () => {
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <OeeGauge title="OEE Score" value={stats.oee} target={stats.targets?.oee} />
-                        <div style={{ height: 40, marginTop: 16 }}>
+                        <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={getTrendData('oee')}>
                                     <Area type="monotone" dataKey="value" stroke={BRAND_BLUE} fill={BRAND_BLUE} fillOpacity={0.1} strokeWidth={2} />
@@ -208,13 +220,13 @@ const Dashboard: React.FC = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }}>7-Day Trend</div>
+                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }} className="dashboard-sparkline">7-Day Trend</div>
                     </Card>
                 </Col>
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <OeeGauge title="Availability" value={stats.availability} target={stats.targets?.availability} />
-                        <div style={{ height: 40, marginTop: 16 }}>
+                        <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={getTrendData('availability')}>
                                     <Area type="monotone" dataKey="value" stroke="#52c41a" fill="#52c41a" fillOpacity={0.1} strokeWidth={2} />
@@ -222,13 +234,13 @@ const Dashboard: React.FC = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }}>7-Day Trend</div>
+                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }} className="dashboard-sparkline">7-Day Trend</div>
                     </Card>
                 </Col>
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <OeeGauge title="Performance" value={stats.performance} target={stats.targets?.performance} />
-                        <div style={{ height: 40, marginTop: 16 }}>
+                        <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={getTrendData('performance')}>
                                     <Area type="monotone" dataKey="value" stroke="#1890ff" fill="#1890ff" fillOpacity={0.1} strokeWidth={2} />
@@ -236,13 +248,13 @@ const Dashboard: React.FC = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }}>7-Day Trend</div>
+                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }} className="dashboard-sparkline">7-Day Trend</div>
                     </Card>
                 </Col>
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <OeeGauge title="Quality" value={stats.quality} target={stats.targets?.quality} />
-                        <div style={{ height: 40, marginTop: 16 }}>
+                        <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={getTrendData('quality')}>
                                     <Area type="monotone" dataKey="value" stroke="#faad14" fill="#faad14" fillOpacity={0.1} strokeWidth={2} />
@@ -250,7 +262,7 @@ const Dashboard: React.FC = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }}>7-Day Trend</div>
+                        <div style={{ textAlign: 'center', fontSize: 10, color: '#999' }} className="dashboard-sparkline">7-Day Trend</div>
                     </Card>
                 </Col>
             </Row>
@@ -258,7 +270,58 @@ const Dashboard: React.FC = () => {
             <div style={{ marginTop: 32 }}>
                 <Row gutter={[24, 24]}>
                     <Col xs={24} lg={16}>
+                        {/* Print-Only Compact Table: renders ALL operators */}
+                        {compactPrint && (
+                            <div className="print-table-wrap" style={{ display: 'none' }}>
+                                <table className="print-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Operator</th>
+                                            <th>Part</th>
+                                            <th>Machine</th>
+                                            <th>Shift</th>
+                                            <th>Date</th>
+                                            <th>OEE</th>
+                                            <th>Avail</th>
+                                            <th>Perf</th>
+                                            <th>Qual</th>
+                                            <th>Good</th>
+                                            <th>Target</th>
+                                            <th>Rejects</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(stats.recent_activity || []).map((item: any, idx: number) => {
+                                            const oeeVal = (item.oee || 0) * 100;
+                                            const oeeColor = oeeVal >= 85 ? '#52c41a' : oeeVal >= 60 ? '#faad14' : '#ff4d4f';
+                                            return (
+                                                <tr key={item.id || idx}>
+                                                    <td>{idx + 1}</td>
+                                                    <td><strong>{item.operator || 'Unknown'}</strong></td>
+                                                    <td>{item.part_number}</td>
+                                                    <td>{item.machine}</td>
+                                                    <td>{item.shift}</td>
+                                                    <td>{item.date}</td>
+                                                    <td style={{ color: oeeColor, fontWeight: 600 }}>{oeeVal.toFixed(1)}%</td>
+                                                    <td>{((item.availability || 0) * 100).toFixed(0)}%</td>
+                                                    <td>{((item.performance || 0) * 100).toFixed(0)}%</td>
+                                                    <td>{((item.quality || 0) * 100).toFixed(1)}%</td>
+                                                    <td>{item.good_count}</td>
+                                                    <td>{item.target_count > 0 ? item.target_count : '-'}</td>
+                                                    <td style={{ color: item.reject_count > 0 ? '#ff4d4f' : 'inherit' }}>{item.reject_count || 0}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                <div style={{ marginTop: 8, fontSize: 10, color: '#999', textAlign: 'right' }}>
+                                    Total: {(stats.recent_activity || []).length} operator entries
+                                </div>
+                            </div>
+                        )}
                         <Card
+                            className={compactPrint ? 'no-print' : ''}
                             title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
                             bordered={false}
                             style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
@@ -453,7 +516,7 @@ const Dashboard: React.FC = () => {
                         </Card>
                     </Col>
                     {/* Right Column: Insights & Action Log */}
-                    <Col xs={24} lg={8}>
+                    <Col xs={24} lg={8} className={compactPrint ? 'no-print' : ''}>
                         {/* Key Insights Card */}
                         <Card
                             title={<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><BulbOutlined style={{ color: '#faad14' }} /> Key Insights</div>}

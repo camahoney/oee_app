@@ -11,7 +11,9 @@ import {
     BugOutlined,
     DatabaseOutlined,
     TeamOutlined,
-    BulbOutlined
+    BulbOutlined,
+    FilterOutlined,
+    CompressOutlined
 } from '@ant-design/icons';
 import { Divider } from 'antd';
 import dayjs from 'dayjs';
@@ -33,6 +35,23 @@ interface VersionEntry {
 }
 
 const HISTORY_DATA: VersionEntry[] = [
+    {
+        version: "v1.2.0",
+        date: "2026-02-13",
+        description: (
+            <ul>
+                <li><strong>Shift Filter (Analytics):</strong> Multi-select shift filter on the Analytics page — filter all charts, tables, KPIs, and exports by Shift 1, 2, 3.  Empty selection defaults to "All Shifts."</li>
+                <li><strong>Auto-Recalc Hardening:</strong> Rate-change recalculation now uses per-report transactions, structured logging (<code>[RECALC]</code>), and gated triggers so only rate-impacting field changes fire recalcs.</li>
+                <li><strong>Condensed Dashboard Print:</strong> New "Compact Print Mode" toggle (default ON) renders a full-operator print table, hides sparkline charts and sidebar insights, and uses dense 10px rows with repeated headers across pages.</li>
+                <li><strong>Version Consolidation:</strong> Merged interim releases into a single v1.1.4 entry and updated API version string.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 6,
+        icon: <RocketOutlined />,
+        color: "blue",
+        tags: ["Release", "Analytics", "Print"]
+    },
     {
         version: "v1.1.4",
         date: "2026-02-13",
@@ -385,7 +404,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.1.4</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.2.0</Text>
                 </div>
             </div>
         </div>
