@@ -23,6 +23,7 @@ const SettingsPage: React.FC = () => {
             values['performance_target'] = 95;
             values['quality_target'] = 99;
             values['show_oee_over_100_warning'] = true;
+            values['threshold_downtime_min'] = 20;
 
             // Override with DB values
             data.forEach(s => {
@@ -32,6 +33,7 @@ const SettingsPage: React.FC = () => {
                 if (s.key === 'performance_target') values[s.key] = Number(s.value);
                 if (s.key === 'quality_target') values[s.key] = Number(s.value);
                 if (s.key === 'show_oee_over_100_warning') values[s.key] = s.value.toLowerCase() === 'true';
+                if (s.key === 'threshold_downtime_min') values[s.key] = Number(s.value);
             });
 
             form.setFieldsValue(values);
@@ -57,6 +59,7 @@ const SettingsPage: React.FC = () => {
             await settingsService.update('performance_target', String(values.performance_target), 'Target Performance Percentage');
             await settingsService.update('quality_target', String(values.quality_target), 'Target Quality Percentage');
             await settingsService.update('show_oee_over_100_warning', String(values.show_oee_over_100_warning), 'Enable warning for OEE > 100%');
+            await settingsService.update('threshold_downtime_min', String(values.threshold_downtime_min), 'High Downtime Threshold (min)');
 
             message.success('Settings saved successfully');
         } catch (error) {
@@ -83,14 +86,25 @@ const SettingsPage: React.FC = () => {
                 onFinish={handleSave}
             >
                 <Title level={4}>Analytics Thresholds</Title>
-                <Form.Item
-                    label="Performance Validation Threshold (%)"
-                    name="performance_threshold"
-                    tooltip="Deviation from 100% allowed before flagging 'Low Output' or 'High Output'. E.g. 25% means flags at <75% and >125%."
-                    rules={[{ required: true, message: 'Please enter a threshold' }]}
-                >
-                    <InputNumber min={5} max={50} addonAfter="%" style={{ width: '100%' }} />
-                </Form.Item>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <Form.Item
+                        label="Performance Validation Threshold (%)"
+                        name="performance_threshold"
+                        tooltip="Deviation from 100% allowed before flagging 'Low Output' or 'High Output'. E.g. 25% means flags at <75% and >125%."
+                        rules={[{ required: true, message: 'Please enter a threshold' }]}
+                    >
+                        <InputNumber min={5} max={50} addonAfter="%" style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="High Downtime Threshold (min)"
+                        name="threshold_downtime_min"
+                        tooltip="Minimum downtime minutes to trigger a 'High Downtime' insight."
+                        rules={[{ required: true, message: 'Please enter a threshold' }]}
+                    >
+                        <InputNumber min={1} max={120} addonAfter="min" style={{ width: '100%' }} />
+                    </Form.Item>
+                </div>
 
                 <Title level={4} style={{ marginTop: 24 }}>Dashboard Display Targets</Title>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

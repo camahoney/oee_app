@@ -8,6 +8,8 @@ from ..database import get_session
 
 router = APIRouter(tags=["analytics"])
 
+EXCLUDED_OPERATORS = ["Shirley Brown", "Ison Elliot"]
+
 @router.get("/compare", response_model=List[Dict[str, Any]])
 def compare_metrics(
     group_by: str = Query(..., pattern="^(shift|part|machine|operator)$"), 
@@ -28,6 +30,10 @@ def compare_metrics(
         stmt = stmt.where(Oeemetric.date <= end_date)
         
     met_list = session.exec(stmt).all()
+    
+    # Filter excluded operators if grouping by operator
+    if group_by == "operator":
+        met_list = [m for m in met_list if m.operator not in EXCLUDED_OPERATORS]
     
     # ... aggregation logic ...
     try:
@@ -341,6 +347,9 @@ def get_part_performance(
         stmt = stmt.where(Oeemetric.date <= end_date)
         
     metrics = session.exec(stmt).all()
+    
+    # Filter excluded operators
+    metrics = [m for m in metrics if m.operator not in EXCLUDED_OPERATORS]
     
     if not metrics:
         return {"global_average": 0, "operators": []}
