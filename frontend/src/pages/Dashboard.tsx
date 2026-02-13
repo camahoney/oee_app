@@ -270,8 +270,8 @@ const Dashboard: React.FC = () => {
             <div style={{ marginTop: 32 }}>
                 <Row gutter={[24, 24]}>
                     <Col xs={24} lg={16}>
-                        {/* Print-Only Compact Table: renders ALL operators */}
-                        {compactPrint && (
+                        {/* Print-Only Table: always renders ALL operators for print */}
+                        {(
                             <div className="print-table-wrap" style={{ display: 'none' }}>
                                 <table className="print-table">
                                     <thead>
@@ -321,7 +321,7 @@ const Dashboard: React.FC = () => {
                             </div>
                         )}
                         <Card
-                            className={compactPrint ? 'no-print' : ''}
+                            className="no-print"
                             title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
                             bordered={false}
                             style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
