@@ -14,6 +14,13 @@ from .metrics import calculate_report_metrics_logic
 
 router = APIRouter()
 
+# Fields that affect OEE calculations — only trigger recalc when these change
+RATE_IMPACTING_FIELDS = {
+    "ideal_units_per_hour", "ideal_cycle_time_seconds",
+    "machine_cycle_time", "cavity_count", "part_number",
+    "machine", "active", "entry_mode",
+}
+
 # Helper to create audit record
 def log_audit(session: Session, rate_id: int, user_id: int, field: str, old: str, new: str):
     audit = RateAudit(
@@ -27,26 +34,38 @@ def log_audit(session: Session, rate_id: int, user_id: int, field: str, old: str
     session.add(audit)
 
 def recalculate_affected_reports(part_number: str, session: Session):
-    """Finds all reports containing the part number and recalculates their metrics."""
-    # Find unique report IDs that have this part number
+    """Finds all reports containing the part number and recalculates their metrics.
+    Each report is processed in its own transaction for safety."""
     stmt = select(ReportEntry.report_id).where(ReportEntry.part_number == part_number).distinct()
     report_ids = session.exec(stmt).all()
-    
-    print(f"Retroactive Recalc: Triggered for Part {part_number}. Found {len(report_ids)} affected reports.")
-    
+
+    results = {"success": [], "failed": [], "total": len(report_ids)}
+    print(f"[RECALC] Part '{part_number}': {len(report_ids)} report(s) to process")
+
     for rid in report_ids:
         try:
             calculate_report_metrics_logic(rid, session)
+            session.commit()
+            results["success"].append(rid)
         except Exception as e:
-            print(f"Failed to recalculate report {rid}: {e}")
+            session.rollback()
+            results["failed"].append({"id": rid, "error": str(e)})
+            print(f"[RECALC] FAILED report {rid}: {e}")
+
+    ok = len(results['success'])
+    fail = len(results['failed'])
+    print(f"[RECALC] Complete for '{part_number}': {ok} OK, {fail} failed")
+    return results
 
 def run_recalc_background(part_number: str):
-    """Background task wrapper to ensure a dedicated session."""
+    """Background task wrapper with a dedicated session."""
     with Session(engine) as session:
         try:
-            recalculate_affected_reports(part_number, session)
+            results = recalculate_affected_reports(part_number, session)
+            if results["failed"]:
+                print(f"[RECALC] WARNING: {len(results['failed'])} report(s) failed for '{part_number}'")
         except Exception as e:
-            print(f"Background Recalc Error for Part {part_number}: {e}")
+            print(f"[RECALC] Background Error for Part '{part_number}': {e}")
 
 # CRUD endpoints
 @router.get("/", response_model=List[RateEntry])
@@ -81,9 +100,9 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
     
     old_part = db_rate.part_number
     
-    
-    # Simple field-by-field update with audit logging
-    user_id = 1  # Fix: Use ID 1 (Admin) instead of 0 to avoid FK violation
+    # Track which fields actually changed
+    changed_fields = set()
+    user_id = 1  # Admin user for audit
     try:
         for field in RateEntry.__fields__:
             if field == "id":
@@ -91,6 +110,7 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
             new_val = getattr(updated, field)
             old_val = getattr(db_rate, field)
             if new_val != old_val:
+                changed_fields.add(field)
                 log_audit(session, rate_id, user_id, field, str(old_val), str(new_val))
                 setattr(db_rate, field, new_val)
         session.add(db_rate)
@@ -102,13 +122,17 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
         
     session.refresh(db_rate)
     
-    # Trigger Recalc if relevant fields changed (Async)
-    impacted_parts = set()
-    if old_part: impacted_parts.add(old_part)
-    if db_rate.part_number: impacted_parts.add(db_rate.part_number)
-    
-    for p in impacted_parts:
-         background_tasks.add_task(run_recalc_background, p)
+    # Only trigger recalc if rate-impacting fields actually changed
+    rate_fields_changed = changed_fields & RATE_IMPACTING_FIELDS
+    if rate_fields_changed:
+        print(f"[RECALC] Rate {rate_id} update triggered by fields: {rate_fields_changed}")
+        impacted_parts = set()
+        if old_part: impacted_parts.add(old_part)
+        if db_rate.part_number: impacted_parts.add(db_rate.part_number)
+        for p in impacted_parts:
+            background_tasks.add_task(run_recalc_background, p)
+    else:
+        print(f"[RECALC] Rate {rate_id} update skipped recalc (non-impacting fields: {changed_fields})")
 
     return db_rate
 
