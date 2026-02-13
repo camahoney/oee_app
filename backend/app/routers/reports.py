@@ -43,11 +43,18 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
     
     contents = file.file.read()
     if file.filename.lower().endswith('.csv'):
-        try:
-            # utf-8-sig handles BOM if present, and plain utf-8 if not
+        # Auto-detect encoding from BOM bytes
+        if contents[:2] in (b'\xff\xfe', b'\xfe\xff'):
+            # UTF-16 LE or BE — decode first, then re-encode as UTF-8 for pandas
+            decoded = contents.decode('utf-16')
+            df = pd.read_csv(io.StringIO(decoded))
+        elif contents[:3] == b'\xef\xbb\xbf':
             df = pd.read_csv(io.BytesIO(contents), encoding='utf-8-sig')
-        except UnicodeDecodeError:
-            df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
+        else:
+            try:
+                df = pd.read_csv(io.BytesIO(contents), encoding='utf-8')
+            except UnicodeDecodeError:
+                df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
     else:
         df = pd.read_excel(io.BytesIO(contents))
         
