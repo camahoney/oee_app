@@ -413,7 +413,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
                     good_count=safe_int(row.get('good_count')),
                     reject_count=safe_int(row.get('reject_count')),
                     shift=safe_str(row.get('shift'), ''),
-                    raw_row_json=row.to_json(),
+                    raw_row_json=row.where(pd.notnull(row), None).to_json(),
                     downtime_events=safe_downtime_events(row.get('downtime_events'))
                 )
                  entries.append(entry)
@@ -427,7 +427,7 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         session.commit()
         # Return a simple preview of first few rows (DEPRECATED for frontend display, but kept for legacy compat)
         # Frontend should now use GET /reports/{id}/entries
-        preview = df.head().to_dict(orient="records")
+        preview = df.head().fillna("").to_dict(orient="records")
         return {"report_id": report.id, "preview": preview, "message": "Report uploaded. Review entries before calculation."}
         
     except HTTPException as he:
