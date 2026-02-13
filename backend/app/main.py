@@ -122,6 +122,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global exception handler — ensures we ALWAYS see the real error
+# (Without this, unhandled exceptions return bare "Internal Server Error" without CORS headers)
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
+import traceback as tb_module
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    error_traceback = tb_module.format_exc()
+    print(f"UNHANDLED EXCEPTION on {request.method} {request.url}:")
+    print(error_traceback)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": f"Server Error: {type(exc).__name__}: {str(exc)}",
+            "traceback": error_traceback
+        }
+    )
+
 # Include routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(rates.router, prefix="/rates", tags=["rates"])
