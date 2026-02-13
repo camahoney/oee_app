@@ -34,6 +34,21 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.2.0",
+        date: "2026-02-13",
+        description: (
+            <ul>
+                <li><strong>Dashboard Fix:</strong> Dashboard now finds the latest report with actual calculated metrics, preventing blank/zero displays.</li>
+                <li><strong>Recalculate Tool:</strong> Added /recalculate-all endpoint to fix any orphaned reports missing metrics.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 2,
+        icon: <RocketOutlined />,
+        color: "green",
+        tags: ["Feature", "Critical Fix"]
+    },
+    {
         version: "v1.1.5",
         date: "2026-02-13",
         description: "Patch: Enhanced upload robustness to handle empty/null downtime event data without crashing.",

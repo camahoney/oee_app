@@ -298,13 +298,23 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         if report and report.uploaded_at:
              current_report_date = report.uploaded_at.strftime("%Y-%m-%d")
     else:
-        # Default to Latest Report
-        latest_report = session.exec(select(ProductionReport).order_by(ProductionReport.uploaded_at.desc()).limit(1)).first()
-        if latest_report:
-            target_report_id = latest_report.id
+        # Default to Latest Report THAT HAS METRICS (v1.2.0 fix)
+        # Previously this used the absolute latest report, which would show 0 data
+        # if the user uploaded but didn't calculate metrics.
+        from sqlalchemy import func as sa_func
+        latest_with_metrics = session.exec(
+            select(Oeemetric.report_id)
+            .group_by(Oeemetric.report_id)
+            .order_by(sa_func.max(Oeemetric.id).desc())
+            .limit(1)
+        ).first()
+        
+        if latest_with_metrics:
+            target_report_id = latest_with_metrics
             stmt = stmt.where(Oeemetric.report_id == target_report_id)
-            if latest_report.uploaded_at:
-                 current_report_date = latest_report.uploaded_at.strftime("%Y-%m-%d")
+            report = session.get(ProductionReport, target_report_id)
+            if report and report.uploaded_at:
+                current_report_date = report.uploaded_at.strftime("%Y-%m-%d")
         else:
             return {
                 "oee": 0, "availability": 0, "performance": 0, "quality": 0,

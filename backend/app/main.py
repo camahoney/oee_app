@@ -187,3 +187,33 @@ async def fix_db():
     logs.append(run_migration("Add machine_cycle_time to rateentry", "ALTER TABLE rateentry ADD COLUMN machine_cycle_time FLOAT"))
 
     return {"status": "completed", "logs": logs}
+
+@app.get("/recalculate-all")
+async def recalculate_all_missing():
+    """Find all reports without metrics and calculate them."""
+    from sqlalchemy import func
+    from .routers.metrics import calculate_report_metrics_logic
+    from .db import ProductionReport, Oeemetric
+    
+    logs = []
+    with Session(engine) as session:
+        # Find report IDs that have entries but no metrics
+        all_report_ids = [r.id for r in session.exec(select(ProductionReport).order_by(ProductionReport.id)).all()]
+        
+        reports_with_metrics = set()
+        metric_report_ids = session.exec(
+            select(Oeemetric.report_id).group_by(Oeemetric.report_id)
+        ).all()
+        for rid in metric_report_ids:
+            reports_with_metrics.add(rid)
+        
+        missing = [rid for rid in all_report_ids if rid not in reports_with_metrics]
+        
+        for rid in missing:
+            try:
+                count, skipped, missing_rates = calculate_report_metrics_logic(rid, session)
+                logs.append(f"Report {rid}: Calculated {count} metrics ({skipped} missing rates)")
+            except Exception as e:
+                logs.append(f"Report {rid}: FAILED - {str(e)}")
+    
+    return {"status": "completed", "reports_fixed": len(missing), "logs": logs}
