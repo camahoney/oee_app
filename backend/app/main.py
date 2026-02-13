@@ -7,7 +7,7 @@ from .seeds import get_seed_rates, get_seed_users
 
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
 
-app = FastAPI(title="OEE Analytics API", version="0.1.0")
+app = FastAPI(title="OEE Analytics API", version="1.1.4")
 
 @app.on_event("startup")
 def on_startup():
