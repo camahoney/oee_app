@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic, Tag } from 'antd';
+import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic, Tag, Tooltip as AntTooltip } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { PrinterOutlined, DownloadOutlined, FilePdfOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -247,7 +247,7 @@ const AnalyticsContent: React.FC = () => {
                                                 title: (
                                                     <Space>
                                                         Downtime Pattern
-                                                        <Tooltip title={
+                                                        <AntTooltip title={
                                                             <div style={{ fontSize: '12px' }}>
                                                                 <div style={{ marginBottom: '4px' }}><Tag color="orange">Micro-stop</Tag> Avg &lt; 10 min</div>
                                                                 <div style={{ marginBottom: '4px' }}><Tag color="blue">Mixed</Tag> Avg 10-45 min</div>
@@ -255,17 +255,23 @@ const AnalyticsContent: React.FC = () => {
                                                             </div>
                                                         }>
                                                             <InfoCircleOutlined style={{ color: '#1890ff', cursor: 'pointer' }} />
-                                                        </Tooltip>
+                                                        </AntTooltip>
                                                     </Space>
                                                 ),
                                                 dataIndex: 'pattern',
                                                 key: 'pattern',
                                                 render: (val: string) => {
                                                     let color = 'default';
-                                                    if (val === 'Micro-stop driven') color = 'orange';
-                                                    if (val === 'Breakdown driven') color = 'red';
-                                                    if (val === 'Mixed') color = 'blue';
-                                                    return <Tag color={color}>{val}</Tag>;
+                                                    let desc = '';
+                                                    if (val === 'Micro-stop driven') { color = 'orange'; desc = 'Freq small stops (Avg < 10 min)'; }
+                                                    if (val === 'Breakdown driven') { color = 'red'; desc = 'Major failures (Avg > 45 min)'; }
+                                                    if (val === 'Mixed') { color = 'blue'; desc = 'Combination (Avg 10-45 min)'; }
+
+                                                    return (
+                                                        <AntTooltip title={desc}>
+                                                            <Tag color={color} style={{ cursor: 'help' }}>{val}</Tag>
+                                                        </AntTooltip>
+                                                    );
                                                 }
                                             }
                                         ]}
