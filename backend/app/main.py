@@ -161,40 +161,29 @@ async def debug_db():
 async def fix_db():
     from sqlalchemy import text
     logs = []
-    try:
-        with Session(engine) as session:
-            # Fix ReportEntry
-            try:
-                session.exec(text("ALTER TABLE reportentry ADD COLUMN downtime_events TEXT"))
-                session.commit()
-                logs.append("Added downtime_events to reportentry")
-            except Exception as e:
-                logs.append(f"ReportEntry fix skipped/failed: {e}")
-            
-            # Fix OeeMetric
-            try:
-                session.exec(text("ALTER TABLE oeemetric ADD COLUMN diagnostics_json TEXT"))
-                session.commit()
-                logs.append("Added diagnostics_json to oeemetric")
-            except Exception as e:
-                logs.append(f"OeeMetric fix skipped/failed: {e}")
 
-            # Fix RateEntry
-            try:
-                session.exec(text("ALTER TABLE rateentry ADD COLUMN cavity_count INTEGER DEFAULT 1"))
+    def run_migration(name, sql):
+        try:
+            # Open a NEW session for each command to isolate transactions
+            with Session(engine) as session:
+                session.exec(text(sql))
                 session.commit()
-                logs.append("Added cavity_count to rateentry")
-            except Exception as e:
-                 logs.append(f"RateEntry cavity_count fix skipped/failed: {e}")
-                 
-            try:
-                session.exec(text("ALTER TABLE rateentry ADD COLUMN entry_mode VARCHAR DEFAULT 'seconds'"))
-                session.commit()
-                logs.append("Added entry_mode to rateentry")
-            except Exception as e:
-                 logs.append(f"RateEntry entry_mode fix skipped/failed: {e}")
+            return f"SUCCESS: {name}"
+        except Exception as e:
+            err_str = str(e).lower()
+            if "already exists" in err_str or "duplicate column" in err_str:
+                return f"SKIPPED: {name} (Already exists)"
+            return f"FAILED: {name} - {str(e)}"
 
-    except Exception as e:
-        return {"status": "error", "error": str(e), "logs": logs}
-    
-    return {"status": "success", "logs": logs}
+    # 1. ReportEntry
+    logs.append(run_migration("Add downtime_events to reportentry", "ALTER TABLE reportentry ADD COLUMN downtime_events TEXT"))
+
+    # 2. OeeMetric
+    logs.append(run_migration("Add diagnostics_json to oeemetric", "ALTER TABLE oeemetric ADD COLUMN diagnostics_json TEXT"))
+
+    # 3. RateEntry
+    logs.append(run_migration("Add cavity_count to rateentry", "ALTER TABLE rateentry ADD COLUMN cavity_count INTEGER DEFAULT 1"))
+    logs.append(run_migration("Add entry_mode to rateentry", "ALTER TABLE rateentry ADD COLUMN entry_mode VARCHAR DEFAULT 'seconds'"))
+    logs.append(run_migration("Add machine_cycle_time to rateentry", "ALTER TABLE rateentry ADD COLUMN machine_cycle_time FLOAT"))
+
+    return {"status": "completed", "logs": logs}
