@@ -334,31 +334,89 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         
         # Insert each row as ReportEntry
         entries = []
+        
+        def safe_int(val, default=0):
+            """Convert to int safely, handling NaN, None, float, str."""
+            if val is None:
+                return default
+            try:
+                if isinstance(val, float) and (pd.isna(val) or val != val):
+                    return default
+                return int(float(val))
+            except (ValueError, TypeError):
+                return default
+        
+        def safe_float(val, default=0.0):
+            """Convert to float safely, handling NaN, None, str."""
+            if val is None:
+                return default
+            try:
+                result = float(val)
+                if pd.isna(result) or result != result:
+                    return default
+                return result
+            except (ValueError, TypeError):
+                return default
+        
+        def safe_downtime_events(val):
+            """Handle downtime_events: could be list, dict, JSON string, NaN, or None."""
+            if val is None:
+                return None
+            if isinstance(val, (list, dict)):
+                import json
+                return json.dumps(val)
+            if isinstance(val, str) and val.strip():
+                return val
+            # Check for NaN (scalar only)
+            try:
+                if pd.isna(val):
+                    return None
+            except (ValueError, TypeError):
+                # pd.isna fails on non-scalar — if it's truthy, stringify it
+                if val:
+                    import json
+                    return json.dumps(val) if not isinstance(val, str) else val
+            return None
+        
+        def safe_str(val, default=''):
+            """Convert to str safely, turning NaN/None into default."""
+            if val is None:
+                return default
+            try:
+                if isinstance(val, float) and pd.isna(val):
+                    return default
+            except (ValueError, TypeError):
+                pass
+            s = str(val).strip()
+            if s.lower() == 'nan':
+                return default
+            return s
+        
         for _, row in df.iterrows():
             try:
                  entry = ReportEntry(
                     report_id=report.id,
                     date=parse_date(row['date']),
-                    operator=str(row.get('operator', 'Unknown')),
-                    machine=str(row.get('machine', 'Unknown')),
-                    part_number=str(row.get('part_number', 'Unknown')),
-                    job=str(row.get('job', '')),
-                    planned_production_time_min=float(row.get('planned_production_time_min', 0)),
-                    run_time_min=float(row.get('run_time_min', 0)),
-                    downtime_min=float(row.get('downtime_min', 0)),
-                    total_count=int(row.get('total_count', 0)),
-                    good_count=int(row.get('good_count', 0)),
-                    reject_count=int(row.get('reject_count', 0)),
-                    shift=str(row.get('shift', '')),
+                    operator=safe_str(row.get('operator'), 'Unknown'),
+                    machine=safe_str(row.get('machine'), 'Unknown'),
+                    part_number=safe_str(row.get('part_number'), 'Unknown'),
+                    job=safe_str(row.get('job'), ''),
+                    planned_production_time_min=safe_float(row.get('planned_production_time_min')),
+                    run_time_min=safe_float(row.get('run_time_min')),
+                    downtime_min=safe_float(row.get('downtime_min')),
+                    total_count=safe_int(row.get('total_count')),
+                    good_count=safe_int(row.get('good_count')),
+                    reject_count=safe_int(row.get('reject_count')),
+                    shift=safe_str(row.get('shift'), ''),
                     raw_row_json=row.to_json(),
-                    downtime_events=row.get('downtime_events') if not pd.isna(row.get('downtime_events')) else None
+                    downtime_events=safe_downtime_events(row.get('downtime_events'))
                 )
                  entries.append(entry)
             except Exception as e:
                 import traceback
                 traceback.print_exc()
                 # Stop immediately and report the error so fixing is enforced
-                raise HTTPException(status_code=500, detail=f"Failed to process row {row}: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to process row {row.to_dict()}: {str(e)}")
                 
         session.bulk_save_objects(entries)
         session.commit()
