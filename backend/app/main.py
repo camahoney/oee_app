@@ -61,10 +61,37 @@ def on_startup():
             if "is_pro" not in cols:
                 print("Migrating User: Adding 'is_pro'...")
                 with Session(engine) as session:
-                    session.exec(text("ALTER TABLE \"user\" ADD COLUMN is_pro BOOLEAN DEFAULT FALSE"))
+                    session.exec(text("ALTER TABLE \"user\" ADD COLUMN is_pro BOOLEAN DEFAULT 0"))
                     session.commit()
     except Exception as e:
         print(f"User Migration check failed: {e}")
+
+    # Schema Migration Check for "ReportEntry" (downtime_events)
+    try:
+        insp = inspect(engine)
+        if insp.has_table("reportentry"):
+            cols = [c["name"] for c in insp.get_columns("reportentry")]
+            if "downtime_events" not in cols:
+                print("Migrating ReportEntry: Adding 'downtime_events'...")
+                with Session(engine) as session:
+                    # SQLite TEXT fits JSON string
+                    session.exec(text("ALTER TABLE reportentry ADD COLUMN downtime_events TEXT"))
+                    session.commit()
+    except Exception as e:
+        print(f"ReportEntry Migration check failed: {e}")
+
+    # Schema Migration Check for "OeeMetric" (diagnostics_json)
+    try:
+        insp = inspect(engine)
+        if insp.has_table("oeemetric"):
+            cols = [c["name"] for c in insp.get_columns("oeemetric")]
+            if "diagnostics_json" not in cols:
+                print("Migrating OeeMetric: Adding 'diagnostics_json'...")
+                with Session(engine) as session:
+                    session.exec(text("ALTER TABLE oeemetric ADD COLUMN diagnostics_json TEXT"))
+                    session.commit()
+    except Exception as e:
+        print(f"OeeMetric Migration check failed: {e}")
 
     create_db_and_tables()
 
