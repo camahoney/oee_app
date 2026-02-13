@@ -34,6 +34,16 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.1.5",
+        date: "2026-02-13",
+        description: "Patch: Enhanced upload robustness to handle empty/null downtime event data without crashing.",
+        author: "Dev Team",
+        hours: 1,
+        icon: <BugOutlined />,
+        color: "red",
+        tags: ["Hotfix", "Backend"]
+    },
+    {
         version: "v1.1.4",
         date: "2026-02-13",
         description: (
