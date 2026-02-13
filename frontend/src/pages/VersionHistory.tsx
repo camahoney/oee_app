@@ -41,6 +41,8 @@ const HISTORY_DATA: VersionEntry[] = [
                 <li><strong>Parts Lost (Est):</strong> New metric to quantify lost production opportunity (Downtime / Cycle Time).</li>
                 <li><strong>Interactive Breakdown:</strong> Expandable table rows to view detailed logs of every downtime event per machine.</li>
                 <li><strong>Contextual Tooltips:</strong> Added hover explanations for Downtime Patterns (Micro-stop vs Breakdown).</li>
+                <li><strong>Quality Personnel Removal:</strong> Excluded specific operators (Shirley Brown, Ison Elliot) from leaderboards as they are quality personnel, not machine operators.</li>
+                <li><strong>Downtime Configuration:</strong> Added "High Downtime Threshold" setting to the Settings page.</li>
             </ul>
         ),
         author: "Dev Team",
