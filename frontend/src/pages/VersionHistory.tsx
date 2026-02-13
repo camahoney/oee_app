@@ -34,6 +34,22 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.1.4",
+        date: "2026-02-13",
+        description: (
+            <ul>
+                <li><strong>Critical Fix:</strong> Resolved upload errors by repairing missing database columns (`downtime_events`).</li>
+                <li><strong>System Maintenance:</strong> Added "Fix Database" and "Debug Database" tools to the Settings page for self-healing capabilities.</li>
+                <li><strong>Transaction Safety:</strong> Improved database migration logic to handle partial updates without crashing.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 2,
+        icon: <BugOutlined />,
+        color: "red",
+        tags: ["Hotfix", "Stability"]
+    },
+    {
         version: "v1.1.1",
         date: "2026-02-12",
         description: (
