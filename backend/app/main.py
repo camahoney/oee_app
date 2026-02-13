@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from .database import create_db_and_tables, engine
@@ -217,3 +217,43 @@ async def recalculate_all_missing():
                 logs.append(f"Report {rid}: FAILED - {str(e)}")
     
     return {"status": "completed", "reports_fixed": len(missing), "logs": logs}
+
+@app.post("/debug-upload")
+async def debug_upload(file: UploadFile = File(...)):
+    """Debug endpoint: tries the full upload pipeline and returns the exact error."""
+    import traceback
+    from fastapi import UploadFile, File
+    try:
+        contents = file.file.read()
+        info = {
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "size_bytes": len(contents),
+            "first_100_chars": contents[:100].decode("utf-8", errors="replace"),
+        }
+        
+        # Try parsing
+        import pandas as pd
+        import io
+        if file.filename and file.filename.lower().endswith('.csv'):
+            try:
+                df = pd.read_csv(io.BytesIO(contents), encoding='utf-8-sig')
+            except UnicodeDecodeError:
+                df = pd.read_csv(io.BytesIO(contents), encoding='cp1252')
+        else:
+            df = pd.read_excel(io.BytesIO(contents))
+        
+        info["columns"] = df.columns.tolist()
+        info["shape"] = list(df.shape)
+        info["dtypes"] = {col: str(dtype) for col, dtype in df.dtypes.items()}
+        info["head"] = df.head(3).to_dict(orient="records")
+        info["status"] = "PARSE_OK"
+        
+        return info
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc()
+        }
