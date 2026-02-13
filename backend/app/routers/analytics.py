@@ -9,8 +9,8 @@ from ..database import get_session
 router = APIRouter(tags=["analytics"])
 
 EXCLUDED_OPERATORS = [
-    "Shirley Brown", "Brown Shirley", 
-    "Ison Elliot", "Elliot Ison"
+    "Shirley Brown", "Brown Shirley", "Brown,Shirley",
+    "Ison Elliot", "Elliot Ison", "Ison,Elliot"
 ]
 
 @router.get("/compare", response_model=List[Dict[str, Any]])
