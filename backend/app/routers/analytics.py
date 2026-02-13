@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import or_
 from sqlmodel import Session, select, func
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
@@ -19,6 +20,7 @@ def compare_metrics(
     limit: int = 100,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    shifts: Optional[List[str]] = Query(None),
     session: Session = Depends(get_session)
 ):
     """
@@ -31,6 +33,8 @@ def compare_metrics(
         stmt = stmt.where(Oeemetric.date >= start_date)
     if end_date:
         stmt = stmt.where(Oeemetric.date <= end_date)
+    if shifts:
+        stmt = stmt.where(Oeemetric.shift.in_(shifts))
         
     met_list = session.exec(stmt).all()
     
@@ -111,6 +115,7 @@ def quality_analysis(
     limit: int = 10, 
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    shifts: Optional[List[str]] = Query(None),
     session: Session = Depends(get_session)
 ):
     """
@@ -122,6 +127,8 @@ def quality_analysis(
         stmt = stmt.where(Oeemetric.date >= start_date)
     if end_date:
         stmt = stmt.where(Oeemetric.date <= end_date)
+    if shifts:
+        stmt = stmt.where(Oeemetric.shift.in_(shifts))
         
     metrics = session.exec(stmt).all()
     
@@ -169,6 +176,7 @@ def downtime_analysis(
     limit: int = 10,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    shifts: Optional[List[str]] = Query(None),
     session: Session = Depends(get_session)
 ):
     """
@@ -180,6 +188,8 @@ def downtime_analysis(
         stmt = stmt.where(Oeemetric.date >= start_date)
     if end_date:
         stmt = stmt.where(Oeemetric.date <= end_date)
+    if shifts:
+        stmt = stmt.where(Oeemetric.shift.in_(shifts))
         
     metrics = session.exec(stmt).all()
     

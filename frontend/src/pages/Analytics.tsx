@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Typography, Select, Table, Tabs, Spin, Alert, Empty, DatePicker, Button, Space, message, Modal, Divider, Statistic, Tag, Tooltip as AntTooltip } from 'antd';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { PrinterOutlined, DownloadOutlined, FilePdfOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { PrinterOutlined, DownloadOutlined, FilePdfOutlined, InfoCircleOutlined, FilterOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { analyticsService } from '../services/api';
 
@@ -52,13 +52,14 @@ const AnalyticsContent: React.FC = () => {
     const [partData, setPartData] = useState<any[]>([]);
     const [downtimeData, setDowntimeData] = useState<any[]>([]);
     const [dateRange, setDateRange] = useState<any>([dayjs().subtract(30, 'days'), dayjs()]);
+    const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
 
     // Report Modal
     const [isReportOpen, setIsReportOpen] = useState(false);
 
     useEffect(() => {
         fetchAllData();
-    }, [dateRange]);
+    }, [dateRange, selectedShifts]);
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -67,12 +68,13 @@ const AnalyticsContent: React.FC = () => {
         const endDate = (dateRange && dateRange[1]) ? dateRange[1].format('YYYY-MM-DD') : undefined;
 
         try {
+            const shiftsParam = selectedShifts.length > 0 ? selectedShifts : undefined;
             // Parallelize requests for speed, but catch individually to avoid full failure
             const [shifts, quality, parts, downtime] = await Promise.allSettled([
-                analyticsService.getComparison('shift', startDate, endDate),
-                analyticsService.getQualityAnalysis(10, startDate, endDate),
-                analyticsService.getComparison('part', startDate, endDate),
-                analyticsService.getDowntimeAnalysis(10, startDate, endDate)
+                analyticsService.getComparison('shift', startDate, endDate, shiftsParam),
+                analyticsService.getQualityAnalysis(10, startDate, endDate, shiftsParam),
+                analyticsService.getComparison('part', startDate, endDate, shiftsParam),
+                analyticsService.getDowntimeAnalysis(10, startDate, endDate, shiftsParam)
             ]);
 
             if (shifts.status === 'fulfilled') setShiftData(Array.isArray(shifts.value) ? shifts.value : []);
@@ -163,11 +165,26 @@ const AnalyticsContent: React.FC = () => {
                     <Title level={2} style={{ color: BRAND_BLUE, marginBottom: 0 }}>Advanced Analytics</Title>
                     <Text type="secondary">Deep dive into production trends, downtime, and quality issues.</Text>
                 </div>
-                <Space>
+                <Space wrap>
                     <RangePicker
                         value={dateRange}
                         onChange={(dates) => setDateRange(dates)}
                         style={{ width: 260 }}
+                    />
+                    <Select
+                        mode="multiple"
+                        allowClear
+                        placeholder="All Shifts"
+                        value={selectedShifts}
+                        onChange={(vals: string[]) => setSelectedShifts(vals)}
+                        style={{ minWidth: 180 }}
+                        suffixIcon={<FilterOutlined />}
+                        maxTagCount="responsive"
+                        options={[
+                            { label: 'Shift 1', value: '1' },
+                            { label: 'Shift 2', value: '2' },
+                            { label: 'Shift 3', value: '3' },
+                        ]}
                     />
                     <Button
                         type="primary"

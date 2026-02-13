@@ -176,32 +176,35 @@ export const settingsService = {
 };
 
 export const analyticsService = {
-    getComparison: async (groupBy: string = 'shift', startDate?: string, endDate?: string) => {
+    getComparison: async (groupBy: string = 'shift', startDate?: string, endDate?: string, shifts?: string[]) => {
         const response = await axios.get(`${API_URL}/analytics/compare`, {
             params: {
                 group_by: groupBy,
                 start_date: startDate,
-                end_date: endDate
+                end_date: endDate,
+                shifts: shifts && shifts.length > 0 ? shifts : undefined
             }
         });
         return response.data;
     },
-    getQualityAnalysis: async (limit: number = 10, startDate?: string, endDate?: string) => {
+    getQualityAnalysis: async (limit: number = 10, startDate?: string, endDate?: string, shifts?: string[]) => {
         const response = await axios.get(`${API_URL}/analytics/quality`, {
             params: {
                 limit,
                 start_date: startDate,
-                end_date: endDate
+                end_date: endDate,
+                shifts: shifts && shifts.length > 0 ? shifts : undefined
             }
         });
         return response.data;
     },
-    getDowntimeAnalysis: async (limit: number = 10, startDate?: string, endDate?: string) => {
+    getDowntimeAnalysis: async (limit: number = 10, startDate?: string, endDate?: string, shifts?: string[]) => {
         const response = await axios.get(`${API_URL}/analytics/downtime`, {
             params: {
                 limit,
                 start_date: startDate,
-                end_date: endDate
+                end_date: endDate,
+                shifts: shifts && shifts.length > 0 ? shifts : undefined
             }
         });
         return response.data;
