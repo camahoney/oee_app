@@ -12,7 +12,8 @@ from ..database import get_session
 router = APIRouter()
 
 # Security settings (for demo purposes)
-SECRET_KEY = "supersecretkey"
+import os
+SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey-dev-only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 

@@ -1,13 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, date
 
 from ..db import (
-    RateEntry,
-    ReportEntry,
-    Oeemetric,
-    ProductionReport,
     RateEntry,
     ReportEntry,
     Oeemetric,
