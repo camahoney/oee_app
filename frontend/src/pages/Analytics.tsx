@@ -149,7 +149,7 @@ const AnalyticsContent: React.FC = () => {
         ? (shiftData.reduce((acc, item) => acc + (item.oee || 0), 0) / shiftData.length) * 100
         : 0;
 
-    const totalDowntime = downtimeData.reduce((acc: number, item: any) => acc + (item.duration || 0), 0);
+    const totalDowntime = downtimeData.reduce((acc: number, item: any) => acc + (item.total_downtime || 0), 0);
 
     // Calculate generic reject rate (1 - Avg Quality)
     const rejectRate = shiftData.length > 0

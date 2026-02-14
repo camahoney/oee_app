@@ -168,7 +168,6 @@ def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks
         "PartNumber": "part_number",
         "Workstation": "machine",
         "StandardRatePPH": "ideal_units_per_hour",
-        "StandardRatePPH": "ideal_units_per_hour",
         "IdealCycleTimeSeconds": "ideal_cycle_time_seconds",
         "Cavities": "cavity_count",
         "EntryMode": "entry_mode",

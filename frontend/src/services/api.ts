@@ -133,7 +133,7 @@ export const reportService = {
         return response.data;
     },
     deleteReport: async (reportId: number) => {
-        await axios.delete(`${API_URL}/reports/${reportId}`);
+        await api.delete(`/reports/${reportId}`);
     },
     getReportEntries: async (reportId: number) => {
         const response = await api.get(`/reports/${reportId}/entries`);
@@ -177,7 +177,7 @@ export const settingsService = {
 
 export const analyticsService = {
     getComparison: async (groupBy: string = 'shift', startDate?: string, endDate?: string, shifts?: string[]) => {
-        const response = await axios.get(`${API_URL}/analytics/compare`, {
+        const response = await api.get('/analytics/compare', {
             params: {
                 group_by: groupBy,
                 start_date: startDate,
@@ -188,7 +188,7 @@ export const analyticsService = {
         return response.data;
     },
     getQualityAnalysis: async (limit: number = 10, startDate?: string, endDate?: string, shifts?: string[]) => {
-        const response = await axios.get(`${API_URL}/analytics/quality`, {
+        const response = await api.get('/analytics/quality', {
             params: {
                 limit,
                 start_date: startDate,
@@ -199,7 +199,7 @@ export const analyticsService = {
         return response.data;
     },
     getDowntimeAnalysis: async (limit: number = 10, startDate?: string, endDate?: string, shifts?: string[]) => {
-        const response = await axios.get(`${API_URL}/analytics/downtime`, {
+        const response = await api.get('/analytics/downtime', {
             params: {
                 limit,
                 start_date: startDate,
@@ -210,11 +210,11 @@ export const analyticsService = {
         return response.data;
     },
     getHistory: async (params: { operator?: string, part_number?: string, start_date?: string, end_date?: string, limit?: number }) => {
-        const response = await axios.get(`${API_URL}/analytics/history`, { params });
+        const response = await api.get('/analytics/history', { params });
         return response.data;
     },
     getPartPerformance: async (partNumber: string, startDate?: string, endDate?: string) => {
-        const response = await axios.get(`${API_URL}/analytics/part-performance`, {
+        const response = await api.get('/analytics/part-performance', {
             params: {
                 part_number: partNumber,
                 start_date: startDate,
@@ -224,7 +224,7 @@ export const analyticsService = {
         return response.data;
     },
     getOperatorBreakdown: async (operator: string, startDate?: string, endDate?: string) => {
-        const response = await axios.get(`${API_URL}/analytics/operator-breakdown`, {
+        const response = await api.get('/analytics/operator-breakdown', {
             params: {
                 operator,
                 start_date: startDate,
@@ -234,7 +234,7 @@ export const analyticsService = {
         return response.data;
     },
     getWeeklySummary: async (startDate: string, endDate: string, shift: string = 'All') => {
-        const response = await axios.get(`${API_URL}/weekly/summary`, {
+        const response = await api.get('/weekly/summary', {
             params: {
                 start_date: startDate,
                 end_date: endDate,

@@ -437,8 +437,6 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
-    return report
-
 @router.get("/{report_id}/entries", response_model=List[ReportEntry])
 def get_report_entries(report_id: int, session: Session = Depends(get_session)):
     """Fetch all entries for a report to allow editing/review."""
@@ -542,9 +540,6 @@ def delete_report(report_id: int, session: Session = Depends(get_session)):
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
         
-    # Cascade delete is handled by database usually, but explicit here for safety if not set up
-    session.exec(select(Oeemetric).where(Oeemetric.report_id == report_id)).all()
-
     try:
         from sqlmodel import delete
         session.exec(delete(Oeemetric).where(Oeemetric.report_id == report_id))
@@ -571,6 +566,9 @@ def export_report(
         .outerjoin(Oeemetric, (Oeemetric.report_id == ReportEntry.report_id) & 
                               (Oeemetric.part_number == ReportEntry.part_number) & 
                               (Oeemetric.machine == ReportEntry.machine) &
+                              (Oeemetric.operator == ReportEntry.operator) &
+                              (Oeemetric.date == ReportEntry.date) &
+                              (Oeemetric.job == ReportEntry.job) &
                               (Oeemetric.shift == ReportEntry.shift))
         .where(ReportEntry.report_id == report_id)
     ).all()
@@ -583,13 +581,21 @@ def export_report(
     for entry, metric in results:
         row = entry.dict()
         if metric:
+            # Parse target_count from diagnostics_json (not a DB column)
+            target_count = None
+            if metric.diagnostics_json:
+                try:
+                    import json
+                    diag = json.loads(metric.diagnostics_json)
+                    target_count = diag.get("target_count")
+                except:
+                    pass
             row.update({
                 "oee": metric.oee,
                 "availability": metric.availability,
                 "performance": metric.performance,
                 "quality": metric.quality,
-                "target_count": metric.target_count,
-                 # "diagnostics": metric.diagnostics_json # Optional: exclude or parse
+                "target_count": target_count,
             })
         data_rows.append(row)
 
