@@ -97,10 +97,6 @@ def on_startup():
     try:
         insp = inspect(engine)
         
-    # Schema Migration Check for "RunMode" (Table and Columns)
-    try:
-        insp = inspect(engine)
-        
         # 0. Ensure Tables Exist (SQLModel's create_all handles dialects provided)
         # This will create 'runmode' table if missing.
         create_db_and_tables()
