@@ -14,3 +14,11 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+test_output.txt
