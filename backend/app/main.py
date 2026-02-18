@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from .database import create_db_and_tables, engine
-from .db import RateEntry, User
+from .db import RateEntry, User, RunMode
 from .seeds import get_seed_rates, get_seed_users
 
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
@@ -92,6 +92,57 @@ def on_startup():
                     session.commit()
     except Exception as e:
         print(f"OeeMetric Migration check failed: {e}")
+
+    # Schema Migration Check for "RunMode" (Table and Columns)
+    try:
+        insp = inspect(engine)
+        
+        # 1. Create Table if missing
+        if not insp.has_table("runmode"):
+            print("Migrating: Creating 'runmode' table...")
+            with Session(engine) as session:
+                session.exec(text("""
+                    CREATE TABLE IF NOT EXISTS runmode (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name VARCHAR NOT NULL UNIQUE,
+                        description VARCHAR,
+                        active BOOLEAN DEFAULT 1
+                    )
+                """))
+                
+                # Seed Initial Modes immediately
+                modes = [
+                    {"name": "STANDARD", "description": "Standard Operation"},
+                    {"name": "COMBO_1OP_2PRESS", "description": "1 Operator running 2 Presses"},
+                    {"name": "COMBO_1OP_3PRESS", "description": "1 Operator running 3 Presses"},
+                    {"name": "TEAM_2OP_4MOLDS", "description": "2 Operators running 4 Molds"},
+                ]
+                for m in modes:
+                    session.exec(text(f"INSERT OR IGNORE INTO runmode (name, description, active) VALUES ('{m['name']}', '{m['description']}', 1)"))
+                session.commit()
+                print("RunMode table created and seeded.")
+
+        # 2. Add run_mode_id to RateEntry
+        if insp.has_table("rateentry"):
+            cols = [c["name"] for c in insp.get_columns("rateentry")]
+            if "run_mode_id" not in cols:
+                print("Migrating RateEntry: Adding 'run_mode_id'...")
+                with Session(engine) as session:
+                    session.exec(text("ALTER TABLE rateentry ADD COLUMN run_mode_id INTEGER DEFAULT 1 REFERENCES runmode(id)"))
+                    session.commit()
+
+        # 3. Add run_mode_id to ReportEntry
+        if insp.has_table("reportentry"):
+            cols = [c["name"] for c in insp.get_columns("reportentry")]
+            if "run_mode_id" not in cols:
+                print("Migrating ReportEntry: Adding 'run_mode_id'...")
+                with Session(engine) as session:
+                    session.exec(text("ALTER TABLE reportentry ADD COLUMN run_mode_id INTEGER DEFAULT 1 REFERENCES runmode(id)"))
+                    session.commit()
+
+    except Exception as e:
+        print(f"RunMode Migration check failed: {e}")
+
 
     create_db_and_tables()
 
