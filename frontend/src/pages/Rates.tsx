@@ -39,16 +39,8 @@ const Rates: React.FC = () => {
 
     const fetchRunModes = async () => {
         try {
-            // We can use the generic api service or add a method.
-            // Assuming rateService has a generic request or we add it safely.
-            // Since we didn't update api.ts yet, let's use a direct fetch pattern or assume extension.
-            // Let's assume we need to update api.ts properly, but for now we'll do a direct fetch using the same base.
-            // actually, let's update api.ts next. For now, we will add the UI logic assuming data availability.
-            const response = await fetch('http://localhost:8000/rates/run-modes');
-            if (response.ok) {
-                const data = await response.json();
-                setRunModes(data);
-            }
+            const data = await rateService.getRunModes();
+            setRunModes(data);
         } catch (e) {
             console.error("Failed to load run modes", e);
         }

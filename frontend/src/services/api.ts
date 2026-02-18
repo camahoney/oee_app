@@ -91,6 +91,10 @@ export const rateService = {
         });
         return response.data;
     },
+    getRunModes: async () => {
+        const response = await api.get('/rates/run-modes');
+        return response.data;
+    },
 };
 
 export const reportService = {
