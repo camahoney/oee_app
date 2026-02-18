@@ -97,30 +97,41 @@ def on_startup():
     try:
         insp = inspect(engine)
         
-        # 1. Create Table if missing
-        if not insp.has_table("runmode"):
-            print("Migrating: Creating 'runmode' table...")
-            with Session(engine) as session:
-                session.exec(text("""
-                    CREATE TABLE IF NOT EXISTS runmode (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name VARCHAR NOT NULL UNIQUE,
-                        description VARCHAR,
-                        active BOOLEAN DEFAULT 1
-                    )
-                """))
-                
-                # Seed Initial Modes immediately
-                modes = [
-                    {"name": "STANDARD", "description": "Standard Operation"},
-                    {"name": "COMBO_1OP_2PRESS", "description": "1 Operator running 2 Presses"},
-                    {"name": "COMBO_1OP_3PRESS", "description": "1 Operator running 3 Presses"},
-                    {"name": "TEAM_2OP_4MOLDS", "description": "2 Operators running 4 Molds"},
-                ]
-                for m in modes:
-                    session.exec(text(f"INSERT OR IGNORE INTO runmode (name, description, active) VALUES ('{m['name']}', '{m['description']}', 1)"))
-                session.commit()
-                print("RunMode table created and seeded.")
+    # Schema Migration Check for "RunMode" (Table and Columns)
+    try:
+        insp = inspect(engine)
+        
+        # 0. Ensure Tables Exist (SQLModel's create_all handles dialects provided)
+        # This will create 'runmode' table if missing.
+        create_db_and_tables()
+
+        # 1. Ensure Data Exists (Idempotent Seed)
+        with Session(engine) as session:
+            # Check for STANDARD mode by Name first
+            std_mode = session.exec(select(RunMode).where(RunMode.name == "STANDARD")).first()
+            if not std_mode:
+                 # Insert Standard Mode. We want it to be likely ID 1 if possible, but mainly it must exist.
+                 # If we are the first insert into a new table, it will be 1 (or close).
+                 # If we really needed ID 1, we could try force it: session.add(RunMode(id=1, ...))
+                 # But postgres SERIAL logic might not like explicit ID insert unless properly handled.
+                 # Let's trust standard insert order for an empty table.
+                 print("Seeding RunMode: STANDARD")
+                 session.add(RunMode(name="STANDARD", description="Standard Operation", active=True))
+                 
+            # Check other modes
+            modes = [
+                {"name": "COMBO_1OP_2PRESS", "description": "1 Operator running 2 Presses"},
+                {"name": "COMBO_1OP_3PRESS", "description": "1 Operator running 3 Presses"},
+                {"name": "TEAM_2OP_4MOLDS", "description": "2 Operators running 4 Molds"},
+            ]
+            for m in modes:
+                if not session.exec(select(RunMode).where(RunMode.name == m["name"])).first():
+                    session.add(RunMode(**m))
+            session.commit()
+            
+            # Re-fetch Standard Mode to get its ID for the Default Value
+            std_mode = session.exec(select(RunMode).where(RunMode.name == "STANDARD")).first()
+            std_id = std_mode.id if std_mode else 1 # Fallback to 1 if something weird happened
 
         # 2. Add run_mode_id to RateEntry
         if insp.has_table("rateentry"):
@@ -128,7 +139,8 @@ def on_startup():
             if "run_mode_id" not in cols:
                 print("Migrating RateEntry: Adding 'run_mode_id'...")
                 with Session(engine) as session:
-                    session.exec(text("ALTER TABLE rateentry ADD COLUMN run_mode_id INTEGER DEFAULT 1 REFERENCES runmode(id)"))
+                    # Use std_id for default
+                    session.exec(text(f"ALTER TABLE rateentry ADD COLUMN run_mode_id INTEGER DEFAULT {std_id} REFERENCES runmode(id)"))
                     session.commit()
 
         # 3. Add run_mode_id to ReportEntry
@@ -137,14 +149,14 @@ def on_startup():
             if "run_mode_id" not in cols:
                 print("Migrating ReportEntry: Adding 'run_mode_id'...")
                 with Session(engine) as session:
-                    session.exec(text("ALTER TABLE reportentry ADD COLUMN run_mode_id INTEGER DEFAULT 1 REFERENCES runmode(id)"))
+                    session.exec(text(f"ALTER TABLE reportentry ADD COLUMN run_mode_id INTEGER DEFAULT {std_id} REFERENCES runmode(id)"))
                     session.commit()
+
+
 
     except Exception as e:
         print(f"RunMode Migration check failed: {e}")
 
-
-    create_db_and_tables()
 
     # Seed data if empty
     with Session(engine) as session:
