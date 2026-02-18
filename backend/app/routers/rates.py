@@ -5,12 +5,13 @@ import pandas as pd
 import io
 from datetime import datetime
 
-from ..db import RateEntry, RateAudit, ReportEntry
+from ..db import RateEntry, RateAudit, ReportEntry, RunMode
 from ..database import get_session, engine
 # Import calculation logic (deferred import or direct if safe)
 # Since metrics imports from .db and .database, and rates does too, we can try direct import.
 # Note: routers/metrics.py is a sibling.
 from .metrics import calculate_report_metrics_logic
+
 
 router = APIRouter()
 
@@ -18,8 +19,9 @@ router = APIRouter()
 RATE_IMPACTING_FIELDS = {
     "ideal_units_per_hour", "ideal_cycle_time_seconds",
     "machine_cycle_time", "cavity_count", "part_number",
-    "machine", "active", "entry_mode",
+    "machine", "active", "entry_mode", "run_mode_id"
 }
+
 
 # Helper to create audit record
 def log_audit(session: Session, rate_id: int, user_id: int, field: str, old: str, new: str):
@@ -73,6 +75,10 @@ def list_rates(skip: int = 0, limit: int = 100, session: Session = Depends(get_s
     rates = session.exec(select(RateEntry).order_by(RateEntry.id.desc()).offset(skip).limit(limit)).all()
     return rates
 
+@router.get("/run-modes", response_model=List[RunMode])
+def list_run_modes(session: Session = Depends(get_session)):
+    return session.exec(select(RunMode).where(RunMode.active == True)).all()
+
 @router.get("/{rate_id}", response_model=RateEntry)
 def get_rate(rate_id: int, session: Session = Depends(get_session)):
     rate = session.get(RateEntry, rate_id)
@@ -80,10 +86,22 @@ def get_rate(rate_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Rate not found")
     return rate
 
+
 @router.post("/", response_model=RateEntry, status_code=status.HTTP_201_CREATED)
 def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
+    # Manual conversion if Pydantic fails to cast (some SQLModel edge cases)
+
+    if isinstance(rate.start_date, str):
+        try:
+            rate.start_date = datetime.strptime(rate.start_date, "%Y-%m-%d").date()
+        except ValueError:
+            # Try ISO format with time if present, or just let error propagate
+            pass
+
     session.add(rate)
     session.commit()
+
+
     session.refresh(rate)
     
     # Retroactive Calculation (Async)
@@ -171,11 +189,17 @@ def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks
         "IdealCycleTimeSeconds": "ideal_cycle_time_seconds",
         "Cavities": "cavity_count",
         "EntryMode": "entry_mode",
-        "MachineCycleTime": "machine_cycle_time"
+        "MachineCycleTime": "machine_cycle_time",
+        "RunMode": "run_mode_name" # Intermediate mapping
+
     }
     df.rename(columns=col_map, inplace=True)
     
-    # Normalize defaults
+    # Pre-fetch Run Modes for mapping
+    run_modes = session.exec(select(RunMode)).all()
+    mode_map = {rm.name.upper(): rm.id for rm in run_modes}
+    standard_id = mode_map.get("STANDARD", 1)
+
     if "operator" not in df.columns:
         df["operator"] = "Any"
     if "start_date" not in df.columns:
@@ -214,8 +238,10 @@ def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks
             cavity_count=int(row.get('cavity_count', 1)),
             entry_mode=str(row.get('entry_mode', 'seconds')),
             machine_cycle_time=float(row.get('machine_cycle_time')) if pd.notna(row.get('machine_cycle_time')) else None,
+            run_mode_id=mode_map.get(str(row.get('run_mode_name', '')).upper(), standard_id),
             notes="Bulk Upload"
         )
+
         session.add(rate)
         count += 1
     

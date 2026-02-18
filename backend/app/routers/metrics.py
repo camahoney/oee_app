@@ -56,8 +56,34 @@ def compute_oee(
         "oee": round(oee, 4),
     }
 
+
+# Helper to match rate candidates
+def match_rate_candidate(candidates: List[RateEntry], target_mode: int, target_machine_norm: str, strict_machine: bool = False) -> Optional[RateEntry]:
+    # 1. Exact Match (Machine + Mode)
+    for c in candidates:
+        c_mode = c.run_mode_id if hasattr(c, 'run_mode_id') else 1
+        if c_mode != target_mode: continue
+        
+        c_machine = (c.machine or "").strip().lower()
+        if c_machine == target_machine_norm:
+            return c
+    
+    # 2. Machine Type Match (if not strict)
+    if not strict_machine:
+        is_assy = "asy" in target_machine_norm or "assembly" in target_machine_norm
+        for c in candidates:
+            c_mode = c.run_mode_id if hasattr(c, 'run_mode_id') else 1
+            if c_mode != target_mode: continue
+            
+            c_machine = (c.machine or "").strip().lower()
+            c_is_assy = "asy" in c_machine or "assembly" in c_machine
+            if is_assy == c_is_assy:
+                return c
+    return None
+
 def calculate_report_metrics_logic(report_id: int, session: Session):
     """Core logic to calculate metrics for a report. Can be called by API or Background Task."""
+
     report = session.get(ProductionReport, report_id)
     if not report:
         print(f"Report {report_id} not found during calculation.")
@@ -84,7 +110,9 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
     try:
         aggregated = {}
         for entry in entries:
-            key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job)
+            # Key now includes run_mode_id to distinguish modes in same shift
+            run_mode = entry.run_mode_id if hasattr(entry, 'run_mode_id') and entry.run_mode_id else 1
+            key = (entry.date, entry.operator, entry.machine, entry.part_number, entry.shift, entry.job, run_mode)
             if key not in aggregated:
                 aggregated[key] = {
                     "date": entry.date,
@@ -93,6 +121,7 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
                     "part_number": entry.part_number,
                     "shift": entry.shift,
                     "job": entry.job,
+                    "run_mode_id": run_mode,
                     "planned_production_time_min": 0.0,
                     "run_time_min": 0.0,
                     "downtime_min": 0.0,
@@ -143,31 +172,35 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
         candidates = session.exec(stmt).all()
         
         rate = None
-        if not candidates:
-            pass
-        elif len(candidates) == 1:
-            rate = candidates[0]
-        else:
-            # Multiple rates logic
-            report_machine_norm = (data["machine"] or "").strip().lower()
-            
-            # 1. Exact Match
-            for c in candidates:
-                if (c.machine or "").strip().lower() == report_machine_norm:
-                    rate = c
-                    break
-            # 2. Type Match
-            if not rate:
-                is_assy = "asy" in report_machine_norm or "assembly" in report_machine_norm
-                for c in candidates:
-                    c_machine_norm = (c.machine or "").strip().lower()
-                    c_is_assy = "asy" in c_machine_norm or "assembly" in c_machine_norm
-                    if is_assy == c_is_assy:
-                        rate = c
-                        break
-            # 3. Fallback
-            if not rate:
-                rate = candidates[0]
+        target_mode = data.get("run_mode_id", 1)
+        target_machine_norm = (data["machine"] or "").strip().lower()
+
+
+        # A) Try Specific Run Mode
+        rate = match_rate_candidate(candidates, target_mode, target_machine_norm)
+
+        # B) Try STANDARD Run Mode (Fallback)
+        if not rate and target_mode != 1:
+            rate = match_rate_candidate(candidates, 1, target_machine_norm) # Try Standard
+
+
+            if rate:
+                 # Log/Track this fallback? 
+                 pass
+
+        # C) Existing Fallback Logic (Any machine, Standard Mode)
+        if not rate:
+             # Try finding ANY rate for Standard mode
+             for c in candidates:
+                 c_mode = c.run_mode_id if hasattr(c, 'run_mode_id') else 1
+                 if c_mode == 1:
+                     rate = c
+                     break
+        
+        # D) Last Resort: Just take the first one (Legacy behavior)
+        if not rate and candidates:
+             rate = candidates[0]
+
         
         missing_rate_warning = None
         if not rate:

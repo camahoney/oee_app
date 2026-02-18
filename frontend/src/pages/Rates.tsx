@@ -34,8 +34,29 @@ const Rates: React.FC = () => {
         }
     };
 
+    // Run Mode State
+    const [runModes, setRunModes] = useState<any[]>([]);
+
+    const fetchRunModes = async () => {
+        try {
+            // We can use the generic api service or add a method.
+            // Assuming rateService has a generic request or we add it safely.
+            // Since we didn't update api.ts yet, let's use a direct fetch pattern or assume extension.
+            // Let's assume we need to update api.ts properly, but for now we'll do a direct fetch using the same base.
+            // actually, let's update api.ts next. For now, we will add the UI logic assuming data availability.
+            const response = await fetch('http://localhost:8000/rates/run-modes');
+            if (response.ok) {
+                const data = await response.json();
+                setRunModes(data);
+            }
+        } catch (e) {
+            console.error("Failed to load run modes", e);
+        }
+    };
+
     useEffect(() => {
         fetchRates();
+        fetchRunModes();
     }, []);
 
     // Filtered Data
@@ -72,7 +93,8 @@ const Rates: React.FC = () => {
         form.setFieldsValue({
             active: true,
             cavities: 1,
-            operators: 0
+            operators: 0,
+            run_mode_id: 1 // Default to Standard
         });
         setIsModalVisible(true);
     };
@@ -106,6 +128,7 @@ const Rates: React.FC = () => {
             ideal_cycle_time_seconds: record.ideal_cycle_time_seconds,
             active: record.active,
             cavities: record.cavity_count || 1,
+            run_mode_id: record.run_mode_id || 1
         });
         setIsModalVisible(true);
     };
@@ -136,8 +159,6 @@ const Rates: React.FC = () => {
                     return;
                 }
                 finalCycleTime = parseFloat(calculatedCycle.toFixed(4));
-                // Machine Cycle = Part Cycle (if 1 cav) or Part Cycle * Cav (if entry mode logic?)
-                // Actually machine cycle is implied.
             }
 
             // Prepare Payload
@@ -153,7 +174,8 @@ const Rates: React.FC = () => {
                 cavity_count: values.cavities || 1,
                 entry_mode: calcMode,
                 ideal_cycle_time_seconds: finalCycleTime,
-                machine_cycle_time: null // We could calculate and store this but 'ideal_cycle' is the truth.
+                machine_cycle_time: null,
+                run_mode_id: values.run_mode_id || 1
             };
 
             // Calculate units/hr for convenience
@@ -162,8 +184,6 @@ const Rates: React.FC = () => {
             }
 
             if (editingRate) {
-                // For update, we might need to keep existing start_date if we don't want to reset it?
-                // But simplified: just send the payload. Backend Update uses field-by-field copy.
                 await rateService.updateRate(editingRate.id, payload);
                 message.success('Rate updated');
             } else {
@@ -217,16 +237,27 @@ const Rates: React.FC = () => {
             key: 'job',
             sorter: (a: any, b: any) => (a.job || '').localeCompare(b.job || ''),
             render: (text: string) => {
-                // User requirement: "612010" style, not "SO# 682220 / 682220"
-                // Extract the first sequence of digits (5-6 chars typically)
                 if (!text) return '-';
                 const match = text.match(/\b\d{5,8}\b/);
                 if (match) return <Typography.Text strong>{match[0]}</Typography.Text>;
-                return text; // Fallback if no clean number found
+                return text;
             }
         },
         {
+            title: 'Run Mode',
+            dataIndex: 'run_mode_id',
+            key: 'run_mode_id',
+            render: (id: number) => {
+                const mode = runModes.find(m => m.id === id);
+                // If default/standard, show less plain text, maybe a Tag? 
+                // For now just text.
+                return mode ? mode.name : (id === 1 ? 'STANDARD' : id);
+            }
+        },
+
+        {
             title: 'Part Number',
+
             dataIndex: 'part_number',
             key: 'part_number',
             sorter: (a: any, b: any) => (a.part_number || '').localeCompare(b.part_number || ''),
@@ -324,9 +355,20 @@ const Rates: React.FC = () => {
                     <Form.Item name="part_number" label="Part Number" rules={[{ required: true, message: 'Please enter Part Number' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="machine" label="Machine" rules={[{ required: true, message: 'Please enter Machine ID' }]}>
-                        <Input />
-                    </Form.Item>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                        <Form.Item name="machine" label="Machine" rules={[{ required: true, message: 'Please enter Machine ID' }]} style={{ flex: 1 }}>
+                            <Input />
+                        </Form.Item>
+                        <Form.Item name="run_mode_id" label="Run Mode" rules={[{ required: true }]} style={{ flex: 1 }}>
+                            <Radio.Group buttonStyle="solid">
+                                {runModes.map(m => (
+                                    <Radio.Button key={m.id} value={m.id}>{m.name}</Radio.Button>
+                                ))}
+                            </Radio.Group>
+                        </Form.Item>
+                    </div>
+
+
                     <div style={{ marginBottom: 16 }}>
                         <Form.Item label="Entry Mode" required>
                             <Radio.Group

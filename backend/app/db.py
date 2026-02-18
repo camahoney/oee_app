@@ -11,8 +11,16 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+class RunMode(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True)
+    description: Optional[str] = None
+    active: bool = Field(default=True)
+
 class RateEntry(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    run_mode_id: int = Field(default=1, foreign_key="runmode.id") # Default to STANDARD
+
     operator: Optional[str] = Field(default=None, index=True)
     machine: Optional[str] = Field(default=None, index=True)
     part_number: Optional[str] = Field(default=None, index=True)
@@ -58,6 +66,8 @@ class ProductionReport(SQLModel, table=True):
 class ReportEntry(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     report_id: int = Field(foreign_key="productionreport.id")
+    run_mode_id: int = Field(default=1, foreign_key="runmode.id") # Default to STANDARD
+
     date: date
     operator: Optional[str] = None
     machine: Optional[str] = None
