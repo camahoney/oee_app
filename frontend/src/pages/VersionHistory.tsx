@@ -42,7 +42,7 @@ const HISTORY_DATA: VersionEntry[] = [
             <ul>
                 <li><strong>Run Modes:</strong> Added support for different operating contexts (Standard, Combo, Team) to allow dynamic rate targets based on staffing levels.</li>
                 <li><strong>Auto-Migration:</strong> Implemented robust startup database migration to automatically handle schema updates for new features.</li>
-                <li><strong>Deployment Stability:</strong> Fixed static asset path resolution issues ensuring reliable production builds on Netlify/Vercel.</li>
+                <li><strong>Deployment Stability:</strong> Fixed static asset path resolution issues ensuring reliable production builds.</li>
                 <li><strong>Cleanup:</strong> Removed "Weekly OEE" module to streamline dashboard navigation.</li>
             </ul>
         ),
