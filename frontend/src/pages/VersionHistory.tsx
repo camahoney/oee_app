@@ -36,6 +36,23 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.3.0",
+        date: "2026-02-18",
+        description: (
+            <ul>
+                <li><strong>Run Modes:</strong> Added support for different operating contexts (Standard, Combo, Team) to allow dynamic rate targets based on staffing levels.</li>
+                <li><strong>Auto-Migration:</strong> Implemented robust startup database migration to automatically handle schema updates for new features.</li>
+                <li><strong>Deployment Stability:</strong> Fixed static asset path resolution issues ensuring reliable production builds on Netlify/Vercel.</li>
+                <li><strong>Cleanup:</strong> Removed "Weekly OEE" module to streamline dashboard navigation.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 5,
+        icon: <RocketOutlined />,
+        color: "green",
+        tags: ["Feature", "Backend", "Fix"]
+    },
+    {
         version: "v1.2.0",
         date: "2026-02-13",
         description: (
@@ -404,7 +421,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.2.0</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.3.0</Text>
                 </div>
             </div>
         </div>

@@ -66,7 +66,7 @@ const AppContent: React.FC = () => {
                 >
                     <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
                     <Menu.Item key="analytics" icon={<BarChartOutlined />}> <a href="/analytics">Analytics</a> </Menu.Item>
-                    <Menu.Item key="weekly" icon={<LineChartOutlined />}> <a href="/weekly">Weekly OEE</a> </Menu.Item>
+
                     <Menu.Item key="operators" icon={<TeamOutlined />}> <a href="/operators">Operator Perf.</a> </Menu.Item>
                     <Menu.Item key="leaderboard" icon={<TrophyOutlined />}> <a href="/leaderboard">Leaderboard</a> </Menu.Item>
                     <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>
@@ -82,7 +82,7 @@ const AppContent: React.FC = () => {
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/analytics" element={<Analytics />} />
-                        <Route path="/weekly" element={<WeeklyOEE />} />
+
                         <Route path="/operators" element={<OperatorPerformance />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
                         <Route path="/upload" element={<Upload />} />
