@@ -53,7 +53,7 @@ const HISTORY_DATA: VersionEntry[] = [
             </ul>
         ),
         author: "Dev Team",
-        hours: 5,
+        hours: 7,
         icon: <UserSwitchOutlined />,
         color: "green",
         tags: ["Feature", "Production Board", "Intelligence"]
