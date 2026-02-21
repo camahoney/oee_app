@@ -15,6 +15,7 @@ export interface ProductionMachine {
     status: MachineStatus;
     notes?: string;
     operator?: string;
+    part?: string;
     sinceTime?: string; // ISO String or Local Time string
 }
 

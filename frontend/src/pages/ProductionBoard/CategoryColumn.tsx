@@ -11,9 +11,11 @@ interface CategoryColumnProps {
     category: ProductionCategory;
     index: number;
     isEditMode: boolean;
-    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string) => void;
+    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     activeFilter?: MachineStatus | null;
     availableOperators: string[];
+    machinePartsHistory: Record<string, string[]>;
+    manualAllowedParts: Record<string, string[]>;
     searchTerm?: string;
     onAddMachine: (categoryId: string, name: string) => void;
     onRemoveMachine: (categoryId: string, machineId: string) => void;
@@ -34,7 +36,9 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
     onRenameMachine,
     onRemoveCategory,
     onRenameCategory,
-    availableOperators
+    availableOperators,
+    machinePartsHistory,
+    manualAllowedParts
 }) => {
 
     const [isEditingName, setIsEditingName] = useState(false);
@@ -136,6 +140,8 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                                 onRename={onRenameMachine}
                                 onRemove={onRemoveMachine}
                                 availableOperators={availableOperators}
+                                machinePartsHistory={machinePartsHistory}
+                                manualAllowedParts={manualAllowedParts}
                             />
                         ))}
                     </div>

@@ -27,7 +27,9 @@ const ProductionBoard: React.FC = () => {
         removeMachine,
         renameMachine,
         reorderMachine,
-        availableOperators
+        availableOperators,
+        machinePartsHistory,
+        manualAllowedParts
     } = useBoardState();
 
     // Local ephemeral UI state
@@ -104,6 +106,8 @@ const ProductionBoard: React.FC = () => {
                                             onRemoveCategory={removeCategory}
                                             onRenameCategory={renameCategory}
                                             availableOperators={availableOperators}
+                                            machinePartsHistory={machinePartsHistory}
+                                            manualAllowedParts={manualAllowedParts}
                                         />
                                     </Col>
                                 );
