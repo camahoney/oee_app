@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Form, InputNumber, Button, Switch, message, Divider, Spin, Select } from 'antd';
-import { settingsService } from '../services/api';
+import api, { settingsService } from '../services/api';
 
 const { Title, Text } = Typography;
 
@@ -8,6 +8,7 @@ const SettingsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [machineNames, setMachineNames] = useState<string[]>([]);
+    const [machineHistoryParts, setMachineHistoryParts] = useState<Record<string, string[]>>({});
     const [form] = Form.useForm();
 
     const fetchSettings = async () => {
@@ -53,17 +54,27 @@ const SettingsPage: React.FC = () => {
             if (prodStateObj && prodStateObj.value) {
                 try {
                     const parsedState = JSON.parse(prodStateObj.value);
-                    Object.values(parsedState).forEach((cat: any) => {
-                        if (cat.machines) {
-                            cat.machines.forEach((m: any) => {
-                                if (m.name) machinesFound.push(m.name);
-                            });
-                        }
-                    });
+                    if (parsedState.categories && Array.isArray(parsedState.categories)) {
+                        parsedState.categories.forEach((cat: any) => {
+                            if (cat.machines && Array.isArray(cat.machines)) {
+                                cat.machines.forEach((m: any) => {
+                                    if (m.name) machinesFound.push(m.name);
+                                });
+                            }
+                        });
+                    }
                 } catch (e) { }
             }
             machinesFound.sort((a, b) => a.localeCompare(b));
             setMachineNames(machinesFound);
+
+            // Fetch parts history
+            try {
+                const partsHistoryRes = await api.get('/metrics/machine-parts-history');
+                if (partsHistoryRes.data) {
+                    setMachineHistoryParts(partsHistoryRes.data);
+                }
+            } catch (e) { }
 
             // Fetch machine_allowed_parts
             const allowedPartsObj = data.find(s => s.key === 'machine_allowed_parts');
@@ -268,21 +279,33 @@ const SettingsPage: React.FC = () => {
                     {machineNames.length === 0 ? (
                         <Text type="secondary">No machines detected on Production Board.</Text>
                     ) : (
-                        machineNames.map(mName => (
-                            <Form.Item
-                                key={mName}
-                                label={`${mName}`}
-                                name={`allowed_parts_${mName}`}
-                                style={{ marginBottom: 0 }}
-                            >
-                                <Select
-                                    mode="tags"
-                                    style={{ width: '100%' }}
-                                    placeholder={`e.g. 12345`}
-                                    tokenSeparators={[',']}
-                                />
-                            </Form.Item>
-                        ))
+                        machineNames.map(mName => {
+                            const historyTags = machineHistoryParts[mName] || [];
+                            return (
+                                <div key={mName} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <Form.Item
+                                        label={`${mName}`}
+                                        name={`allowed_parts_${mName}`}
+                                        style={{ marginBottom: 0 }}
+                                    >
+                                        <Select
+                                            mode="tags"
+                                            style={{ width: '100%' }}
+                                            placeholder={`e.g. 12345`}
+                                            tokenSeparators={[',']}
+                                        />
+                                    </Form.Item>
+                                    {historyTags.length > 0 && (
+                                        <div style={{ fontSize: '11px', color: '#8c8c8c', lineHeight: 1.4 }}>
+                                            <span style={{ marginRight: '4px' }}>Historically seen:</span>
+                                            {historyTags.map(tag => (
+                                                <Typography.Text key={tag} code style={{ fontSize: '10px', padding: '0 4px', margin: '2px' }}>{tag}</Typography.Text>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
                     )}
                 </div>
 
