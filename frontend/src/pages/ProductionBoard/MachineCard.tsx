@@ -11,6 +11,7 @@ interface MachineCardProps {
     categoryId: string;
     isEditMode?: boolean;
     availableOperators: string[];
+    assignedOperators: string[];
     machinePartsHistory: Record<string, string[]>;
     manualAllowedParts: Record<string, string[]>;
     onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
@@ -27,6 +28,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
     onRemove,
     onRename,
     availableOperators,
+    assignedOperators,
     machinePartsHistory,
     manualAllowedParts,
     dragHandleProps
@@ -66,12 +68,23 @@ const MachineCard: React.FC<MachineCardProps> = ({
             try {
                 const res = await api.get(`/metrics/suggest-operator?machine=${encodeURIComponent(machine.name)}&part=${encodeURIComponent(machine.part!)}`);
                 if (isMounted) {
-                    if (res.data && res.data.operator) {
-                        setSuggestedOperator(res.data.operator);
+                    // Backend returns a ranked list of operators
+                    const ranked = Array.isArray(res.data) ? res.data : [];
+
+                    // Find the best operator who is:
+                    // 1. In the current shift's employee list (availableOperators)
+                    // 2. NOT already assigned to another machine
+                    const match = ranked.find((r: any) =>
+                        availableOperators.includes(r.operator) &&
+                        !assignedOperators.includes(r.operator)
+                    );
+
+                    if (match) {
+                        setSuggestedOperator(match.operator);
                         setSuggestStats({
-                            oee: res.data.avg_oee,
-                            qual: res.data.avg_quality,
-                            runs: res.data.historical_runs
+                            oee: match.avg_oee,
+                            qual: match.avg_quality,
+                            runs: match.historical_runs
                         });
                     } else {
                         setSuggestedOperator(null);
@@ -91,7 +104,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
         fetchSuggestion();
 
         return () => { isMounted = false; };
-    }, [machine.part, machine.name]);
+    }, [machine.part, machine.name, availableOperators, assignedOperators]);
 
     // Status options conforming strictly to the requested order
     const statusOptions: { label: string, value: MachineStatus }[] = [

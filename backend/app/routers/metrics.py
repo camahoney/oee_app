@@ -847,23 +847,23 @@ def suggest_operator(machine: str, part: str, session: Session = Depends(get_ses
         pass
 
     if not operator_stats:
-        return {}
+        return []
 
     # Score operators: weighted average OEE * quality * experience bonus
-    best_op = None
-    best_score = -1
+    ranked = []
     for op, stats in operator_stats.items():
         runs = stats["runs"]
         avg_oee = stats["total_oee"] / runs if runs > 0 else 0
         avg_quality = stats["total_quality"] / runs if runs > 0 else 0
         score = avg_oee * avg_quality * min(runs, 5)
-        if score > best_score:
-            best_score = score
-            best_op = {
-                "operator": op,
-                "avg_oee": round(avg_oee, 4),
-                "avg_quality": round(avg_quality, 4),
-                "historical_runs": runs
-            }
+        ranked.append({
+            "operator": op,
+            "avg_oee": round(avg_oee, 4),
+            "avg_quality": round(avg_quality, 4),
+            "historical_runs": runs,
+            "score": round(score, 4)
+        })
 
-    return best_op or {}
+    # Sort by score descending
+    ranked.sort(key=lambda x: x["score"], reverse=True)
+    return ranked

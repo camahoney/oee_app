@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Row, Col, Layout, Spin, Button } from 'antd';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -60,6 +60,20 @@ const ProductionBoard: React.FC = () => {
         );
     }
 
+    // Compute the list of operators already assigned to machines
+    const assignedOperators = useMemo(() => {
+        if (!state) return [];
+        const assigned: string[] = [];
+        state.categories.forEach(cat => {
+            cat.machines.forEach(mac => {
+                if (mac.operator && mac.operator.trim() !== '') {
+                    assigned.push(mac.operator.trim());
+                }
+            });
+        });
+        return assigned;
+    }, [state]);
+
     return (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Content className="production-board-bg" style={{ padding: '0 24px' }}>
@@ -106,6 +120,7 @@ const ProductionBoard: React.FC = () => {
                                             onRemoveCategory={removeCategory}
                                             onRenameCategory={renameCategory}
                                             availableOperators={availableOperators}
+                                            assignedOperators={assignedOperators}
                                             machinePartsHistory={machinePartsHistory}
                                             manualAllowedParts={manualAllowedParts}
                                         />

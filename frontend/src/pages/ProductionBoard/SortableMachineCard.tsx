@@ -9,6 +9,7 @@ interface SortableMachineCardProps {
     categoryId: string;
     isEditMode: boolean;
     availableOperators: string[];
+    assignedOperators: string[];
     onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     onRemove?: (categoryId: string, machineId: string) => void;
     onRename?: (categoryId: string, machineId: string, newName: string) => void;

@@ -14,6 +14,7 @@ interface CategoryColumnProps {
     onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     activeFilter?: MachineStatus | null;
     availableOperators: string[];
+    assignedOperators: string[];
     machinePartsHistory: Record<string, string[]>;
     manualAllowedParts: Record<string, string[]>;
     searchTerm?: string;
@@ -37,6 +38,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
     onRemoveCategory,
     onRenameCategory,
     availableOperators,
+    assignedOperators,
     machinePartsHistory,
     manualAllowedParts
 }) => {
@@ -140,6 +142,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                                 onRename={onRenameMachine}
                                 onRemove={onRemoveMachine}
                                 availableOperators={availableOperators}
+                                assignedOperators={assignedOperators}
                                 machinePartsHistory={machinePartsHistory}
                                 manualAllowedParts={manualAllowedParts}
                             />
