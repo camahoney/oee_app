@@ -359,7 +359,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                         </Button>
                     </div>
                     <Text style={{ color: '#ad6800' }}>
-                        {suggestedOperator} (Avg OEE: {suggestStats?.oee}%)
+                        {suggestedOperator} (Avg OEE: {((suggestStats?.oee || 0) * 100).toFixed(1)}%)
                     </Text>
                 </div>
             )}
