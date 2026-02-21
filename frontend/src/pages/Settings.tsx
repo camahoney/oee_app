@@ -183,7 +183,7 @@ const SettingsPage: React.FC = () => {
 
             <Form form={form} layout="vertical" onFinish={handleSave}>
                 <Collapse
-                    defaultActiveKey={['analytics', 'operators', 'parts']}
+                    defaultActiveKey={[]}
                     expandIconPosition="end"
                     bordered={false}
                     style={{ background: 'transparent' }}
