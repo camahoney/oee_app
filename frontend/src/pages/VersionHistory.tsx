@@ -13,7 +13,8 @@ import {
     TeamOutlined,
     BulbOutlined,
     FilterOutlined,
-    CompressOutlined
+    CompressOutlined,
+    UserSwitchOutlined
 } from '@ant-design/icons';
 import { Divider } from 'antd';
 import dayjs from 'dayjs';
@@ -35,6 +36,28 @@ interface VersionEntry {
 }
 
 const HISTORY_DATA: VersionEntry[] = [
+    {
+        version: "v1.5.0",
+        date: "2026-02-21",
+        description: (
+            <ul>
+                <li><strong>Smart Operator Suggestions:</strong> Backend now returns a ranked list of ALL operators scored by OEE × Quality × Experience from both <code>oeemetric</code> and <code>reportentry</code> tables. Frontend filters by shift roster and availability to suggest the best unassigned operator per machine.</li>
+                <li><strong>Per-Shift Operator Persistence:</strong> Each shift (1st, 2nd, 3rd) now stores its own operator assignments independently. Switching shifts swaps to that shift's saved operators — parts and machine status remain shared across all shifts.</li>
+                <li><strong>Fuzzy Name Matching:</strong> Operator suggestion now handles database names like "3415 Spencer,Vangie" and matches them to roster names like "Vangie Spencer" using ID stripping, Last/First flipping, and last-name fallback.</li>
+                <li><strong>Clear Operators Button:</strong> New "Clear Operators" button in each category header (with confirmation) — clears all operator assignments for the current shift while keeping parts intact. Perfect for shift changeover.</li>
+                <li><strong>1st Shift Rename:</strong> "Day Shift" renamed to "1st Shift" across the entire application with automatic migration of existing data.</li>
+                <li><strong>OEE Display Fix:</strong> Operator suggestion tooltip now correctly shows OEE as a percentage (e.g., 100.7%) instead of raw decimal (1.0068%).</li>
+                <li><strong>Settings Collapsed:</strong> Settings page accordion sections now start collapsed by default for a cleaner initial view.</li>
+                <li><strong>Full-Stats Print Mode:</strong> When "Compact Print" is toggled OFF, printing the dashboard now includes the full Activity Log cards with Run/Down, Performance, Quality, and Actual vs Target stats for every operator.</li>
+                <li><strong>Part Dropdown Cleanup:</strong> Removed "History" and "Manual" tags from the Part Running dropdown for a cleaner look.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 5,
+        icon: <UserSwitchOutlined />,
+        color: "green",
+        tags: ["Feature", "Production Board", "Intelligence"]
+    },
     {
         version: "v1.4.0",
         date: "2026-02-21",
@@ -439,7 +462,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.4.0</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.5.0</Text>
                 </div>
             </div>
         </div>
