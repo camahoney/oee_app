@@ -18,7 +18,7 @@ interface TopHeaderProps {
 
 const TopHeader: React.FC<TopHeaderProps> = ({ currentShift, onShiftChange, lastUpdated, onRefresh, onSearch, saving, isEditMode, onEditModeChange }) => {
     return (
-        <div style={{ marginBottom: 16, padding: '16px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+        <div style={{ marginBottom: 16, backgroundColor: '#ffffff', padding: '16px 24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <Row justify="space-between" align="middle">
                 <Col>
                     <Space size="large">

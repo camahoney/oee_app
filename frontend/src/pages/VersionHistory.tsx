@@ -36,6 +36,24 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.4.0",
+        date: "2026-02-21",
+        description: (
+            <ul>
+                <li><strong>Board Compaction:</strong> Optimized padding and metrics on the Production Board, fitting more machines on a single screen without scrolling.</li>
+                <li><strong>Grid Layout Stability:</strong> Converted the reactive flex layout to a dynamic but fixed column model (3-3-2) to prevent machine cards from wrapping unexpectedly.</li>
+                <li><strong>Feature Toggle:</strong> Removed the Shift Notes sidebar panel entirely to favor horizontal width for machine cards.</li>
+                <li><strong>Drag-and-Drop Structure:</strong> Added `dnd-kit` implementation allowing managers to freely re-order machine cards within their respective category columns while in Edit Mode.</li>
+                <li><strong>UI Polish:</strong> Applied shadow lifts to category columns, immersive background gradients, and prevented component overflow rendering issues on smaller monitors.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <CompressOutlined />,
+        color: "blue",
+        tags: ["UX", "Feature", "Layout"]
+    },
+    {
         version: "v1.3.0",
         date: "2026-02-18",
         description: (
@@ -421,7 +439,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.3.0</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.4.0</Text>
                 </div>
             </div>
         </div>

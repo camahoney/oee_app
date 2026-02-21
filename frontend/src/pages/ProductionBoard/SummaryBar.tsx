@@ -43,7 +43,7 @@ const SummaryBar: React.FC<SummaryBarProps> = ({ categories, onStatusFilter, act
     const statuses: MachineStatus[] = ['RUNNING', 'NO MATERIAL', 'MOLD CHANGE', 'NOT SCHEDULED', 'MAINT', 'STARTUP'];
 
     return (
-        <div style={{ marginBottom: 24, display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ marginBottom: 16, display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             {statuses.map(status => {
                 const isActive = activeFilter === status;
                 const isDimmed = activeFilter && !isActive;
@@ -63,7 +63,7 @@ const SummaryBar: React.FC<SummaryBarProps> = ({ categories, onStatusFilter, act
                         }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.5px' }}>{status}</span>
+                            <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.5px' }}>{status}</span>
                             <div style={{
                                 width: 8,
                                 height: 8,
@@ -72,7 +72,7 @@ const SummaryBar: React.FC<SummaryBarProps> = ({ categories, onStatusFilter, act
                                 boxShadow: isActive ? '0 0 0 2px rgba(255,255,255,0.3)' : `0 0 0 2px ${baseColor}30`
                             }} />
                         </div>
-                        <div style={{ fontSize: '32px', fontWeight: 700, lineHeight: 1 }}>
+                        <div style={{ fontSize: '28px', fontWeight: 700, lineHeight: 1 }}>
                             {counts[status]}
                         </div>
                     </div>

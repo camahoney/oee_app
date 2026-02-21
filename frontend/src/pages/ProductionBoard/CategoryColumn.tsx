@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Typography, Button, Input, Space, Popconfirm } from 'antd';
 import { DeleteOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { ProductionCategory, MachineStatus } from './types';
-import MachineCard from './MachineCard';
+import SortableMachineCard from './SortableMachineCard';
 
 const { Title } = Typography;
 
@@ -63,7 +64,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
             {/* Colored Header */}
             <div style={{
                 background: `linear-gradient(90deg, ${headerColor} 0%, ${headerColor}CC 100%)`,
-                padding: '16px 20px',
+                padding: '12px 16px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -90,7 +91,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                     </Space>
                 ) : (
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <Title level={4} style={{ margin: 0, color: '#ffffff', fontSize: '18px', fontWeight: 700, letterSpacing: '0.5px' }}>
+                        <Title level={4} style={{ margin: 0, color: '#ffffff', fontSize: '16px', fontWeight: 700, letterSpacing: '0.5px' }}>
                             {category.name}
                         </Title>
                         <Space size="middle">
@@ -118,29 +119,32 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
             </div>
 
             {/* Machines Grid */}
-            <div style={{ padding: '16px', flex: 1 }}>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                    gap: '12px'
-                }}>
-                    {visibleMachines.map(machine => (
-                        <MachineCard
-                            key={machine.id}
-                            machine={machine}
-                            categoryId={category.id}
-                            isEditMode={isEditMode}
-                            onStatusChange={onStatusChange}
-                            onRename={onRenameMachine}
-                            availableOperators={availableOperators}
-                        />
-                    ))}
-                </div>
+            <div style={{ padding: '8px', flex: 1, overflowY: 'auto' }}>
+                <SortableContext items={visibleMachines.map(m => m.id)} strategy={rectSortingStrategy}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: category.name.toLowerCase().includes('comp') ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                        gap: '8px'
+                    }}>
+                        {visibleMachines.map(machine => (
+                            <SortableMachineCard
+                                key={machine.id}
+                                machine={machine}
+                                categoryId={category.id}
+                                isEditMode={isEditMode}
+                                onStatusChange={onStatusChange}
+                                onRename={onRenameMachine}
+                                onRemove={onRemoveMachine}
+                                availableOperators={availableOperators}
+                            />
+                        ))}
+                    </div>
+                </SortableContext>
 
                 {visibleMachines.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8c8c8c', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: '8px', border: '1px dashed #e8e8e8' }}>
-                        <p style={{ margin: 0, fontSize: '16px', fontWeight: 500, color: '#595959' }}>No machines scheduled</p>
-                        <p style={{ margin: '8px 0 0 0', fontSize: '13px' }}>Use Edit Mode to add machines</p>
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#8c8c8c', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: '8px', border: '1px dashed #e8e8e8' }}>
+                        <p style={{ margin: 0, fontSize: '15px', fontWeight: 500, color: '#595959' }}>No machines scheduled</p>
+                        <p style={{ margin: '8px 0 0 0', fontSize: '12px' }}>Use Edit Mode to add machines</p>
                     </div>
                 )}
 

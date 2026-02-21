@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown } from 'antd';
-import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined, DragOutlined } from '@ant-design/icons';
 import { ProductionMachine, MachineStatus, STATUS_COLORS } from './types';
 
 const { Text } = Typography;
@@ -13,6 +13,7 @@ interface MachineCardProps {
     onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string) => void;
     onRemove?: (categoryId: string, machineId: string) => void;
     onRename?: (categoryId: string, machineId: string, newName: string) => void;
+    dragHandleProps?: any;
 }
 
 const MachineCard: React.FC<MachineCardProps> = ({
@@ -22,7 +23,8 @@ const MachineCard: React.FC<MachineCardProps> = ({
     onStatusChange,
     onRemove,
     onRename,
-    availableOperators
+    availableOperators,
+    dragHandleProps
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState(machine.name);
@@ -73,7 +75,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                 flexDirection: 'column',
                 height: '100%'
             }}
-            bodyStyle={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', flex: 1, gap: '10px' }}
+            bodyStyle={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', flex: 1, gap: '6px' }}
         >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 {isEditMode && isEditingName ? (
@@ -103,7 +105,14 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     </Space>
                 ) : (
                     <>
-                        <Text strong style={{ fontSize: '16px', fontWeight: 600, color: '#262626', letterSpacing: '0.2px' }}>{machine.name}</Text>
+                        <Space align="center" size="small">
+                            {isEditMode && dragHandleProps && (
+                                <div {...dragHandleProps} style={{ cursor: 'grab', color: '#bfbfbf', display: 'flex', alignItems: 'center' }}>
+                                    <DragOutlined />
+                                </div>
+                            )}
+                            <Text strong style={{ fontSize: '15px', fontWeight: 600, color: '#262626', letterSpacing: '0.1px' }}>{machine.name}</Text>
+                        </Space>
                         {isEditMode && (
                             <Space size="small">
                                 <Button size="small" type="text" icon={<EditOutlined />} onClick={() => setIsEditingName(true)} style={{ padding: 0, width: '24px', height: '24px' }} />
@@ -132,22 +141,23 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     <div style={{
                         backgroundColor: cardColor,
                         color: '#fff',
-                        padding: '0 14px',
-                        height: '40px',
+                        padding: '0 8px',
+                        height: '32px',
                         borderRadius: '6px',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         fontWeight: 700,
-                        fontSize: '14px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                        fontSize: '11px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                        overflow: 'hidden'
                     }}>
-                        <Space size="small">
+                        <Space size={6} style={{ overflow: 'hidden' }}>
                             {getStatusIcon(machine.status)}
-                            <span style={{ letterSpacing: '0.5px' }}>{machine.status === 'MAINT' ? 'MAINT!' : machine.status}</span>
+                            <span style={{ letterSpacing: '0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{machine.status === 'MAINT' ? 'MAINT!' : machine.status}</span>
                         </Space>
-                        <DownOutlined style={{ fontSize: '11px', opacity: 0.8 }} />
+                        <DownOutlined style={{ fontSize: '10px', opacity: 0.8, flexShrink: 0, marginLeft: '4px' }} />
                     </div>
                 </Dropdown>
             </div>

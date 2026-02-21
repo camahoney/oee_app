@@ -3,7 +3,7 @@ import { Card, Input, Typography, Divider, Button, Space, message } from 'antd';
 import { DownloadOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { ShiftNotes } from './types';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 interface ShiftNotesPanelProps {
@@ -23,16 +23,17 @@ const ShiftNotesPanel: React.FC<ShiftNotesPanelProps> = ({ notes, onNotesChange 
     return (
         <Card
             className="shift-notes-panel"
-            title={<Title level={4} style={{ margin: 0 }}>Shift Notes</Title>}
+            title={<Title level={5} style={{ margin: 0 }}>Shift Notes</Title>}
             style={{ height: '100%' }}
-            bodyStyle={{ padding: '24px' }}
+            bodyStyle={{ padding: '16px' }}
         >
-            <div style={{ marginBottom: 24, display: 'flex', gap: '8px' }}>
+            <div style={{ marginBottom: 16, display: 'flex', gap: '8px' }}>
                 <Button type="primary" icon={<ShareAltOutlined />} onClick={handleCopyLink} style={{ flex: 1 }}>Share Link</Button>
                 <Button icon={<DownloadOutlined />} onClick={() => message.info('Click Print on your browser to save PDF.')} style={{ flex: 1 }}>Export</Button>
             </div>
-            <div style={{ marginBottom: 24 }}>
-                <Typography.Text strong>Top Issues / Downtime causes:</Typography.Text>
+            {/* Top Issues */}
+            <div style={{ marginBottom: 16 }}>
+                <Text strong style={{ fontSize: '13px', display: 'block', marginBottom: 6 }}>Top Issues / Downtime causes:</Text>
                 <TextArea
                     rows={4}
                     value={notes.topIssues}
@@ -42,8 +43,9 @@ const ShiftNotesPanel: React.FC<ShiftNotesPanelProps> = ({ notes, onNotesChange 
                 />
             </div>
 
-            <div style={{ marginBottom: 24 }}>
-                <Typography.Text strong>Material Shortages:</Typography.Text>
+            {/* Material Shortages */}
+            <div style={{ marginBottom: 16 }}>
+                <Text strong style={{ fontSize: '13px', display: 'block', marginBottom: 6 }}>Material Shortages:</Text>
                 <TextArea
                     rows={3}
                     value={notes.materialShortages}
@@ -55,8 +57,9 @@ const ShiftNotesPanel: React.FC<ShiftNotesPanelProps> = ({ notes, onNotesChange 
 
             <Divider />
 
-            <div style={{ marginBottom: 24 }}>
-                <Typography.Text strong>Escalations:</Typography.Text>
+            {/* Escalations */}
+            <div style={{ marginBottom: 16 }}>
+                <Text strong style={{ fontSize: '13px', display: 'block', marginBottom: 6 }}>Escalations:</Text>
                 <TextArea
                     rows={3}
                     value={notes.escalations}
@@ -66,8 +69,9 @@ const ShiftNotesPanel: React.FC<ShiftNotesPanelProps> = ({ notes, onNotesChange 
                 />
             </div>
 
+            {/* Actions / Owners */}
             <div>
-                <Typography.Text strong>Actions / Owners:</Typography.Text>
+                <Text strong style={{ fontSize: '13px', display: 'block', marginBottom: 6 }}>Actions / Owners:</Text>
                 <TextArea
                     rows={4}
                     value={notes.actions}

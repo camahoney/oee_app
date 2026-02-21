@@ -185,6 +185,28 @@ export const useBoardState = () => {
         saveState({ ...state, categories: updatedCategories });
     };
 
+    const reorderMachine = (categoryId: string, activeId: string, overId: string) => {
+        if (!state) return;
+
+        const categoryIndex = state.categories.findIndex(cat => cat.id === categoryId);
+        if (categoryIndex === -1) return;
+
+        const category = state.categories[categoryIndex];
+        const oldIndex = category.machines.findIndex(m => m.id === activeId);
+        const newIndex = category.machines.findIndex(m => m.id === overId);
+
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+        const newMachines = [...category.machines];
+        const [movedMachine] = newMachines.splice(oldIndex, 1);
+        newMachines.splice(newIndex, 0, movedMachine);
+
+        const updatedCategories = [...state.categories];
+        updatedCategories[categoryIndex] = { ...category, machines: newMachines };
+
+        saveState({ ...state, categories: updatedCategories });
+    };
+
     // Determine available operators based on current shift
     const availableOperators = React.useMemo(() => {
         if (!state) return [];
@@ -211,6 +233,7 @@ export const useBoardState = () => {
         addCategory,
         removeCategory,
         renameCategory,
-        renameMachine
+        renameMachine,
+        reorderMachine
     };
 };
