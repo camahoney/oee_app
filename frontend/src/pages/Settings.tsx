@@ -7,6 +7,7 @@ const { Title, Text } = Typography;
 const SettingsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [machineNames, setMachineNames] = useState<string[]>([]);
     const [form] = Form.useForm();
 
     const fetchSettings = async () => {
@@ -46,6 +47,38 @@ const SettingsPage: React.FC = () => {
                 if (s.key === 'shift_employees_third') values[s.key] = JSON.parse(s.value || '[]');
             });
 
+            // Fetch production_board_state to get machine list dynamically
+            const prodStateObj = data.find(s => s.key === 'production_board_state');
+            const machinesFound: string[] = [];
+            if (prodStateObj && prodStateObj.value) {
+                try {
+                    const parsedState = JSON.parse(prodStateObj.value);
+                    Object.values(parsedState).forEach((cat: any) => {
+                        if (cat.machines) {
+                            cat.machines.forEach((m: any) => {
+                                if (m.name) machinesFound.push(m.name);
+                            });
+                        }
+                    });
+                } catch (e) { }
+            }
+            machinesFound.sort((a, b) => a.localeCompare(b));
+            setMachineNames(machinesFound);
+
+            // Fetch machine_allowed_parts
+            const allowedPartsObj = data.find(s => s.key === 'machine_allowed_parts');
+            let allowedParts: Record<string, string[]> = {};
+            if (allowedPartsObj && allowedPartsObj.value) {
+                try {
+                    allowedParts = JSON.parse(allowedPartsObj.value);
+                } catch (e) { }
+            }
+
+            // Set dynamic form values for each machine's allowed parts
+            machinesFound.forEach(mName => {
+                values[`allowed_parts_${mName}`] = allowedParts[mName] || [];
+            });
+
             form.setFieldsValue(values);
         } catch (error) {
             console.error("Failed to load settings", error);
@@ -75,6 +108,16 @@ const SettingsPage: React.FC = () => {
             await settingsService.update('shift_employees_day', JSON.stringify(values.shift_employees_day || []), 'List of employees for Day Shift');
             await settingsService.update('shift_employees_second', JSON.stringify(values.shift_employees_second || []), 'List of employees for 2nd Shift');
             await settingsService.update('shift_employees_third', JSON.stringify(values.shift_employees_third || []), 'List of employees for 3rd Shift');
+
+            // Save manual parts array map
+            const allowedPartsToSave: Record<string, string[]> = {};
+            machineNames.forEach(mName => {
+                const parts = values[`allowed_parts_${mName}`];
+                if (parts && parts.length > 0) {
+                    allowedPartsToSave[mName] = parts;
+                }
+            });
+            await settingsService.update('machine_allowed_parts', JSON.stringify(allowedPartsToSave), 'Manually allowed parts per machine');
 
             message.success('Settings saved successfully');
         } catch (error) {
@@ -212,7 +255,38 @@ const SettingsPage: React.FC = () => {
                             tokenSeparators={[',']}
                         />
                     </Form.Item>
-                </div>                <Form.Item style={{ marginTop: 32 }}>
+                </div>
+
+                <Divider />
+
+                <Title level={4}>Manual Allowed Parts</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+                    Type a part number and press Enter to allow it on a specific machine. Notes: Historically run parts are automatically shown alongside manually added ones.
+                </Text>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                    {machineNames.length === 0 ? (
+                        <Text type="secondary">No machines detected on Production Board.</Text>
+                    ) : (
+                        machineNames.map(mName => (
+                            <Form.Item
+                                key={mName}
+                                label={`${mName}`}
+                                name={`allowed_parts_${mName}`}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <Select
+                                    mode="tags"
+                                    style={{ width: '100%' }}
+                                    placeholder={`e.g. 12345`}
+                                    tokenSeparators={[',']}
+                                />
+                            </Form.Item>
+                        ))
+                    )}
+                </div>
+
+                <Form.Item style={{ marginTop: 32 }}>
                     <Button type="primary" htmlType="submit" loading={saving} size="large">
                         Save Changes
                     </Button>

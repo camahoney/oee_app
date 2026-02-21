@@ -261,7 +261,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     size="small"
                     bordered={false}
                     value={machine.part}
-                    onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, machine.operator, value)}
+                    onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, machine.operator, value === undefined ? null : value)}
                     style={{ width: '100%', backgroundColor: '#f0f2f5', borderRadius: '4px', fontSize: '12px' }}
                     options={combinedParts}
                     filterOption={(input, option) => {
@@ -281,7 +281,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                         size="middle"
                         bordered={false}
                         value={machine.operator && availableOperators.includes(machine.operator) ? machine.operator : undefined}
-                        onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, value)}
+                        onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, value === undefined ? null : value)}
                         style={{ width: '100%', backgroundColor: '#f4f6f8', borderRadius: '4px' }}
                         options={availableOperators.map(op => ({ value: op, label: op }))}
                         filterOption={(input, option) =>
