@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown, Tag, Spin } from 'antd';
+import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown, Spin } from 'antd';
 import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined, DragOutlined } from '@ant-design/icons';
 import { ProductionMachine, MachineStatus, STATUS_COLORS } from './types';
 import api from '../../services/api';
@@ -43,38 +43,12 @@ const MachineCard: React.FC<MachineCardProps> = ({
         const historyParts = machinePartsHistory[machine.name] || [];
         const manualParts = manualAllowedParts[machine.name] || [];
 
-        // Remove duplicates between manual and history
-        const manualOnly = manualParts.filter(p => !historyParts.includes(p));
+        // Deduplicate across both sources
+        const allParts = new Set([...historyParts, ...manualParts]);
 
-        const options: { label: React.ReactNode, value: string }[] = [];
-
-        // Add History parts
-        historyParts.forEach(p => {
-            options.push({
-                value: p,
-                label: (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        <span>{p}</span>
-                        <Tag color="blue" style={{ marginRight: 0, fontSize: '10px', lineHeight: '14px', padding: '0 4px' }}>History</Tag>
-                    </div>
-                )
-            });
-        });
-
-        // Add Manual parts
-        manualOnly.forEach(p => {
-            options.push({
-                value: p,
-                label: (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        <span>{p}</span>
-                        <Tag color="purple" style={{ marginRight: 0, fontSize: '10px', lineHeight: '14px', padding: '0 4px' }}>Manual</Tag>
-                    </div>
-                )
-            });
-        });
-
-        return options;
+        return Array.from(allParts)
+            .sort((a, b) => a.localeCompare(b))
+            .map(p => ({ label: p, value: p }));
     }, [machine.name, machinePartsHistory, manualAllowedParts]);
 
     // Fetch Auto-Suggest Operator when Part changes
@@ -264,11 +238,9 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, machine.operator, value === undefined ? null : value)}
                     style={{ width: '100%', backgroundColor: '#f0f2f5', borderRadius: '4px', fontSize: '12px' }}
                     options={combinedParts}
-                    filterOption={(input, option) => {
-                        const labelContent = (option?.label as any)?.props?.children?.[0]?.props?.children;
-                        const labelText = typeof labelContent === 'string' ? labelContent : String(option?.value || '');
-                        return labelText.toLowerCase().includes(input.toLowerCase());
-                    }}
+                    filterOption={(input, option) =>
+                        String(option?.value || '').toLowerCase().includes(input.toLowerCase())
+                    }
                 />
             </div>
 

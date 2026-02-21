@@ -775,39 +775,95 @@ def get_machine_parts_history(session: Session = Depends(get_session)):
 
 @router.get("/suggest-operator")
 def suggest_operator(machine: str, part: str, session: Session = Depends(get_session)):
-    """Suggests the best operator for a specific machine and part combinations."""
+    """Suggests the best operator for a specific machine and part combination.
+    Queries both oeemetric and reportentry tables, normalizing machine names for matching."""
     from sqlalchemy import func
-    
-    stmt = (
-        select(
-            Oeemetric.operator,
-            func.avg(Oeemetric.oee).label("avg_oee"),
-            func.avg(Oeemetric.quality).label("avg_quality"),
-            func.count(Oeemetric.id).label("runs")
-        )
-        .where(Oeemetric.machine == machine)
-        .where(Oeemetric.part_number == part)
-        .group_by(Oeemetric.operator)
-        .order_by(func.count(Oeemetric.id).desc())
-    )
-    
-    results = session.exec(stmt).all()
-    if not results:
+    import re
+
+    # Build a set of possible machine name variants to match against
+    # e.g. "Inj 12" could be stored as "INJ12", "Inj12", "Inj 12", etc.
+    machine_variants = {machine.strip()}
+    # Generate coded variant: "Inj 12" -> "INJ12"
+    m = re.match(r'^(Assy|Inj|Cmp|Insp)\s*(\d+)$', machine.strip(), re.IGNORECASE)
+    if m:
+        prefix_map = {'assy': 'ASY', 'inj': 'INJ', 'cmp': 'CMP', 'insp': 'INSP'}
+        coded = prefix_map.get(m.group(1).lower(), m.group(1).upper()) + m.group(2).zfill(2)
+        machine_variants.add(coded)
+        machine_variants.add(coded.upper())
+        # Also add zero-padded display variant
+        machine_variants.add(f"{m.group(1)} {m.group(2)}")
+
+    operator_stats: dict = {}  # operator -> { total_oee, total_quality, runs }
+
+    def _accumulate(op, oee_val, quality_val, runs_val):
+        if not op or op.strip() == "":
+            return
+        op = op.strip()
+        if op not in operator_stats:
+            operator_stats[op] = {"total_oee": 0, "total_quality": 0, "runs": 0}
+        operator_stats[op]["total_oee"] += (oee_val or 0) * runs_val
+        operator_stats[op]["total_quality"] += (quality_val or 0) * runs_val
+        operator_stats[op]["runs"] += runs_val
+
+    # 1. Query Oeemetric
+    try:
+        for variant in machine_variants:
+            stmt1 = (
+                select(
+                    Oeemetric.operator,
+                    func.avg(Oeemetric.oee).label("avg_oee"),
+                    func.avg(Oeemetric.quality).label("avg_quality"),
+                    func.count(Oeemetric.id).label("runs")
+                )
+                .where(Oeemetric.machine == variant)
+                .where(Oeemetric.part_number == part)
+                .group_by(Oeemetric.operator)
+            )
+            for op, oee, qual, runs in session.exec(stmt1).all():
+                _accumulate(op, oee, qual, runs)
+    except Exception:
+        pass
+
+    # 2. Query ReportEntry (compute pseudo-OEE from raw data)
+    try:
+        for variant in machine_variants:
+            stmt2 = (
+                select(
+                    ReportEntry.operator,
+                    func.count(ReportEntry.id).label("runs"),
+                    func.avg(ReportEntry.run_time_min).label("avg_runtime"),
+                    func.avg(ReportEntry.planned_production_time_min).label("avg_planned"),
+                )
+                .where(ReportEntry.machine == variant)
+                .where(ReportEntry.part_number == part)
+                .where(ReportEntry.operator != None)
+                .group_by(ReportEntry.operator)
+            )
+            for op, runs, avg_run, avg_planned in session.exec(stmt2).all():
+                # Use availability as a proxy for OEE when actual OEE isn't available
+                pseudo_oee = (avg_run / avg_planned) if avg_planned and avg_planned > 0 else 0.8
+                _accumulate(op, pseudo_oee, 0.95, runs)
+    except Exception:
+        pass
+
+    if not operator_stats:
         return {}
-    
+
+    # Score operators: weighted average OEE * quality * experience bonus
     best_op = None
     best_score = -1
-    for op, oee, qual, runs in results:
-        if not op or op.strip() == "": continue
-        
-        score = (oee or 0) * (qual or 0) * min(runs, 5)
+    for op, stats in operator_stats.items():
+        runs = stats["runs"]
+        avg_oee = stats["total_oee"] / runs if runs > 0 else 0
+        avg_quality = stats["total_quality"] / runs if runs > 0 else 0
+        score = avg_oee * avg_quality * min(runs, 5)
         if score > best_score:
             best_score = score
             best_op = {
-                "operator": op.strip(),
-                "avg_oee": round(oee, 4) if oee is not None else 0,
-                "avg_quality": round(qual, 4) if qual is not None else 0,
+                "operator": op,
+                "avg_oee": round(avg_oee, 4),
+                "avg_quality": round(avg_quality, 4),
                 "historical_runs": runs
             }
-            
+
     return best_op or {}
