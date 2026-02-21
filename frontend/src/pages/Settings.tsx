@@ -69,9 +69,11 @@ const SettingsPage: React.FC = () => {
             setMachineNames(machinesFound);
 
             // Fetch parts history
+            let fetchedHistory: Record<string, string[]> = {};
             try {
                 const partsHistoryRes = await api.get('/metrics/machine-parts-history');
                 if (partsHistoryRes.data) {
+                    fetchedHistory = partsHistoryRes.data;
                     setMachineHistoryParts(partsHistoryRes.data);
                 }
             } catch (e) { }
@@ -85,9 +87,16 @@ const SettingsPage: React.FC = () => {
                 } catch (e) { }
             }
 
-            // Set dynamic form values for each machine's allowed parts
+            // Merge historical + manual parts and set as form defaults
             machinesFound.forEach(mName => {
-                values[`allowed_parts_${mName}`] = allowedParts[mName] || [];
+                const manual = allowedParts[mName] || [];
+                const history = fetchedHistory[mName] || [];
+                // Deduplicate: manual parts first, then history parts not already in manual
+                const merged = [...manual];
+                history.forEach(p => {
+                    if (!merged.includes(p)) merged.push(p);
+                });
+                values[`allowed_parts_${mName}`] = merged;
             });
 
             form.setFieldsValue(values);

@@ -703,19 +703,75 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         }
     }
 
+def _normalize_machine_name(raw: str) -> str:
+    """Normalize coded machine names to match Production Board display names.
+    Examples: ASY01 -> Assy 1, INJ34 -> Inj 34, CMP09 -> Cmp 09, INSP1 -> Insp 1
+    """
+    import re
+    raw = raw.strip()
+    # Try to match common patterns: prefix letters + numeric suffix
+    m = re.match(r'^(ASY|ASSY)(\d+)$', raw, re.IGNORECASE)
+    if m:
+        num = str(int(m.group(2)))  # strip leading zeros
+        return f"Assy {num}"
+    m = re.match(r'^(INJ)(\d+)$', raw, re.IGNORECASE)
+    if m:
+        num = str(int(m.group(2)))
+        return f"Inj {num}"
+    m = re.match(r'^(CMP)(\d+)$', raw, re.IGNORECASE)
+    if m:
+        num = str(int(m.group(2)))
+        return f"Cmp {num}"
+    m = re.match(r'^(INSP)(\d+)$', raw, re.IGNORECASE)
+    if m:
+        num = str(int(m.group(2)))
+        return f"Insp {num}"
+    # Return as-is if no pattern matched
+    return raw
+
 @router.get("/machine-parts-history", response_model=Dict[str, List[str]])
 def get_machine_parts_history(session: Session = Depends(get_session)):
-    """Returns a dictionary mapping machine names to lists of historical parts run on them."""
-    stmt = select(Oeemetric.machine, Oeemetric.part_number).distinct()
-    results = session.exec(stmt).all()
-    history = {}
-    for machine, part in results:
-        if not machine or not part: continue
-        machine = machine.strip()
+    """Returns a dictionary mapping machine names to lists of historical parts run on them.
+    Queries oeemetric, rateentry, and reportentry tables and normalizes machine names."""
+    history: Dict[str, set] = {}
+
+    def _add(machine: str, part: str):
+        if not machine or not part:
+            return
+        machine = _normalize_machine_name(machine)
         part = part.strip()
-        if machine not in history: history[machine] = []
-        if part not in history[machine]: history[machine].append(part)
-    return history
+        if not part:
+            return
+        if machine not in history:
+            history[machine] = set()
+        history[machine].add(part)
+
+    # 1. OEE Metrics (computed results)
+    try:
+        stmt1 = select(Oeemetric.machine, Oeemetric.part_number).distinct()
+        for machine, part in session.exec(stmt1).all():
+            _add(machine, part)
+    except Exception:
+        pass
+
+    # 2. Rate Entries (rate standards)
+    try:
+        stmt2 = select(RateEntry.machine, RateEntry.part_number).distinct()
+        for machine, part in session.exec(stmt2).all():
+            _add(machine, part)
+    except Exception:
+        pass
+
+    # 3. Report Entries (raw uploaded data)
+    try:
+        stmt3 = select(ReportEntry.machine, ReportEntry.part_number).distinct()
+        for machine, part in session.exec(stmt3).all():
+            _add(machine, part)
+    except Exception:
+        pass
+
+    # Convert sets to sorted lists
+    return {k: sorted(list(v)) for k, v in history.items()}
 
 @router.get("/suggest-operator")
 def suggest_operator(machine: str, part: str, session: Session = Depends(get_session)):
