@@ -53,6 +53,43 @@ const MachineCard: React.FC<MachineCardProps> = ({
             .map(p => ({ label: p, value: p }));
     }, [machine.name, machinePartsHistory, manualAllowedParts]);
 
+    // Normalize operator name from DB format ("3415  Spencer,Vangie") to match roster format ("Cortney Rentfro")
+    const normalizeOperatorName = (dbName: string): string[] => {
+        // Strip leading employee ID (digits + spaces)
+        const stripped = dbName.replace(/^\d+\s+/, '').trim();
+        const variants: string[] = [stripped.toLowerCase()];
+
+        // Handle "Last,First" → "First Last"
+        if (stripped.includes(',')) {
+            const [last, first] = stripped.split(',').map(s => s.trim());
+            if (first && last) {
+                variants.push(`${first} ${last}`.toLowerCase());
+                variants.push(`${first.charAt(0)}${first.slice(1).toLowerCase()} ${last.charAt(0)}${last.slice(1).toLowerCase()}`);
+            }
+        }
+        // Handle "First Last" as-is
+        variants.push(stripped.toLowerCase());
+        return variants;
+    };
+
+    const matchesRoster = (dbOperator: string, rosterList: string[]): string | null => {
+        const variants = normalizeOperatorName(dbOperator);
+        for (const rosterName of rosterList) {
+            const rosterLower = rosterName.toLowerCase().trim();
+            for (const variant of variants) {
+                if (variant === rosterLower) return rosterName;
+                // Also check if last names match (for partial matches like "Rob" vs "Robert")
+                const rosterParts = rosterLower.split(' ');
+                const variantParts = variant.split(' ');
+                if (rosterParts.length >= 2 && variantParts.length >= 2 &&
+                    rosterParts[rosterParts.length - 1] === variantParts[variantParts.length - 1]) {
+                    return rosterName;
+                }
+            }
+        }
+        return null;
+    };
+
     // Fetch Auto-Suggest Operator when Part changes
     useEffect(() => {
         if (!machine.part || machine.part.trim() === '') {
@@ -72,21 +109,23 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     const ranked = Array.isArray(res.data) ? res.data : [];
 
                     // Find the best operator who is:
-                    // 1. In the current shift's employee list (availableOperators)
-                    // 2. NOT already assigned to another machine
-                    const match = ranked.find((r: any) =>
-                        availableOperators.includes(r.operator) &&
-                        !assignedOperators.includes(r.operator)
-                    );
-
-                    if (match) {
-                        setSuggestedOperator(match.operator);
-                        setSuggestStats({
-                            oee: match.avg_oee,
-                            qual: match.avg_quality,
-                            runs: match.historical_runs
-                        });
-                    } else {
+                    // 1. Matches someone in the current shift's employee list (fuzzy name match)
+                    // 2. That shift employee is NOT already assigned to another machine
+                    let foundMatch = false;
+                    for (const r of ranked) {
+                        const rosterName = matchesRoster(r.operator, availableOperators);
+                        if (rosterName && !assignedOperators.includes(rosterName)) {
+                            setSuggestedOperator(rosterName);
+                            setSuggestStats({
+                                oee: r.avg_oee,
+                                qual: r.avg_quality,
+                                runs: r.historical_runs
+                            });
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                    if (!foundMatch) {
                         setSuggestedOperator(null);
                         setSuggestStats(null);
                     }
