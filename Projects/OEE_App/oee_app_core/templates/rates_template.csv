@@ -1,0 +1,4 @@
+operator,machine,part_number,job,ideal_units_per_hour,start_date,end_date,active,notes
+John Doe,Machine 1,PN-101,,120,2023-01-01,,true,Standard Rate
+Jane Smith,Machine 2,PN-202,,95,2023-01-15,,true,Complex Part
+Any,Machine 3,PN-303,,200,2023-02-01,,true,High Speed
