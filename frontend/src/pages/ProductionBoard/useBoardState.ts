@@ -25,7 +25,35 @@ export const useBoardState = () => {
             // Fetch Board State
             const stateResponse = await api.get(`/settings/${SETTING_KEY}`).catch(() => null);
             if (stateResponse && stateResponse.data && stateResponse.data.value) {
-                setState(JSON.parse(stateResponse.data.value));
+                const loaded = JSON.parse(stateResponse.data.value);
+                // Migrate: rename 'Day Shift' → '1st Shift'
+                if (loaded.currentShift === 'Day Shift') {
+                    loaded.currentShift = '1st Shift';
+                }
+                // Migrate old operator field → shiftOperators
+                if (loaded.categories) {
+                    loaded.categories = loaded.categories.map((cat: any) => ({
+                        ...cat,
+                        machines: cat.machines.map((mac: any) => {
+                            if (!mac.shiftOperators) {
+                                mac.shiftOperators = {};
+                                if (mac.operator) {
+                                    // Assign old operator to current shift
+                                    mac.shiftOperators[loaded.currentShift || '1st Shift'] = mac.operator;
+                                }
+                            }
+                            // Also migrate any 'Day Shift' key
+                            if (mac.shiftOperators['Day Shift']) {
+                                mac.shiftOperators['1st Shift'] = mac.shiftOperators['1st Shift'] || mac.shiftOperators['Day Shift'];
+                                delete mac.shiftOperators['Day Shift'];
+                            }
+                            // Set operator to current shift's value for UI
+                            mac.operator = mac.shiftOperators[loaded.currentShift || '1st Shift'];
+                            return mac;
+                        })
+                    }));
+                }
+                setState(loaded);
             } else {
                 setState(DEFAULT_BOARD_STATE);
             }
@@ -110,18 +138,24 @@ export const useBoardState = () => {
     // Helper to update a specific machine's status
     const updateMachineStatus = (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => {
         if (!state) return;
+        const currentShift = state.currentShift;
 
         const updatedCategories = state.categories.map(cat => {
             if (cat.id !== categoryId) return cat;
 
             const updatedMachines = cat.machines.map(mac => {
                 if (mac.id !== machineId) return mac;
+                const updatedShiftOps = { ...(mac.shiftOperators || {}) };
+                if (operator !== undefined) {
+                    updatedShiftOps[currentShift] = operator === null ? undefined : operator;
+                }
                 return {
                     ...mac,
                     status,
                     notes: notes !== undefined ? notes : mac.notes,
                     operator: operator !== undefined ? (operator === null ? undefined : operator) : mac.operator,
                     part: part !== undefined ? (part === null ? undefined : part) : mac.part,
+                    shiftOperators: updatedShiftOps,
                 };
             });
             return { ...cat, machines: updatedMachines };
@@ -147,7 +181,33 @@ export const useBoardState = () => {
 
     const setShift = (shift: ProductionBoardState['currentShift']) => {
         if (!state) return;
-        saveState({ ...state, currentShift: shift });
+        // When switching shifts, update each machine's operator to the new shift's operator
+        const updatedCategories = state.categories.map(cat => ({
+            ...cat,
+            machines: cat.machines.map(mac => ({
+                ...mac,
+                operator: mac.shiftOperators?.[shift]
+            }))
+        }));
+        saveState({ ...state, currentShift: shift, categories: updatedCategories });
+    };
+
+    // Clear all operators for a category (current shift only, keep parts)
+    const clearCategoryOperators = (categoryId: string) => {
+        if (!state) return;
+        const currentShift = state.currentShift;
+        const updatedCategories = state.categories.map(cat => {
+            if (cat.id !== categoryId) return cat;
+            return {
+                ...cat,
+                machines: cat.machines.map(mac => {
+                    const updatedShiftOps = { ...(mac.shiftOperators || {}) };
+                    updatedShiftOps[currentShift] = undefined;
+                    return { ...mac, operator: undefined, shiftOperators: updatedShiftOps };
+                })
+            };
+        });
+        saveState({ ...state, categories: updatedCategories });
     };
 
     const addMachine = (categoryId: string, name: string) => {
@@ -232,7 +292,7 @@ export const useBoardState = () => {
     const availableOperators = React.useMemo(() => {
         if (!state) return [];
         switch (state.currentShift) {
-            case 'Day Shift': return dayEmployees;
+            case '1st Shift': return dayEmployees;
             case '2nd Shift': return secondEmployees;
             case '3rd Shift': return thirdEmployees;
             default: return [];
@@ -257,6 +317,7 @@ export const useBoardState = () => {
         removeCategory,
         renameCategory,
         renameMachine,
-        reorderMachine
+        reorderMachine,
+        clearCategoryOperators
     };
 };

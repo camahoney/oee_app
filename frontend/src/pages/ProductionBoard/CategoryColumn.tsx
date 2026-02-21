@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Typography, Button, Input, Space, Popconfirm } from 'antd';
-import { DeleteOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, CheckOutlined, ClearOutlined } from '@ant-design/icons';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { ProductionCategory, MachineStatus } from './types';
 import SortableMachineCard from './SortableMachineCard';
@@ -23,6 +23,7 @@ interface CategoryColumnProps {
     onRenameMachine: (categoryId: string, machineId: string, newName: string) => void;
     onRemoveCategory: (categoryId: string) => void;
     onRenameCategory: (categoryId: string, newName: string) => void;
+    onClearOperators: (categoryId: string) => void;
 }
 
 const CategoryColumn: React.FC<CategoryColumnProps> = ({
@@ -40,7 +41,8 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
     availableOperators,
     assignedOperators,
     machinePartsHistory,
-    manualAllowedParts
+    manualAllowedParts,
+    onClearOperators
 }) => {
 
     const [isEditingName, setIsEditingName] = useState(false);
@@ -122,6 +124,26 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                         </Space>
                     </div>
                 )}
+            </div>
+
+            {/* Clear Operators button */}
+            <div style={{ padding: '4px 8px 0', display: 'flex', justifyContent: 'center' }}>
+                <Popconfirm
+                    title="Clear all operators?"
+                    description="This will unassign all operators in this category for the current shift. Parts will remain."
+                    onConfirm={() => onClearOperators(category.id)}
+                    okText="Clear"
+                    cancelText="Cancel"
+                >
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<ClearOutlined />}
+                        style={{ fontSize: '11px', color: '#8c8c8c', padding: '2px 8px', height: 'auto' }}
+                    >
+                        Clear Operators
+                    </Button>
+                </Popconfirm>
             </div>
 
             {/* Machines Grid */}

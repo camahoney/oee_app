@@ -32,7 +32,7 @@ const TopHeader: React.FC<TopHeaderProps> = ({ currentShift, onShiftChange, last
                             optionType="button"
                             buttonStyle="solid"
                             options={[
-                                { value: 'Day Shift', label: 'Day Shift' },
+                                { value: '1st Shift', label: '1st Shift' },
                                 { value: '2nd Shift', label: '2nd Shift' },
                                 { value: '3rd Shift', label: '3rd Shift' },
                             ]}

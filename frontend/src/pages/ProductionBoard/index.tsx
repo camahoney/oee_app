@@ -27,6 +27,7 @@ const ProductionBoard: React.FC = () => {
         removeMachine,
         renameMachine,
         reorderMachine,
+        clearCategoryOperators,
         availableOperators,
         machinePartsHistory,
         manualAllowedParts
@@ -123,6 +124,7 @@ const ProductionBoard: React.FC = () => {
                                             assignedOperators={assignedOperators}
                                             machinePartsHistory={machinePartsHistory}
                                             manualAllowedParts={manualAllowedParts}
+                                            onClearOperators={clearCategoryOperators}
                                         />
                                     </Col>
                                 );

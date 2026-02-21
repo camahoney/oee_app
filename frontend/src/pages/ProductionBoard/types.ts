@@ -14,9 +14,10 @@ export interface ProductionMachine {
     name: string;
     status: MachineStatus;
     notes?: string;
-    operator?: string;
+    operator?: string;  // Current shift's operator (computed from shiftOperators)
     part?: string;
-    sinceTime?: string; // ISO String or Local Time string
+    sinceTime?: string;
+    shiftOperators?: Record<string, string | undefined>;  // Per-shift operator assignments
 }
 
 export interface ProductionCategory {
@@ -36,7 +37,7 @@ export interface ShiftNotes {
 export interface ProductionBoardState {
     categories: ProductionCategory[];
     shiftNotes: ShiftNotes;
-    currentShift: 'Day Shift' | '2nd Shift' | '3rd Shift';
+    currentShift: '1st Shift' | '2nd Shift' | '3rd Shift';
     lastUpdated: string; // ISO String
 }
 
@@ -73,6 +74,6 @@ export const DEFAULT_BOARD_STATE: ProductionBoardState = {
         actions: '',
         generalNotes: ''
     },
-    currentShift: 'Day Shift',
+    currentShift: '1st Shift',
     lastUpdated: new Date().toISOString()
 };
