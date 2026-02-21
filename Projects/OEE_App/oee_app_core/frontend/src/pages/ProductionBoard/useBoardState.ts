@@ -15,6 +15,10 @@ export const useBoardState = () => {
     const [secondEmployees, setSecondEmployees] = useState<string[]>([]);
     const [thirdEmployees, setThirdEmployees] = useState<string[]>([]);
 
+    // Machine Part Lists
+    const [machinePartsHistory, setMachinePartsHistory] = useState<Record<string, string[]>>({});
+    const [manualAllowedParts, setManualAllowedParts] = useState<Record<string, string[]>>({});
+
     const fetchState = useCallback(async () => {
         setLoading(true);
         try {
@@ -39,15 +43,31 @@ export const useBoardState = () => {
                 return [];
             };
 
-            const [dayRes, secondRes, thirdRes] = await Promise.all([
+            const [dayRes, secondRes, thirdRes, partsHistoryRes, manualPartsRes] = await Promise.all([
                 fetchSettingArray('shift_employees_day'),
                 fetchSettingArray('shift_employees_second'),
-                fetchSettingArray('shift_employees_third')
+                fetchSettingArray('shift_employees_third'),
+                api.get('/metrics/machine-parts-history').catch(() => ({ data: {} })),
+                api.get('/settings/machine_allowed_parts').catch(() => ({ data: { value: "{}" } }))
             ]);
 
             setDayEmployees(dayRes);
             setSecondEmployees(secondRes);
             setThirdEmployees(thirdRes);
+
+            // Set historical parts mapping
+            if (partsHistoryRes.data) {
+                setMachinePartsHistory(partsHistoryRes.data);
+            }
+
+            // Set manual allowed parts
+            if (manualPartsRes.data && manualPartsRes.data.value) {
+                try {
+                    setManualAllowedParts(JSON.parse(manualPartsRes.data.value));
+                } catch (e) {
+                    setManualAllowedParts({});
+                }
+            }
 
         } catch (error: any) {
             message.error('Failed to load board state');
@@ -88,7 +108,7 @@ export const useBoardState = () => {
     };
 
     // Helper to update a specific machine's status
-    const updateMachineStatus = (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string) => {
+    const updateMachineStatus = (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => {
         if (!state) return;
 
         const updatedCategories = state.categories.map(cat => {
@@ -100,7 +120,8 @@ export const useBoardState = () => {
                     ...mac,
                     status,
                     notes: notes !== undefined ? notes : mac.notes,
-                    operator: operator !== undefined ? operator : mac.operator
+                    operator: operator !== undefined ? (operator === null ? undefined : operator) : mac.operator,
+                    part: part !== undefined ? (part === null ? undefined : part) : mac.part,
                 };
             });
             return { ...cat, machines: updatedMachines };
@@ -223,6 +244,8 @@ export const useBoardState = () => {
         loading,
         saving,
         availableOperators,
+        machinePartsHistory,
+        manualAllowedParts,
         refresh: fetchState,
         updateMachineStatus,
         updateShiftNotes,

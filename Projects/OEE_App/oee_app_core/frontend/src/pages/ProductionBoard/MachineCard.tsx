@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown, Tag, Spin } from 'antd';
 import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined, DragOutlined } from '@ant-design/icons';
 import { ProductionMachine, MachineStatus, STATUS_COLORS } from './types';
+import api from '../../services/api';
 
 const { Text } = Typography;
 
@@ -10,7 +11,9 @@ interface MachineCardProps {
     categoryId: string;
     isEditMode?: boolean;
     availableOperators: string[];
-    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string) => void;
+    machinePartsHistory: Record<string, string[]>;
+    manualAllowedParts: Record<string, string[]>;
+    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     onRemove?: (categoryId: string, machineId: string) => void;
     onRename?: (categoryId: string, machineId: string, newName: string) => void;
     dragHandleProps?: any;
@@ -24,10 +27,97 @@ const MachineCard: React.FC<MachineCardProps> = ({
     onRemove,
     onRename,
     availableOperators,
+    machinePartsHistory,
+    manualAllowedParts,
     dragHandleProps
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState(machine.name);
+
+    const [suggestedOperator, setSuggestedOperator] = useState<string | null>(null);
+    const [suggestStats, setSuggestStats] = useState<{ oee: number, qual: number, runs: number } | null>(null);
+    const [isSuggesting, setIsSuggesting] = useState(false);
+
+    // Combine Historical and Manual Parts
+    const combinedParts = useMemo(() => {
+        const historyParts = machinePartsHistory[machine.name] || [];
+        const manualParts = manualAllowedParts[machine.name] || [];
+
+        // Remove duplicates between manual and history
+        const manualOnly = manualParts.filter(p => !historyParts.includes(p));
+
+        const options: { label: React.ReactNode, value: string }[] = [];
+
+        // Add History parts
+        historyParts.forEach(p => {
+            options.push({
+                value: p,
+                label: (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                        <span>{p}</span>
+                        <Tag color="blue" style={{ marginRight: 0, fontSize: '10px', lineHeight: '14px', padding: '0 4px' }}>History</Tag>
+                    </div>
+                )
+            });
+        });
+
+        // Add Manual parts
+        manualOnly.forEach(p => {
+            options.push({
+                value: p,
+                label: (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                        <span>{p}</span>
+                        <Tag color="purple" style={{ marginRight: 0, fontSize: '10px', lineHeight: '14px', padding: '0 4px' }}>Manual</Tag>
+                    </div>
+                )
+            });
+        });
+
+        return options;
+    }, [machine.name, machinePartsHistory, manualAllowedParts]);
+
+    // Fetch Auto-Suggest Operator when Part changes
+    useEffect(() => {
+        if (!machine.part || machine.part.trim() === '') {
+            setSuggestedOperator(null);
+            setSuggestStats(null);
+            return;
+        }
+
+        let isMounted = true;
+
+        const fetchSuggestion = async () => {
+            setIsSuggesting(true);
+            try {
+                const res = await api.get(`/metrics/suggest-operator?machine=${encodeURIComponent(machine.name)}&part=${encodeURIComponent(machine.part!)}`);
+                if (isMounted) {
+                    if (res.data && res.data.operator) {
+                        setSuggestedOperator(res.data.operator);
+                        setSuggestStats({
+                            oee: res.data.avg_oee,
+                            qual: res.data.avg_quality,
+                            runs: res.data.historical_runs
+                        });
+                    } else {
+                        setSuggestedOperator(null);
+                        setSuggestStats(null);
+                    }
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setSuggestedOperator(null);
+                    setSuggestStats(null);
+                }
+            } finally {
+                if (isMounted) setIsSuggesting(false);
+            }
+        };
+
+        fetchSuggestion();
+
+        return () => { isMounted = false; };
+    }, [machine.part, machine.name]);
 
     // Status options conforming strictly to the requested order
     const statusOptions: { label: string, value: MachineStatus }[] = [
@@ -162,6 +252,26 @@ const MachineCard: React.FC<MachineCardProps> = ({
                 </Dropdown>
             </div>
 
+            {/* Part Running UI */}
+            <div style={{ padding: '0px 0', marginTop: '4px' }}>
+                <Select
+                    showSearch
+                    allowClear
+                    placeholder="Part Running"
+                    size="small"
+                    bordered={false}
+                    value={machine.part}
+                    onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, machine.operator, value)}
+                    style={{ width: '100%', backgroundColor: '#f0f2f5', borderRadius: '4px', fontSize: '12px' }}
+                    options={combinedParts}
+                    filterOption={(input, option) => {
+                        const labelContent = (option?.label as any)?.props?.children?.[0]?.props?.children;
+                        const labelText = typeof labelContent === 'string' ? labelContent : String(option?.value || '');
+                        return labelText.toLowerCase().includes(input.toLowerCase());
+                    }}
+                />
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '4px' }}>
                 <div style={{ flex: 1, marginRight: '8px' }}>
                     <Select
@@ -194,6 +304,41 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     </Text>
                 )}
             </div>
+
+            {/* Auto-Suggest UI */}
+            {isSuggesting && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#8c8c8c', paddingLeft: '4px', marginTop: '4px' }}>
+                    <Spin size="small" /> Analyzing history...
+                </div>
+            )}
+            {!isSuggesting && suggestedOperator && machine.operator !== suggestedOperator && (
+                <div style={{
+                    backgroundColor: '#fffbe6',
+                    border: '1px solid #ffe58f',
+                    borderRadius: '4px',
+                    padding: '4px 6px',
+                    marginTop: '4px',
+                    fontSize: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text strong style={{ color: '#d48806' }}>⭐ Suggestion</Text>
+                        <Button
+                            type="link"
+                            size="small"
+                            style={{ padding: 0, height: 'auto', fontSize: '10px', lineHeight: 1 }}
+                            onClick={() => onStatusChange(categoryId, machine.id, machine.status, machine.notes, suggestedOperator, machine.part)}
+                        >
+                            Apply
+                        </Button>
+                    </div>
+                    <Text style={{ color: '#ad6800' }}>
+                        {suggestedOperator} (Avg OEE: {suggestStats?.oee}%)
+                    </Text>
+                </div>
+            )}
         </Card >
     );
 };

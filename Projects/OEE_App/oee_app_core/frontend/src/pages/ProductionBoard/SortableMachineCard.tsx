@@ -9,9 +9,11 @@ interface SortableMachineCardProps {
     categoryId: string;
     isEditMode: boolean;
     availableOperators: string[];
-    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string) => void;
+    onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     onRemove?: (categoryId: string, machineId: string) => void;
     onRename?: (categoryId: string, machineId: string, newName: string) => void;
+    machinePartsHistory: Record<string, string[]>;
+    manualAllowedParts: Record<string, string[]>;
 }
 
 const SortableMachineCard: React.FC<SortableMachineCardProps> = (props) => {
