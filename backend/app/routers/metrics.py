@@ -702,3 +702,56 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
             "quality": qual_target
         }
     }
+
+@router.get("/machine-parts-history", response_model=Dict[str, List[str]])
+def get_machine_parts_history(session: Session = Depends(get_session)):
+    """Returns a dictionary mapping machine names to lists of historical parts run on them."""
+    stmt = select(Oeemetric.machine, Oeemetric.part_number).distinct()
+    results = session.exec(stmt).all()
+    history = {}
+    for machine, part in results:
+        if not machine or not part: continue
+        machine = machine.strip()
+        part = part.strip()
+        if machine not in history: history[machine] = []
+        if part not in history[machine]: history[machine].append(part)
+    return history
+
+@router.get("/suggest-operator")
+def suggest_operator(machine: str, part: str, session: Session = Depends(get_session)):
+    """Suggests the best operator for a specific machine and part combinations."""
+    from sqlalchemy import func
+    
+    stmt = (
+        select(
+            Oeemetric.operator,
+            func.avg(Oeemetric.oee).label("avg_oee"),
+            func.avg(Oeemetric.quality).label("avg_quality"),
+            func.count(Oeemetric.id).label("runs")
+        )
+        .where(Oeemetric.machine == machine)
+        .where(Oeemetric.part_number == part)
+        .group_by(Oeemetric.operator)
+        .order_by(func.count(Oeemetric.id).desc())
+    )
+    
+    results = session.exec(stmt).all()
+    if not results:
+        return {}
+    
+    best_op = None
+    best_score = -1
+    for op, oee, qual, runs in results:
+        if not op or op.strip() == "": continue
+        
+        score = (oee or 0) * (qual or 0) * min(runs, 5)
+        if score > best_score:
+            best_score = score
+            best_op = {
+                "operator": op.strip(),
+                "avg_oee": round(oee, 4) if oee is not None else 0,
+                "avg_quality": round(qual, 4) if qual is not None else 0,
+                "historical_runs": runs
+            }
+            
+    return best_op or {}
