@@ -172,9 +172,7 @@ export const settingsService = {
         return response.data;
     },
     update: async (key: string, value: string, description?: string) => {
-        const response = await api.put(`/settings/${key}`, null, {
-            params: { value, description }
-        });
+        const response = await api.put(`/settings/${key}`, { value, description });
         return response.data;
     }
 };

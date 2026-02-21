@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Form, InputNumber, Button, Switch, message, Divider, Spin } from 'antd';
+import { Typography, Form, InputNumber, Button, Switch, message, Divider, Spin, Select } from 'antd';
 import { settingsService } from '../services/api';
 
 const { Title, Text } = Typography;
@@ -25,6 +25,11 @@ const SettingsPage: React.FC = () => {
             values['show_oee_over_100_warning'] = true;
             values['threshold_downtime_min'] = 20;
 
+            // Arrays for Select tags mode
+            values['shift_employees_day'] = [];
+            values['shift_employees_second'] = [];
+            values['shift_employees_third'] = [];
+
             // Override with DB values
             data.forEach(s => {
                 if (s.key === 'performance_threshold') values[s.key] = Number(s.value);
@@ -34,6 +39,11 @@ const SettingsPage: React.FC = () => {
                 if (s.key === 'quality_target') values[s.key] = Number(s.value);
                 if (s.key === 'show_oee_over_100_warning') values[s.key] = s.value.toLowerCase() === 'true';
                 if (s.key === 'threshold_downtime_min') values[s.key] = Number(s.value);
+
+                // Parse JSON array for employee lists
+                if (s.key === 'shift_employees_day') values[s.key] = JSON.parse(s.value || '[]');
+                if (s.key === 'shift_employees_second') values[s.key] = JSON.parse(s.value || '[]');
+                if (s.key === 'shift_employees_third') values[s.key] = JSON.parse(s.value || '[]');
             });
 
             form.setFieldsValue(values);
@@ -60,6 +70,11 @@ const SettingsPage: React.FC = () => {
             await settingsService.update('quality_target', String(values.quality_target), 'Target Quality Percentage');
             await settingsService.update('show_oee_over_100_warning', String(values.show_oee_over_100_warning), 'Enable warning for OEE > 100%');
             await settingsService.update('threshold_downtime_min', String(values.threshold_downtime_min), 'High Downtime Threshold (min)');
+
+            // Save JSON array strings for employee lists
+            await settingsService.update('shift_employees_day', JSON.stringify(values.shift_employees_day || []), 'List of employees for Day Shift');
+            await settingsService.update('shift_employees_second', JSON.stringify(values.shift_employees_second || []), 'List of employees for 2nd Shift');
+            await settingsService.update('shift_employees_third', JSON.stringify(values.shift_employees_third || []), 'List of employees for 3rd Shift');
 
             message.success('Settings saved successfully');
         } catch (error) {
@@ -157,9 +172,47 @@ const SettingsPage: React.FC = () => {
                     <Switch />
                 </Form.Item>
 
+                <Divider />
 
-
-                <Form.Item style={{ marginTop: 32 }}>
+                <Title level={4}>Production Board Shift Operators</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: '16px' }}>
+                    Type a name and press Enter to add an employee to a shift roster.
+                </Text>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                    <Form.Item
+                        label="Day Shift Employees"
+                        name="shift_employees_day"
+                    >
+                        <Select
+                            mode="tags"
+                            style={{ width: '100%' }}
+                            placeholder="e.g. John Doe, Jane Smith"
+                            tokenSeparators={[',']}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="2nd Shift Employees"
+                        name="shift_employees_second"
+                    >
+                        <Select
+                            mode="tags"
+                            style={{ width: '100%' }}
+                            placeholder="e.g. John Doe, Jane Smith"
+                            tokenSeparators={[',']}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="3rd Shift Employees"
+                        name="shift_employees_third"
+                    >
+                        <Select
+                            mode="tags"
+                            style={{ width: '100%' }}
+                            placeholder="e.g. John Doe, Jane Smith"
+                            tokenSeparators={[',']}
+                        />
+                    </Form.Item>
+                </div>                <Form.Item style={{ marginTop: 32 }}>
                     <Button type="primary" htmlType="submit" loading={saving} size="large">
                         Save Changes
                     </Button>

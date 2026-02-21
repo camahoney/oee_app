@@ -25,6 +25,7 @@ import Analytics from './pages/Analytics';
 import WeeklyOEE from './pages/WeeklyOEE';
 import VersionHistory from './pages/VersionHistory';
 import AdminUsers from './pages/AdminUsers';
+import ProductionBoard from './pages/ProductionBoard';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -65,6 +66,7 @@ const AppContent: React.FC = () => {
                     style={{ borderRight: 0 }}
                 >
                     <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
+                    <Menu.Item key="production-board" icon={<DashboardOutlined />}> <a href="/production-board">Production Board</a> </Menu.Item>
                     <Menu.Item key="analytics" icon={<BarChartOutlined />}> <a href="/analytics">Analytics</a> </Menu.Item>
 
                     <Menu.Item key="operators" icon={<TeamOutlined />}> <a href="/operators">Operator Perf.</a> </Menu.Item>
@@ -81,6 +83,7 @@ const AppContent: React.FC = () => {
                     <Routes>
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/production-board" element={<ProductionBoard />} />
                         <Route path="/analytics" element={<Analytics />} />
 
                         <Route path="/operators" element={<OperatorPerformance />} />
