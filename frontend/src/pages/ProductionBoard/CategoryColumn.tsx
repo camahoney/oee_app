@@ -151,7 +151,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                 <SortableContext items={visibleMachines.map(m => m.id)} strategy={rectSortingStrategy}>
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: category.name.toLowerCase().includes('comp') ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
                         gap: '8px'
                     }}>
                         {visibleMachines.map(machine => (
