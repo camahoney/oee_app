@@ -10,7 +10,6 @@ from pydantic import BaseModel
 
 from ..db import ProductionReport, ReportEntry, Oeemetric
 from ..database import get_session
-from .auth import require_role
 
 router = APIRouter()
 
@@ -40,7 +39,7 @@ def parse_date(value) -> date:
         raise HTTPException(status_code=400, detail=f"Invalid date format: {value}")
 
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
-def upload_report(file: UploadFile = File(...), current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def upload_report(file: UploadFile = File(...), session: Session = Depends(get_session)):
     
     contents = file.file.read()
     if file.filename.lower().endswith('.csv'):
@@ -445,7 +444,7 @@ def get_report_entries(report_id: int, session: Session = Depends(get_session)):
     return entries
 
 @router.put("/entries/{entry_id}", response_model=ReportEntry)
-def update_report_entry(entry_id: int, update_data: ReportEntryUpdate, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def update_report_entry(entry_id: int, update_data: ReportEntryUpdate, session: Session = Depends(get_session)):
     """Update a specific report entry."""
     entry = session.get(ReportEntry, entry_id)
     if not entry:
@@ -470,7 +469,7 @@ def update_report_entry(entry_id: int, update_data: ReportEntryUpdate, current_u
     return entry
 
 @router.post("/{report_id}/entries", response_model=ReportEntry)
-def create_report_entry(report_id: int, entry_data: ReportEntryUpdate, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def create_report_entry(report_id: int, entry_data: ReportEntryUpdate, session: Session = Depends(get_session)):
     """Create a new manual entry for a report."""
     report = session.get(ProductionReport, report_id)
     if not report:
@@ -503,7 +502,7 @@ def create_report_entry(report_id: int, entry_data: ReportEntryUpdate, current_u
     return entry
 
 @router.delete("/entries/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_report_entry(entry_id: int, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def delete_report_entry(entry_id: int, session: Session = Depends(get_session)):
     """Delete a single report entry."""
     entry = session.get(ReportEntry, entry_id)
     if not entry:
@@ -520,7 +519,7 @@ def list_reports(session: Session = Depends(get_session)):
     return reports
 
 @router.put("/{report_id}", response_model=ProductionReport)
-def update_report(report_id: int, report_update: ReportUpdate, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def update_report(report_id: int, report_update: ReportUpdate, session: Session = Depends(get_session)):
     """Update report metadata (e.g. filename)."""
     report = session.get(ProductionReport, report_id)
     if not report:
@@ -535,7 +534,7 @@ def update_report(report_id: int, report_update: ReportUpdate, current_user=Depe
     return report
 
 @router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_report(report_id: int, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def delete_report(report_id: int, session: Session = Depends(get_session)):
     """Delete a report and all associated entries and metrics."""
     report = session.get(ProductionReport, report_id)
     if not report:

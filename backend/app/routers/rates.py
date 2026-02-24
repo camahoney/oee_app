@@ -7,7 +7,6 @@ from datetime import datetime
 
 from ..db import RateEntry, RateAudit, ReportEntry, RunMode
 from ..database import get_session, engine
-from .auth import require_role
 # Import calculation logic (deferred import or direct if safe)
 # Since metrics imports from .db and .database, and rates does too, we can try direct import.
 # Note: routers/metrics.py is a sibling.
@@ -89,7 +88,7 @@ def get_rate(rate_id: int, session: Session = Depends(get_session)):
 
 
 @router.post("/", response_model=RateEntry, status_code=status.HTTP_201_CREATED)
-def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     # Manual conversion if Pydantic fails to cast (some SQLModel edge cases)
 
     if isinstance(rate.start_date, str):
@@ -112,7 +111,7 @@ def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, current_user
     return rate
 
 @router.put("/{rate_id}", response_model=RateEntry)
-def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTasks, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     db_rate = session.get(RateEntry, rate_id)
     if not db_rate:
         raise HTTPException(status_code=404, detail="Rate not found")
@@ -156,7 +155,7 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
     return db_rate
 
 @router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_rate(rate_id: int, background_tasks: BackgroundTasks, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def delete_rate(rate_id: int, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     rate = session.get(RateEntry, rate_id)
     if not rate:
         raise HTTPException(status_code=404, detail="Rate not found")
@@ -173,7 +172,7 @@ def delete_rate(rate_id: int, background_tasks: BackgroundTasks, current_user=De
 
 # Upload CSV/XLSX with validation and preview
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
-def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks = None, current_user=Depends(require_role("admin", "manager")), session: Session = Depends(get_session)):
+def upload_rates(file: UploadFile = File(...), background_tasks: BackgroundTasks = None, session: Session = Depends(get_session)):
     if file.content_type not in ["text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"]:
         raise HTTPException(status_code=400, detail="Unsupported file type")
     contents = file.file.read()

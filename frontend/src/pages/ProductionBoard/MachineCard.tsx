@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown, Spin } from 'antd';
 import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined, DragOutlined } from '@ant-design/icons';
-import { ProductionMachine, MachineStatus, STATUS_COLORS, ProductionBoardState } from './types';
+import { ProductionMachine, MachineStatus, STATUS_COLORS } from './types';
 import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
 
 const { Text } = Typography;
 
@@ -19,7 +18,6 @@ interface MachineCardProps {
     onRemove?: (categoryId: string, machineId: string) => void;
     onRename?: (categoryId: string, machineId: string, newName: string) => void;
     dragHandleProps?: any;
-    currentShift: ProductionBoardState['currentShift'];
 }
 
 const MachineCard: React.FC<MachineCardProps> = ({
@@ -33,12 +31,8 @@ const MachineCard: React.FC<MachineCardProps> = ({
     assignedOperators,
     machinePartsHistory,
     manualAllowedParts,
-    dragHandleProps,
-    currentShift
+    dragHandleProps
 }) => {
-    const { canEdit, isSupervisor, user } = useAuth();
-    const isLocked = !canEdit || (isSupervisor && user?.shiftScope !== currentShift);
-
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState(machine.name);
 
@@ -98,7 +92,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
 
     // Fetch Auto-Suggest Operator when Part changes
     useEffect(() => {
-        if (!machine.part || machine.part.trim() === '' || isLocked) {
+        if (!machine.part || machine.part.trim() === '') {
             setSuggestedOperator(null);
             setSuggestStats(null);
             return;
@@ -251,7 +245,6 @@ const MachineCard: React.FC<MachineCardProps> = ({
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <Dropdown
-                    disabled={isLocked}
                     menu={{
                         items: statusOptions.map(opt => ({
                             key: opt.value,
@@ -280,7 +273,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                             {getStatusIcon(machine.status)}
                             <span style={{ letterSpacing: '0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{machine.status === 'MAINT' ? 'MAINT!' : machine.status}</span>
                         </Space>
-                        {!isLocked && <DownOutlined style={{ fontSize: '10px', opacity: 0.8, flexShrink: 0, marginLeft: '4px' }} />}
+                        <DownOutlined style={{ fontSize: '10px', opacity: 0.8, flexShrink: 0, marginLeft: '4px' }} />
                     </div>
                 </Dropdown>
             </div>
@@ -288,7 +281,6 @@ const MachineCard: React.FC<MachineCardProps> = ({
             {/* Part Running UI */}
             <div style={{ padding: '0px 0', marginTop: '4px' }}>
                 <Select
-                    disabled={isLocked}
                     showSearch
                     allowClear
                     placeholder="Part Running"
@@ -307,7 +299,6 @@ const MachineCard: React.FC<MachineCardProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '4px' }}>
                 <div style={{ flex: 1, marginRight: '8px' }}>
                     <Select
-                        disabled={isLocked}
                         showSearch
                         allowClear
                         placeholder="Select Operator"
@@ -322,7 +313,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                         }
                     />
                 </div>
-                {isEditMode && !isLocked ? (
+                {isEditMode ? (
                     <Input
                         placeholder="Notes"
                         size="small"

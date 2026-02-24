@@ -1,13 +1,13 @@
-from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from .database import create_db_and_tables, engine
-from .db import RateEntry, User, RunMode, AuditLog
+from .db import RateEntry, User, RunMode
 from .seeds import get_seed_rates, get_seed_users
 
-from .routers import rates, reports, metrics, auth, settings, analytics, weekly, audit
+from .routers import rates, reports, metrics, auth, settings, analytics, weekly
 
-app = FastAPI(title="OEE Analytics API", version="1.2.0")
+app = FastAPI(title="OEE Analytics API", version="1.1.4")
 
 @app.on_event("startup")
 def on_startup():
@@ -65,19 +65,6 @@ def on_startup():
                     session.commit()
     except Exception as e:
         print(f"User Migration check failed: {e}")
-
-    # Schema Migration Check for "User" (shift_scope)
-    try:
-        insp = inspect(engine)
-        if insp.has_table("user"):
-            cols = [c["name"] for c in insp.get_columns("user")]
-            if "shift_scope" not in cols:
-                print("Migrating User: Adding 'shift_scope'...")
-                with Session(engine) as session:
-                    session.exec(text('ALTER TABLE "user" ADD COLUMN shift_scope VARCHAR'))
-                    session.commit()
-    except Exception as e:
-        print(f"User shift_scope Migration check failed: {e}")
 
     # Schema Migration Check for "ReportEntry" (downtime_events)
     try:
@@ -167,32 +154,23 @@ def on_startup():
         print(f"RunMode Migration check failed: {e}")
 
 
-    # Seed RBAC accounts if no users exist
+    # Seed data if empty
     with Session(engine) as session:
         if not session.exec(select(User)).first():
-            from .routers.auth import get_password_hash
-            print("Seeding database with RBAC user accounts...")
-            default_pw = get_password_hash("Vibra2026!")
-            rbac_users = [
-                User(email="admin@oee.local", hashed_password=default_pw, role="admin", shift_scope=None, is_pro=True),
-                User(email="manager@oee.local", hashed_password=default_pw, role="manager", shift_scope=None, is_pro=True),
-                User(email="1st_shift@oee.local", hashed_password=default_pw, role="supervisor", shift_scope="1st Shift"),
-                User(email="2nd_shift@oee.local", hashed_password=default_pw, role="supervisor", shift_scope="2nd Shift"),
-                User(email="3rd_shift@oee.local", hashed_password=default_pw, role="supervisor", shift_scope="3rd Shift"),
-                User(email="viewer@oee.local", hashed_password=default_pw, role="viewer", shift_scope=None),
-            ]
-            for u in rbac_users:
+            print("Seeding database with default users...")
+            users = get_seed_users()
+            for u in users:
                 session.add(u)
             session.commit()
-            print(f"RBAC seeding complete: {len(rbac_users)} accounts created.")
+            print(f"User seeding complete.")
     
         if not session.exec(select(RateEntry)).first():
             print("Seeding database with default rates...")
-            rates_data = get_seed_rates()
-            for r in rates_data:
+            rates = get_seed_rates()
+            for r in rates:
                 session.add(r)
             session.commit()
-            print(f"Seeding complete: Added {len(rates_data)} rates.")
+            print(f"Seeding complete: Added {len(rates)} rates.")
 
 # CORS (allow all for demo; tighten in production)
 app.add_middleware(
@@ -229,7 +207,6 @@ app.include_router(metrics.router, prefix="/metrics", tags=["metrics"])
 app.include_router(settings.router, prefix="/settings", tags=["settings"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(weekly.router, prefix="/weekly", tags=["weekly"])
-app.include_router(audit.router, prefix="/audit", tags=["audit"])
 
 @app.get("/health")
 async def health_check():

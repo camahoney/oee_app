@@ -2,7 +2,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import MachineCard from './MachineCard';
-import { ProductionMachine, MachineStatus, ProductionBoardState } from './types';
+import { ProductionMachine, MachineStatus } from './types';
 
 interface SortableMachineCardProps {
     machine: ProductionMachine;
@@ -15,7 +15,6 @@ interface SortableMachineCardProps {
     onRename?: (categoryId: string, machineId: string, newName: string) => void;
     machinePartsHistory: Record<string, string[]>;
     manualAllowedParts: Record<string, string[]>;
-    currentShift: ProductionBoardState['currentShift'];
 }
 
 const SortableMachineCard: React.FC<SortableMachineCardProps> = (props) => {

@@ -4,7 +4,7 @@ sqlmodel
 pandas
 openpyxl
 python-multipart
-bcrypt
+passlib[bcrypt]
 python-jose
 python-dotenv
 psycopg2-binary
