@@ -6,7 +6,8 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    role: str = Field(default="analyst")  # admin or analyst
+    role: str = Field(default="viewer")  # admin | manager | supervisor | viewer
+    shift_scope: Optional[str] = None   # "1st Shift" | "2nd Shift" | "3rd Shift" | None (=all)
     is_pro: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -103,3 +104,16 @@ class Setting(SQLModel, table=True):
     key: str = Field(primary_key=True)
     value: str
     description: Optional[str] = None
+
+class AuditLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_email: str
+    user_role: str
+    shift: Optional[str] = None
+    action: str                             # operator_assign | status_change | part_change | upload | rate_edit | login | ...
+    machine_id: Optional[str] = None
+    category_id: Optional[str] = None
+    before_value: Optional[str] = None
+    after_value: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    details: Optional[str] = None           # JSON blob for extra context

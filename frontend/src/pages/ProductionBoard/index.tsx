@@ -111,6 +111,7 @@ const ProductionBoard: React.FC = () => {
                                         <CategoryColumn
                                             category={category}
                                             index={index}
+                                            currentShift={state.currentShift}
                                             isEditMode={isEditMode}
                                             onStatusChange={updateMachineStatus}
                                             activeFilter={statusFilter}

@@ -1,10 +1,28 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { api, authService, User } from '../services/api'; // user api default export for axios instance if needed, or just authService
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
+import { authService } from '../services/api';
 import { jwtDecode } from "jwt-decode";
 import { message } from 'antd';
 
+// Role types
+export type UserRole = 'admin' | 'manager' | 'supervisor' | 'viewer';
+
+interface DecodedToken {
+    sub: string;        // email
+    role: UserRole;
+    shift_scope: string | null;
+    is_pro: boolean;
+    exp: number;
+}
+
+interface AuthUser {
+    email: string;
+    role: UserRole;
+    shiftScope: string | null;
+    isPro: boolean;
+}
+
 interface AuthContextType {
-    user: User | null;
+    user: AuthUser | null;
     token: string | null;
     isLoading: boolean;
     login: (token: string) => void;
@@ -12,54 +30,122 @@ interface AuthContextType {
     impersonate: (token: string) => void;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    isManager: boolean;
+    isSupervisor: boolean;
+    isViewer: boolean;
+    canEdit: boolean;           // admin | manager | supervisor (not viewer)
+    canManage: boolean;         // admin | manager only
+    canAccessPage: (page: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Pages that supervisors are DENIED access to
+const SUPERVISOR_DENIED_PAGES = new Set([
+    'upload', 'rates', 'settings', 'admin'
+]);
+
+// Pages that viewers can still see (read-only)
+const VIEWER_ALLOWED_PAGES = new Set([
+    'dashboard', 'production-board', 'analytics', 'operators',
+    'leaderboard', 'reports', 'versions', 'upload', 'rates', 'settings'
+]);
+
+function decodeToken(token: string): AuthUser | null {
+    try {
+        const decoded = jwtDecode<DecodedToken>(token);
+        // Check expiry
+        if (decoded.exp * 1000 < Date.now()) {
+            return null; // Expired
+        }
+        return {
+            email: decoded.sub,
+            role: decoded.role || 'viewer',
+            shiftScope: decoded.shift_scope || null,
+            isPro: decoded.is_pro || false,
+        };
+    } catch {
+        return null;
+    }
+}
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        // Mock authentication for no-login mode
-        setUser({
-            email: 'admin@oee.local',
-            role: 'admin',
-            is_pro: true,
-            id: 1,
-            hashed_password: '',
-            is_active: true
-        });
+        if (token) {
+            const decoded = decodeToken(token);
+            if (decoded) {
+                setUser(decoded);
+            } else {
+                // Token expired or invalid — clear it
+                localStorage.removeItem('token');
+                setToken(null);
+                setUser(null);
+            }
+        } else {
+            // No token: default to anonymous viewer (read-only)
+            setUser({
+                email: 'anonymous',
+                role: 'viewer',
+                shiftScope: null,
+                isPro: false,
+            });
+        }
         setIsLoading(false);
-    }, []);
+    }, [token]);
 
-    const login = (newToken: string) => {
+    const login = useCallback((newToken: string) => {
         setToken(newToken);
         localStorage.setItem('token', newToken);
-    };
+        const decoded = decodeToken(newToken);
+        if (decoded) {
+            setUser(decoded);
+        }
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         setToken(null);
-        setUser(null);
+        setUser({
+            email: 'anonymous',
+            role: 'viewer',
+            shiftScope: null,
+            isPro: false,
+        });
         localStorage.removeItem('token');
-        // Optional: Redirect to login via router if needed, better handled by PrivateRoute
-    };
+    }, []);
 
-    const impersonate = (newToken: string) => {
+    const impersonate = useCallback((newToken: string) => {
         login(newToken);
         message.success("Switched user successfully");
-    };
+    }, [login]);
 
-    const value = {
+    const role = user?.role || 'viewer';
+
+    const canAccessPage = useCallback((page: string): boolean => {
+        if (role === 'admin' || role === 'manager') return true;
+        if (role === 'supervisor') return !SUPERVISOR_DENIED_PAGES.has(page);
+        // viewer
+        return VIEWER_ALLOWED_PAGES.has(page);
+    }, [role]);
+
+    const value: AuthContextType = {
         user,
         token,
         isLoading,
         login,
         logout,
         impersonate,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin'
+        isAuthenticated: !!user && user.email !== 'anonymous',
+        isAdmin: role === 'admin',
+        isManager: role === 'admin' || role === 'manager',
+        isSupervisor: role === 'supervisor',
+        isViewer: role === 'viewer',
+        canEdit: role !== 'viewer',
+        canManage: role === 'admin' || role === 'manager',
+        canAccessPage,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

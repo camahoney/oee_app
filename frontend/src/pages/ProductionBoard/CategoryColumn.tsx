@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Typography, Button, Input, Space, Popconfirm } from 'antd';
 import { DeleteOutlined, EditOutlined, CheckOutlined, ClearOutlined } from '@ant-design/icons';
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
-import { ProductionCategory, MachineStatus } from './types';
+import { ProductionCategory, MachineStatus, ProductionBoardState } from './types';
 import SortableMachineCard from './SortableMachineCard';
+import { useAuth } from '../../context/AuthContext';
 
 const { Title } = Typography;
 
 interface CategoryColumnProps {
     category: ProductionCategory;
     index: number;
+    currentShift: ProductionBoardState['currentShift'];
     isEditMode: boolean;
     onStatusChange: (categoryId: string, machineId: string, status: MachineStatus, notes?: string, operator?: string | null, part?: string | null) => void;
     activeFilter?: MachineStatus | null;
@@ -29,6 +31,7 @@ interface CategoryColumnProps {
 const CategoryColumn: React.FC<CategoryColumnProps> = ({
     category,
     index,
+    currentShift,
     isEditMode,
     onStatusChange,
     activeFilter,
@@ -47,6 +50,9 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
 
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState(category.name);
+    const { canManage, user, isSupervisor, canEdit } = useAuth();
+
+    const canClearOperators = canManage || (canEdit && (!isSupervisor || user?.shiftScope === currentShift));
 
     // Filter machines based on active filter and search term
     const visibleMachines = category.machines.filter(mac => {
@@ -127,24 +133,26 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
             </div>
 
             {/* Clear Operators button */}
-            <div style={{ padding: '4px 8px 0', display: 'flex', justifyContent: 'center' }}>
-                <Popconfirm
-                    title="Clear all operators?"
-                    description="This will unassign all operators in this category for the current shift. Parts will remain."
-                    onConfirm={() => onClearOperators(category.id)}
-                    okText="Clear"
-                    cancelText="Cancel"
-                >
-                    <Button
-                        type="text"
-                        size="small"
-                        icon={<ClearOutlined />}
-                        style={{ fontSize: '11px', color: '#8c8c8c', padding: '2px 8px', height: 'auto' }}
+            {canClearOperators && (
+                <div style={{ padding: '4px 8px 0', display: 'flex', justifyContent: 'center' }}>
+                    <Popconfirm
+                        title="Clear all operators?"
+                        description="This will unassign all operators in this category for the current shift. Parts will remain."
+                        onConfirm={() => onClearOperators(category.id)}
+                        okText="Clear"
+                        cancelText="Cancel"
                     >
-                        Clear Operators
-                    </Button>
-                </Popconfirm>
-            </div>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<ClearOutlined />}
+                            style={{ fontSize: '11px', color: '#8c8c8c', padding: '2px 8px', height: 'auto' }}
+                        >
+                            Clear Operators
+                        </Button>
+                    </Popconfirm>
+                </div>
+            )}
 
             {/* Machines Grid */}
             <div style={{ padding: '8px', flex: 1, overflowY: 'auto' }}>
@@ -167,6 +175,7 @@ const CategoryColumn: React.FC<CategoryColumnProps> = ({
                                 assignedOperators={assignedOperators}
                                 machinePartsHistory={machinePartsHistory}
                                 manualAllowedParts={manualAllowedParts}
+                                currentShift={currentShift}
                             />
                         ))}
                     </div>
