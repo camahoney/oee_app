@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.db import User, AuditLog
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey-dev-only")
 ALGORITHM = "HS256"
