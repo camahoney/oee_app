@@ -1,0 +1,15 @@
+﻿e6ef8e1 fix: remove unused Login.tsx file to resolve case-sensitivity collisions on Linux CI
+25a7d99 fix: truncate password length to resolve bcrypt ValueError on py3.12+
+2c1ba9e feat: complete RBAC implementation across frontend and backend
+852e6ca fix: Responsive Production Board layout - auto-fill grid prevents bunching on different screen sizes
+dfa3967 docs: Update v1.5.0 effort hours to 7
+3de5e7e docs: Add v1.5.0 to Version History - shift-aware suggestions, per-shift persistence, clear operators
+f73ac1f fix: Settings accordion collapsed by default, non-compact print now shows full operator stats
+cd71c92 feat: Per-shift operator persistence, rename Day Shift to 1st Shift, add Clear Operators button per category
+ad5e2ef fix: Display OEE as proper percentage (multiply decimal by 100) in operator suggestions
+1800696 fix: Fuzzy name matching for operator suggestions - bridges DB format (ID+Last,First) to roster format (First Last)
+839bae3 hotfix: Move useMemo above early return to fix React hooks ordering crash
+263a095 feat: Filter operator suggestions by active shift and exclude already-assigned operators
+1d089f7 fix: Clean part dropdown labels and expand suggest-operator to query reportentry with name normalization
+c276de0 redesign: Professional Settings page with collapsible sections, grouped machine parts, and premium visual design
+0290939 feat: Expand machine-parts-history to query all 3 data tables with name normalization and pre-populate Settings form fields

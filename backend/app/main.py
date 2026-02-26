@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from .database import create_db_and_tables, engine
-from .db import RateEntry, User, RunMode
+from .db import RateEntry, User, RunMode, AuditLog
 from .seeds import get_seed_rates, get_seed_users
 
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
@@ -53,15 +53,23 @@ def on_startup():
     except Exception as e:
         print(f"RateEntry Migration check failed: {e}")
 
-    # Schema Migration Check for "User" (is_pro)
+    # Schema Migration Check for "User" (is_pro, role, shift_scope)
     try:
         insp = inspect(engine)
         if insp.has_table("user"):
             cols = [c["name"] for c in insp.get_columns("user")]
-            if "is_pro" not in cols:
-                print("Migrating User: Adding 'is_pro'...")
-                with Session(engine) as session:
+            with Session(engine) as session:
+                if "is_pro" not in cols:
+                    print("Migrating User: Adding 'is_pro'...")
                     session.exec(text("ALTER TABLE \"user\" ADD COLUMN is_pro BOOLEAN DEFAULT 0"))
+                    session.commit()
+                if "role" not in cols:
+                    print("Migrating User: Adding 'role'...")
+                    session.exec(text("ALTER TABLE \"user\" ADD COLUMN role VARCHAR DEFAULT 'viewer'"))
+                    session.commit()
+                if "shift_scope" not in cols:
+                    print("Migrating User: Adding 'shift_scope'...")
+                    session.exec(text("ALTER TABLE \"user\" ADD COLUMN shift_scope VARCHAR"))
                     session.commit()
     except Exception as e:
         print(f"User Migration check failed: {e}")

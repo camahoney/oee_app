@@ -1,68 +1,122 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { api, authService, User } from '../services/api'; // user api default export for axios instance if needed, or just authService
-import { jwtDecode } from "jwt-decode";
-import { message } from 'antd';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextType {
-    user: User | null;
     token: string | null;
-    isLoading: boolean;
-    login: (token: string) => void;
+    role: string | null;         // admin, manager, supervisor, viewer
+    shiftScope: string | null;   // "1st Shift", etc.
+    isPro: boolean;
+    login: (email: string, password: string) => Promise<boolean>;
     logout: () => void;
-    impersonate: (token: string) => void;
-    isAuthenticated: boolean;
-    isAdmin: boolean;
+    // Helper access getters
+    canEdit: boolean;   // admin, manager
+    canManage: boolean; // admin
+    isSupervisor: boolean;
+    isViewer: boolean;  // anonymous or viewer role
+    canAccessPage: (path: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [role, setRole] = useState<string | null>(null);
+    const [shiftScope, setShiftScope] = useState<string | null>(null);
+    const [isPro, setIsPro] = useState<boolean>(false);
 
     useEffect(() => {
-        // Mock authentication for no-login mode
-        setUser({
-            email: 'admin@oee.local',
-            role: 'admin',
-            is_pro: true,
-            id: 1,
-            hashed_password: '',
-            is_active: true
-        });
-        setIsLoading(false);
-    }, []);
+        if (token) {
+            try {
+                const decoded: any = jwtDecode(token);
+                // Check if expired
+                if (decoded.exp * 1000 < Date.now()) {
+                    logout();
+                } else {
+                    setRole(decoded.role || 'viewer');
+                    setShiftScope(decoded.shift_scope || null);
+                    setIsPro(!!decoded.is_pro);
+                }
+            } catch (e) {
+                console.error("Invalid token", e);
+                logout();
+            }
+        } else {
+            // Anonymous fallback
+            setRole('viewer');
+            setShiftScope(null);
+            setIsPro(false);
+        }
+    }, [token]);
 
-    const login = (newToken: string) => {
-        setToken(newToken);
-        localStorage.setItem('token', newToken);
+    const login = async (email: string, password: string): Promise<boolean> => {
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setToken(data.access_token);
+                localStorage.setItem('token', data.access_token);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Login failed', error);
+            return false;
+        }
     };
 
     const logout = () => {
         setToken(null);
-        setUser(null);
+        setRole('viewer');
+        setShiftScope(null);
+        setIsPro(false);
         localStorage.removeItem('token');
-        // Optional: Redirect to login via router if needed, better handled by PrivateRoute
     };
 
-    const impersonate = (newToken: string) => {
-        login(newToken);
-        message.success("Switched user successfully");
+    // Derived permissions
+    const canEdit = role === 'admin' || role === 'manager';
+    const canManage = role === 'admin';
+    const isSupervisor = role === 'supervisor';
+    const isViewer = !role || role === 'viewer'; // True if not logged in or explicitly viewer
+
+    const canAccessPage = (path: string) => {
+        if (canEdit) return true; // Admins and managers access everything
+
+        switch (path) {
+            case '/upload':
+            case '/settings':
+            case '/rates':
+            case '/admin/users':
+                return false; // Viewers and Supervisors cannot access these pages
+            case '/reports':
+            case '/versions':
+            case '/analytics':
+            case '/leaderboard':
+            case '/operators':
+            case '/dashboard':
+            case '/production-board':
+            default:
+                return true; // Everyone can see standard read-only views
+        }
     };
 
-    const value = {
-        user,
-        token,
-        isLoading,
-        login,
-        logout,
-        impersonate,
-        isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin'
-    };
-
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{
+            token, role, shiftScope, isPro,
+            login, logout,
+            canEdit, canManage, isSupervisor, isViewer, canAccessPage
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {

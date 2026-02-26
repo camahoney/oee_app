@@ -7,6 +7,7 @@ from datetime import datetime
 
 from ..db import RateEntry, RateAudit, ReportEntry, RunMode
 from ..database import get_session, engine
+from .auth import require_role
 # Import calculation logic (deferred import or direct if safe)
 # Since metrics imports from .db and .database, and rates does too, we can try direct import.
 # Note: routers/metrics.py is a sibling.
@@ -87,7 +88,7 @@ def get_rate(rate_id: int, session: Session = Depends(get_session)):
     return rate
 
 
-@router.post("/", response_model=RateEntry, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=RateEntry, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_role("admin", "manager"))])
 def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     # Manual conversion if Pydantic fails to cast (some SQLModel edge cases)
 
@@ -110,7 +111,7 @@ def create_rate(rate: RateEntry, background_tasks: BackgroundTasks, session: Ses
 
     return rate
 
-@router.put("/{rate_id}", response_model=RateEntry)
+@router.put("/{rate_id}", response_model=RateEntry, dependencies=[Depends(require_role("admin", "manager"))])
 def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     db_rate = session.get(RateEntry, rate_id)
     if not db_rate:
@@ -154,7 +155,7 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
 
     return db_rate
 
-@router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{rate_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_role("admin", "manager"))])
 def delete_rate(rate_id: int, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     rate = session.get(RateEntry, rate_id)
     if not rate:

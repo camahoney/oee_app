@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List, Optional
 from pydantic import BaseModel
+import json
 
-from ..db import Setting
+from ..db import Setting, User
 from ..database import get_session
+from .auth import get_current_user
 
 router = APIRouter()
 
@@ -25,7 +27,17 @@ class SettingUpdate(BaseModel):
     description: Optional[str] = None
 
 @router.put("/{key}", response_model=Setting)
-def update_setting(key: str, setting_data: SettingUpdate, session: Session = Depends(get_session)):
+def update_setting(key: str, setting_data: SettingUpdate, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
+    # RBAC logic
+    if key == "production_board_state":
+        # Supervisors can save the board state (we rely on frontend UI to disable other shifts for them right now)
+        if current_user.role not in ["admin", "manager", "supervisor"]:
+            raise HTTPException(status_code=403, detail="Not authorized to update board state")
+    else:
+        # All other settings require admin or manager
+        if current_user.role not in ["admin", "manager"]:
+            raise HTTPException(status_code=403, detail="Not authorized to modify settings")
+
     setting = session.get(Setting, key)
     if not setting:
         # create if not exists

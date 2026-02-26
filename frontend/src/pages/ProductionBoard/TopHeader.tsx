@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Radio, Input, Button, Typography, Space, Switch, Tag } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { ProductionBoardState } from './types';
+import { useAuth } from '../../context/AuthContext';
 
 const { Title, Text } = Typography;
 
@@ -17,6 +18,8 @@ interface TopHeaderProps {
 }
 
 const TopHeader: React.FC<TopHeaderProps> = ({ currentShift, onShiftChange, lastUpdated, onRefresh, onSearch, saving, isEditMode, onEditModeChange }) => {
+    const { canEdit, isSupervisor, shiftScope } = useAuth();
+
     return (
         <div style={{ marginBottom: 16, backgroundColor: '#ffffff', padding: '16px 24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <Row justify="space-between" align="middle">
@@ -31,12 +34,16 @@ const TopHeader: React.FC<TopHeaderProps> = ({ currentShift, onShiftChange, last
                             onChange={(e) => onShiftChange(e.target.value)}
                             optionType="button"
                             buttonStyle="solid"
+                            disabled={isSupervisor && !!shiftScope}
                             options={[
                                 { value: '1st Shift', label: '1st Shift' },
                                 { value: '2nd Shift', label: '2nd Shift' },
                                 { value: '3rd Shift', label: '3rd Shift' },
                             ]}
                         />
+                        {isSupervisor && shiftScope && (
+                            <Text type="secondary" style={{ fontSize: '12px' }}>Locked to your shift</Text>
+                        )}
                     </Space>
                 </Col>
                 <Col>
@@ -57,10 +64,12 @@ const TopHeader: React.FC<TopHeaderProps> = ({ currentShift, onShiftChange, last
                         >
                             Refresh
                         </Button>
-                        <Space>
-                            <Text>Edit Mode:</Text>
-                            <Switch checked={isEditMode} onChange={onEditModeChange} />
-                        </Space>
+                        {canEdit && (
+                            <Space>
+                                <Text>Edit Mode:</Text>
+                                <Switch checked={isEditMode} onChange={onEditModeChange} />
+                            </Space>
+                        )}
                     </Space>
                 </Col>
             </Row>

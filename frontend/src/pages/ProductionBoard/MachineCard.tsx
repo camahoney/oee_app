@@ -3,6 +3,7 @@ import { Card, Select, Input, Typography, Space, Button, Popconfirm, Dropdown, S
 import { DeleteOutlined, EditOutlined, CheckOutlined, DownOutlined, ToolOutlined, InboxOutlined, SyncOutlined, CalendarOutlined, PoweroffOutlined, DragOutlined } from '@ant-design/icons';
 import { ProductionMachine, MachineStatus, STATUS_COLORS } from './types';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const { Text } = Typography;
 
@@ -35,6 +36,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
 }) => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState(machine.name);
+    const { isViewer } = useAuth();
 
     const [suggestedOperator, setSuggestedOperator] = useState<string | null>(null);
     const [suggestStats, setSuggestStats] = useState<{ oee: number, qual: number, runs: number } | null>(null);
@@ -253,6 +255,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                         }))
                     }}
                     trigger={['click']}
+                    disabled={isViewer}
                 >
                     <div style={{
                         backgroundColor: cardColor,
@@ -286,6 +289,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     placeholder="Part Running"
                     size="small"
                     bordered={false}
+                    disabled={isViewer}
                     value={machine.part}
                     onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, machine.operator, value === undefined ? null : value)}
                     style={{ width: '100%', backgroundColor: '#f0f2f5', borderRadius: '4px', fontSize: '12px' }}
@@ -304,6 +308,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                         placeholder="Select Operator"
                         size="middle"
                         bordered={false}
+                        disabled={isViewer}
                         value={machine.operator && availableOperators.includes(machine.operator) ? machine.operator : undefined}
                         onChange={(value) => onStatusChange(categoryId, machine.id, machine.status, machine.notes, value === undefined ? null : value)}
                         style={{ width: '100%', backgroundColor: '#f4f6f8', borderRadius: '4px' }}
@@ -335,7 +340,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     <Spin size="small" /> Analyzing history...
                 </div>
             )}
-            {!isSuggesting && suggestedOperator && machine.operator !== suggestedOperator && (
+            {!isSuggesting && !isViewer && suggestedOperator && machine.operator !== suggestedOperator && (
                 <div style={{
                     backgroundColor: '#fffbe6',
                     border: '1px solid #ffe58f',

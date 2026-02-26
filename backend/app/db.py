@@ -6,10 +6,24 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    role: str = Field(default="analyst")  # admin or analyst
+    role: str = Field(default="viewer")  # admin, manager, supervisor, viewer
+    shift_scope: Optional[str] = None    # "1st Shift", "2nd Shift", "3rd Shift", etc.
     is_pro: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class AuditLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_email: str = Field(index=True)
+    user_role: str
+    shift: Optional[str] = None
+    action: str
+    machine_id: Optional[str] = None
+    category_id: Optional[str] = None
+    before_value: Optional[str] = None
+    after_value: Optional[str] = None
+    details: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 class RunMode(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
