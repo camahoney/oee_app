@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { authService } from '../services/api';
 
 interface AuthContextType {
     token: string | null;
@@ -50,18 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const formData = new URLSearchParams();
-            formData.append('username', email);
-            formData.append('password', password);
-
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
+            const data = await authService.login(email, password);
+            if (data && data.access_token) {
                 setToken(data.access_token);
                 localStorage.setItem('token', data.access_token);
                 return true;
