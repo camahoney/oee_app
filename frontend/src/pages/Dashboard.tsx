@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu, Switch } from 'antd';
+import { Card, Row, Col, Typography, Statistic, List, Tag, Spin, message, Button, Tooltip, Dropdown, Menu, Switch, Skeleton } from 'antd';
 import {
     FieldTimeOutlined, ThunderboltOutlined, SafetyCertificateOutlined, ArrowLeftOutlined, WarningOutlined, PrinterOutlined, AppstoreOutlined, BarsOutlined, CheckCircleOutlined,
     ClockCircleOutlined,
@@ -500,7 +500,7 @@ const Dashboard: React.FC = () => {
                                                                     <Tooltip key={idx} title={insight.message}>
                                                                         <Tag color="blue" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', fontSize: '13px', borderRadius: '6px', cursor: 'help' }}>
                                                                             <span style={{ fontSize: '16px' }}>{insight.icon}</span>
-                                                                            <span>{insight.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                                                            <span>{insight.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
                                                                         </Tag>
                                                                     </Tooltip>
                                                                 ))}

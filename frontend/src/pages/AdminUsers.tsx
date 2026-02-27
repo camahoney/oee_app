@@ -12,7 +12,6 @@ const AdminUsers: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
-    const { impersonate } = useAuth();
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -42,18 +41,10 @@ const AdminUsers: React.FC = () => {
         }
     };
 
-    const handleImpersonate = async (email: string) => {
-        try {
-            const data = await authService.impersonate(email);
-            impersonate(data.access_token);
-        } catch (error) {
-            message.error('Failed to switch user');
-        }
-    };
 
     const handleUpdateProStatus = async (user: User, isPro: boolean) => {
         try {
-            await authService.updateUser(user.id, { is_pro: isPro });
+            await authService.updateUser(user.id!, { is_pro: isPro });
             message.success(`Updated ${user.email} to ${isPro ? 'Pro' : 'Standard'} status`);
             fetchUsers();
         } catch (error: any) {
@@ -102,13 +93,6 @@ const AdminUsers: React.FC = () => {
             key: 'actions',
             render: (_: any, record: User) => (
                 <Space size="middle">
-                    <Button
-                        type="dashed"
-                        icon={<UserSwitchOutlined />}
-                        onClick={() => handleImpersonate(record.email)}
-                    >
-                        Switch User
-                    </Button>
                 </Space>
             ),
         },

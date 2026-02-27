@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import axios from 'axios';
 
 // Create an Axios instance with base URL pointing to the backend
@@ -29,6 +30,7 @@ export interface User {
     email: string;
     role: string;
     is_active?: boolean;
+    is_pro?: boolean;
 }
 
 export const authService = {
