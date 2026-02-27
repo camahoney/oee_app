@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom';
 import { Layout, Menu, ConfigProvider, Button } from 'antd';
 import {
     DashboardOutlined,
@@ -101,18 +101,18 @@ const AppContent: React.FC = () => {
                     defaultSelectedKeys={["dashboard"]}
                     style={{ borderRight: 0 }}
                 >
-                    <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <a href="/dashboard">Dashboard</a> </Menu.Item>
-                    <Menu.Item key="production-board" icon={<DashboardOutlined />}> <a href="/production-board">Production Board</a> </Menu.Item>
-                    <Menu.Item key="analytics" icon={<BarChartOutlined />}> <a href="/analytics">Analytics</a> </Menu.Item>
-                    <Menu.Item key="operators" icon={<TeamOutlined />}> <a href="/operators">Operator Perf.</a> </Menu.Item>
-                    <Menu.Item key="leaderboard" icon={<TrophyOutlined />}> <a href="/leaderboard">Leaderboard</a> </Menu.Item>
+                    <Menu.Item key="dashboard" icon={<DashboardOutlined />}> <Link to="/dashboard">Dashboard</Link> </Menu.Item>
+                    <Menu.Item key="production-board" icon={<DashboardOutlined />}> <Link to="/production-board">Production Board</Link> </Menu.Item>
+                    <Menu.Item key="analytics" icon={<BarChartOutlined />}> <Link to="/analytics">Analytics</Link> </Menu.Item>
+                    <Menu.Item key="operators" icon={<TeamOutlined />}> <Link to="/operators">Operator Perf.</Link> </Menu.Item>
+                    <Menu.Item key="leaderboard" icon={<TrophyOutlined />}> <Link to="/leaderboard">Leaderboard</Link> </Menu.Item>
 
-                    {canAccessPage('/upload') && <Menu.Item key="upload" icon={<UploadOutlined />}> <a href="/upload">Upload & Analyze</a> </Menu.Item>}
-                    {canAccessPage('/rates') && <Menu.Item key="rates" icon={<TableOutlined />}> <a href="/rates">Rates</a> </Menu.Item>}
-                    {canAccessPage('/reports') && <Menu.Item key="reports" icon={<FileTextOutlined />}> <a href="/reports">Reports</a> </Menu.Item>}
-                    {canAccessPage('/settings') && <Menu.Item key="settings" icon={<SettingOutlined />}> <a href="/settings">Settings</a> </Menu.Item>}
-                    {canAccessPage('/versions') && <Menu.Item key="versions" icon={<HistoryOutlined />}> <a href="/versions">Versions</a> </Menu.Item>}
-                    {canAccessPage('/admin/users') && <Menu.Item key="admin-users" icon={<TeamOutlined />}> <a href="/admin/users">User Admin</a> </Menu.Item>}
+                    {canAccessPage('/upload') && <Menu.Item key="upload" icon={<UploadOutlined />}> <Link to="/upload">Upload & Analyze</Link> </Menu.Item>}
+                    {canAccessPage('/rates') && <Menu.Item key="rates" icon={<TableOutlined />}> <Link to="/rates">Rates</Link> </Menu.Item>}
+                    {canAccessPage('/reports') && <Menu.Item key="reports" icon={<FileTextOutlined />}> <Link to="/reports">Reports</Link> </Menu.Item>}
+                    {canAccessPage('/settings') && <Menu.Item key="settings" icon={<SettingOutlined />}> <Link to="/settings">Settings</Link> </Menu.Item>}
+                    {canAccessPage('/versions') && <Menu.Item key="versions" icon={<HistoryOutlined />}> <Link to="/versions">Versions</Link> </Menu.Item>}
+                    {canAccessPage('/admin/users') && <Menu.Item key="admin-users" icon={<TeamOutlined />}> <Link to="/admin/users">User Admin</Link> </Menu.Item>}
                 </Menu>
             </Sider>
             <Layout>

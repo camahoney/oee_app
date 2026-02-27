@@ -19,11 +19,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getInitialState = () => {
+    const initialToken = localStorage.getItem('token');
+    let initialRole = 'viewer';
+    let initialShiftScope = null;
+    let initialIsPro = false;
+
+    if (initialToken) {
+        try {
+            const decoded: any = jwtDecode(initialToken);
+            if (decoded.exp * 1000 >= Date.now()) {
+                initialRole = decoded.role || 'viewer';
+                initialShiftScope = decoded.shift_scope || null;
+                initialIsPro = !!decoded.is_pro;
+            }
+        } catch {
+            // fallback to defaults
+        }
+    }
+    return { initialToken, initialRole, initialShiftScope, initialIsPro };
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-    const [role, setRole] = useState<string | null>(null);
-    const [shiftScope, setShiftScope] = useState<string | null>(null);
-    const [isPro, setIsPro] = useState<boolean>(false);
+    const { initialToken, initialRole, initialShiftScope, initialIsPro } = getInitialState();
+
+    const [token, setToken] = useState<string | null>(initialToken);
+    const [role, setRole] = useState<string | null>(initialRole);
+    const [shiftScope, setShiftScope] = useState<string | null>(initialShiftScope);
+    const [isPro, setIsPro] = useState<boolean>(initialIsPro);
 
     useEffect(() => {
         if (token) {
