@@ -343,6 +343,19 @@ async def seed_rates_only(secret: str = None):
     logs = []
     with Session(engine) as session:
         try:
+            # Seed default users
+            from .seeds import get_seed_users
+            from .db import User
+            users = get_seed_users()
+            seeded_users = 0
+            for u in users:
+                if not session.exec(select(User).where(User.email == u.email)).first():
+                    session.add(u)
+                    seeded_users += 1
+            session.commit()
+            if seeded_users > 0:
+                logs.append(f"Seeded {seeded_users} users.")
+
             # Seed default RunMode
             if not session.exec(select(RunMode).where(RunMode.id == 1)).first():
                 session.add(RunMode(id=1, name="STANDARD", description="Standard production mode"))
@@ -357,7 +370,7 @@ async def seed_rates_only(secret: str = None):
             logs.append(f"Seeded {len(rates)} rates.")
         except Exception as e:
             session.rollback()
-            logs.append(f"Error seeding rates: {e}")
+            logs.append(f"Error seeding data: {e}")
             
     return {"status": "success", "logs": logs}
 
