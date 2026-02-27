@@ -7,7 +7,9 @@ from .seeds import get_seed_rates, get_seed_users
 
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
 
+import os
 app = FastAPI(title="OEE Analytics API", version="1.1.4")
+SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey-dev-only")
 
 @app.on_event("startup")
 def on_startup():
@@ -272,6 +274,39 @@ async def fix_db():
     logs.append(run_migration("Add machine_cycle_time to rateentry", "ALTER TABLE rateentry ADD COLUMN machine_cycle_time FLOAT"))
 
     return {"status": "completed", "logs": logs}
+    
+@app.post("/seed-remote")
+async def seed_remote(secret: str):
+    if secret != SECRET_KEY:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
+    from sqlmodel import Session, select
+    from .db import User, RateEntry
+    from .seeds import get_seed_users, get_seed_rates
+    
+    logs = []
+    with Session(engine) as session:
+        # Check users
+        if not session.exec(select(User)).first():
+            users = get_seed_users()
+            for u in users:
+                session.add(u)
+            logs.append(f"Seeded {len(users)} users.")
+        else:
+            logs.append("Users already exist.")
+            
+        # Check rates
+        if not session.exec(select(RateEntry)).first():
+            rates = get_seed_rates()
+            for r in rates:
+                session.add(r)
+            logs.append(f"Seeded {len(rates)} rates.")
+        else:
+            logs.append("Rates already exist.")
+            
+        session.commit()
+    return {"status": "success", "logs": logs}
 
 @app.get("/recalculate-all")
 async def recalculate_all_missing():
