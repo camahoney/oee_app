@@ -8,7 +8,7 @@ from .seeds import get_seed_rates, get_seed_users
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
 
 import os
-app = FastAPI(title="OEE Analytics API", version="1.1.4")
+app = FastAPI(title="OEE Analytics API", version="1.1.5")
 SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey-dev-only")
 
 @app.on_event("startup")
