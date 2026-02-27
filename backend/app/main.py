@@ -8,7 +8,7 @@ from .seeds import get_seed_rates, get_seed_users
 from .routers import rates, reports, metrics, auth, settings, analytics, weekly
 
 import os
-app = FastAPI(title="OEE Analytics API", version="1.1.5")
+app = FastAPI(title="OEE Analytics API", version="1.1.6")
 SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey-dev-only")
 
 @app.on_event("startup")
@@ -354,6 +354,33 @@ async def reset_db(secret: str):
         except Exception as e:
             session.rollback()
             logs.append(f"Error seeding users: {e}")
+            
+    return {"status": "success", "logs": logs}
+
+@app.post("/seed-rates-only")
+async def seed_rates_only(secret: str = None):
+    if secret != SECRET_KEY:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    logs = []
+    with Session(engine) as session:
+        try:
+            # Seed default RunMode
+            if not session.exec(select(RunMode).where(RunMode.id == 1)).first():
+                session.add(RunMode(id=1, name="STANDARD", description="Standard production mode"))
+                session.commit()
+                logs.append("Seeded default RunMode.")
+            
+            from .seeds import get_seed_rates
+            rates = get_seed_rates()
+            for r in rates:
+                session.add(r)
+            session.commit()
+            logs.append(f"Seeded {len(rates)} rates.")
+        except Exception as e:
+            session.rollback()
+            logs.append(f"Error seeding rates: {e}")
             
     return {"status": "success", "logs": logs}
 
