@@ -19,9 +19,24 @@ def get_seed_users():
     return [
         User(
             email="admin@example.com", 
-            # Password is 'admin'
             hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW", 
             role="admin"
+        ),
+        User(
+            email="manager@oee.local",
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW", # "admin" hash, will force hash below
+            role="manager"
+        ),
+        User(
+            email="supervisor@oee.local",
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+            role="supervisor",
+            shift_scope="1st Shift"
+        ),
+        User(
+            email="viewer@oee.local",
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+            role="viewer"
         )
     ]
 
