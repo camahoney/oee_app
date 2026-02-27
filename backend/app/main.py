@@ -355,16 +355,6 @@ async def reset_db(secret: str):
             session.rollback()
             logs.append(f"Error seeding users: {e}")
             
-        try:
-            rates = get_seed_rates()
-            for r in rates:
-                session.add(r)
-            session.commit()
-            logs.append(f"Seeded {len(rates)} rates.")
-        except Exception as e:
-            session.rollback()
-            logs.append(f"Error seeding rates (likely missing foreign keys): {e}")
-            
     return {"status": "success", "logs": logs}
 
 @app.get("/recalculate-all")
