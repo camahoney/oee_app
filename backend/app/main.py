@@ -308,6 +308,26 @@ async def seed_remote(secret: str):
         session.commit()
     return {"status": "success", "logs": logs}
 
+@app.post("/force-hash")
+async def force_hash(secret: str, email: str, new_password: str):
+    if secret != SECRET_KEY:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
+    from sqlmodel import Session, select
+    from .db import User
+    from .routers.auth import get_password_hash
+    
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.email == email)).first()
+        if not user:
+            return {"status": "error", "detail": "User not found"}
+            
+        user.hashed_password = get_password_hash(new_password)
+        session.add(user)
+        session.commit()
+    return {"status": "success", "message": f"Password re-hashed for {email}"}
+
 @app.get("/recalculate-all")
 async def recalculate_all_missing():
     """Find all reports without metrics and calculate them."""
