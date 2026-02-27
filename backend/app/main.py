@@ -328,6 +328,36 @@ async def force_hash(secret: str, email: str, new_password: str):
         session.commit()
     return {"status": "success", "message": f"Password re-hashed for {email}"}
 
+@app.post("/reset-db")
+async def reset_db(secret: str):
+    if secret != SECRET_KEY:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
+    from sqlmodel import SQLModel, Session
+    from .database import engine
+    from .seeds import get_seed_users, get_seed_rates
+    
+    # Drop and recreate all tables
+    SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.create_all(engine)
+    
+    logs = ["Tables dropped and recreated."]
+    
+    with Session(engine) as session:
+        users = get_seed_users()
+        for u in users:
+            session.add(u)
+        logs.append(f"Seeded {len(users)} users.")
+        
+        rates = get_seed_rates()
+        for r in rates:
+            session.add(r)
+        logs.append(f"Seeded {len(rates)} rates.")
+        
+        session.commit()
+    return {"status": "success", "logs": logs}
+
 @app.get("/recalculate-all")
 async def recalculate_all_missing():
     """Find all reports without metrics and calculate them."""
