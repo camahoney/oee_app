@@ -345,17 +345,26 @@ async def reset_db(secret: str):
     logs = ["Tables dropped and recreated."]
     
     with Session(engine) as session:
-        users = get_seed_users()
-        for u in users:
-            session.add(u)
-        logs.append(f"Seeded {len(users)} users.")
-        
-        rates = get_seed_rates()
-        for r in rates:
-            session.add(r)
-        logs.append(f"Seeded {len(rates)} rates.")
-        
-        session.commit()
+        try:
+            users = get_seed_users()
+            for u in users:
+                session.add(u)
+            session.commit()
+            logs.append(f"Seeded {len(users)} users.")
+        except Exception as e:
+            session.rollback()
+            logs.append(f"Error seeding users: {e}")
+            
+        try:
+            rates = get_seed_rates()
+            for r in rates:
+                session.add(r)
+            session.commit()
+            logs.append(f"Seeded {len(rates)} rates.")
+        except Exception as e:
+            session.rollback()
+            logs.append(f"Error seeding rates (likely missing foreign keys): {e}")
+            
     return {"status": "success", "logs": logs}
 
 @app.get("/recalculate-all")
