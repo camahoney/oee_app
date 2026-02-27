@@ -328,34 +328,11 @@ async def force_hash(secret: str, email: str, new_password: str):
         session.commit()
     return {"status": "success", "message": f"Password re-hashed for {email}"}
 
-@app.post("/reset-db")
-async def reset_db(secret: str):
-    if secret != SECRET_KEY:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=403, detail="Forbidden")
-        
-    from sqlmodel import SQLModel, Session
-    from .database import engine
-    from .seeds import get_seed_users, get_seed_rates
-    
-    # Drop and recreate all tables
-    SQLModel.metadata.drop_all(engine)
-    SQLModel.metadata.create_all(engine)
-    
-    logs = ["Tables dropped and recreated."]
-    
-    with Session(engine) as session:
-        try:
-            users = get_seed_users()
-            for u in users:
-                session.add(u)
-            session.commit()
-            logs.append(f"Seeded {len(users)} users.")
-        except Exception as e:
-            session.rollback()
-            logs.append(f"Error seeding users: {e}")
-            
-    return {"status": "success", "logs": logs}
+# ==========================================
+# STRICT CONSTRAINT: DO NOT WIPE PRODUCTION DATA
+# Per user request (2026-02-26), never use `drop_all`
+# or similar destructive commands on the live database.
+# ==========================================
 
 @app.post("/seed-rates-only")
 async def seed_rates_only(secret: str = None):
