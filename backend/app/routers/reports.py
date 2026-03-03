@@ -332,8 +332,8 @@ def upload_report(file: UploadFile = File(...), session: Session = Depends(get_s
              raise HTTPException(status_code=400, detail=f"Columns Missing. Found: {found_cols}. Missing: {missing}. Data Preview: {snippet}")
 
         # Store the report metadata
-        # HARDCODED FIX: uploaded_by=1 (Admin) to satisfy NOT NULL constraint
-        report = ProductionReport(filename=file.filename, uploaded_at=datetime.utcnow(), uploaded_by=1)
+        # uploaded_by is Optional — leave as None since upload is not tied to a logged-in user
+        report = ProductionReport(filename=file.filename, uploaded_at=datetime.utcnow())
         session.add(report)
         session.commit()
         session.refresh(report)
