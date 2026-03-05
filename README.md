@@ -23,7 +23,7 @@ The backend handles the database, authentication, and calculations.
 1.  Open a terminal (PowerShell or Command Prompt).
 2.  Navigate to the backend directory:
     ```bash
-    cd "C:\Users\cmaho\Desktop\Antigravity Test Folder\oee_app\backend"
+    cd "backend"
     ```
 3.  (Optional but recommended) Create a virtual environment:
     ```bash
@@ -48,7 +48,7 @@ The frontend provides the user interface.
 1.  Open a **new** terminal window (keep the backend running).
 2.  Navigate to the frontend directory:
     ```bash
-    cd "C:\Users\cmaho\Desktop\Antigravity Test Folder\oee_app\frontend"
+    cd "frontend"
     ```
 3.  Install dependencies:
     ```bash

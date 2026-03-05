@@ -55,4 +55,4 @@ def import_rates(file_path):
         print(f"Successfully imported {count} rate entries.")
 
 if __name__ == "__main__":
-    import_rates(r"C:\Users\cmaho\Desktop\oeemakesomethinghappen\cleaned_ProdOEE_Rates.csv")
+    import_rates(r"C:\cleaned_ProdOEE_Rates.csv")
