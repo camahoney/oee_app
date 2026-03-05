@@ -73,6 +73,10 @@ def on_startup():
                     print("Migrating User: Adding 'shift_scope'...")
                     session.exec(text("ALTER TABLE \"user\" ADD COLUMN shift_scope VARCHAR"))
                     session.commit()
+                if "allowed_pages" not in cols:
+                    print("Migrating User: Adding 'allowed_pages'...")
+                    session.exec(text("ALTER TABLE \"user\" ADD COLUMN allowed_pages TEXT"))
+                    session.commit()
     except Exception as e:
         print(f"User Migration check failed: {e}")
 

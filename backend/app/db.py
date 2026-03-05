@@ -9,6 +9,7 @@ class User(SQLModel, table=True):
     role: str = Field(default="viewer")  # admin, manager, supervisor, viewer
     shift_scope: Optional[str] = None    # "1st Shift", "2nd Shift", "3rd Shift", etc.
     is_pro: bool = Field(default=False)
+    allowed_pages: Optional[str] = Field(default=None)  # JSON list of page paths e.g. '["/upload","/rates"]'
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

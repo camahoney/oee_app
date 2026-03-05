@@ -112,7 +112,7 @@ const AppContent: React.FC = () => {
                     {canAccessPage('/reports') && <Menu.Item key="reports" icon={<FileTextOutlined />}> <Link to="/reports">Reports</Link> </Menu.Item>}
                     {canAccessPage('/settings') && <Menu.Item key="settings" icon={<SettingOutlined />}> <Link to="/settings">Settings</Link> </Menu.Item>}
                     {canAccessPage('/versions') && <Menu.Item key="versions" icon={<HistoryOutlined />}> <Link to="/versions">Versions</Link> </Menu.Item>}
-                    {canAccessPage('/admin/users') && <Menu.Item key="admin-users" icon={<TeamOutlined />}> <Link to="/admin/users">User Admin</Link> </Menu.Item>}
+                    {canAccessPage('/admin/users') && <Menu.Item key="admin-users" icon={<TeamOutlined />}> <Link to="/admin/users">User Management</Link> </Menu.Item>}
                 </Menu>
             </Sider>
             <Layout>

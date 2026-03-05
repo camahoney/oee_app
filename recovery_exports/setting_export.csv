@@ -1,0 +1,12 @@
+key,value,description
+production_board_state,"{""categories"":[{""id"":""cat-injection"",""name"":""Injection"",""machines"":[{""id"":""inj-2"",""name"":""Inj 13"",""status"":""NO MATERIAL"",""operator"":""Bobby Veach""},{""id"":""inj-1"",""name"":""Inj 12"",""status"":""RUNNING"",""operator"":""Cody Fulkerson""},{""id"":""mac-1771630382967"",""name"":""Inj 14"",""status"":""MOLD CHANGE""},{""id"":""mac-1771630499484"",""name"":""Inj 23"",""status"":""RUNNING""},{""id"":""mac-1771630511313"",""name"":""Inj 25"",""status"":""RUNNING""},{""id"":""mac-1771630522357"",""name"":""Inj 26"",""status"":""MAINT""},{""id"":""mac-1771630670453"",""name"":""Inj 27"",""status"":""RUNNING""},{""id"":""mac-1771630684040"",""name"":""Inj 28"",""status"":""RUNNING""},{""id"":""mac-1771630691399"",""name"":""Inj 29"",""status"":""RUNNING""},{""id"":""mac-1771630709436"",""name"":""Inj 30"",""status"":""MAINT""}]},{""id"":""cat-assembly"",""name"":""Assembly"",""machines"":[{""id"":""asy-1"",""name"":""Assy 0"",""status"":""NOT SCHEDULED""}]},{""id"":""cat-compression"",""name"":""Compression"",""machines"":[{""id"":""cmp-1"",""name"":""Cmp 09"",""status"":""RUNNING""},{""id"":""mac-1771630563691"",""name"":""Cmp 10"",""status"":""RUNNING""},{""id"":""mac-1771630571231"",""name"":""Cmp 11"",""status"":""RUNNING""},{""id"":""mac-1771630581303"",""name"":""Cmp 12"",""status"":""RUNNING""},{""id"":""mac-1771630595581"",""name"":""Cmp 13"",""status"":""NOT SCHEDULED""}]}],""shiftNotes"":{""topIssues"":"""",""materialShortages"":"""",""escalations"":"""",""actions"":"""",""generalNotes"":""""},""currentShift"":""2nd Shift"",""lastUpdated"":""2026-02-21T14:14:38.797Z""}",State for the Production Status Board
+performance_threshold,25,Percentage deviation allowed for Performance validation
+oee_target,85,Target OEE Percentage for Color Coding
+availability_target,90,Target Availability Percentage
+performance_target,95,Target Performance Percentage
+quality_target,99,Target Quality Percentage
+show_oee_over_100_warning,true,Enable warning for OEE > 100%
+threshold_downtime_min,20,High Downtime Threshold (min)
+shift_employees_day,"[""Rob Brewer"",""Nathan Brooks"",""Frecita Smith""]",List of employees for Day Shift
+shift_employees_second,"[""Cody Fulkerson"",""Bobby Veach"",""Emily Little""]",List of employees for 2nd Shift
+shift_employees_third,[],List of employees for 3rd Shift

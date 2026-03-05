@@ -7,6 +7,7 @@ interface AuthContextType {
     role: string | null;         // admin, manager, supervisor, viewer
     shiftScope: string | null;   // "1st Shift", etc.
     isPro: boolean;
+    allowedPages: string[] | null; // per-user page access overrides
     login: (email: string, password: string) => Promise<boolean>;
     logout: () => void;
     // Helper access getters
@@ -24,6 +25,7 @@ const getInitialState = () => {
     let initialRole = 'viewer';
     let initialShiftScope = null;
     let initialIsPro = false;
+    let initialAllowedPages: string[] | null = null;
 
     if (initialToken) {
         try {
@@ -32,21 +34,23 @@ const getInitialState = () => {
                 initialRole = decoded.role || 'viewer';
                 initialShiftScope = decoded.shift_scope || null;
                 initialIsPro = !!decoded.is_pro;
+                initialAllowedPages = decoded.allowed_pages || null;
             }
         } catch {
             // fallback to defaults
         }
     }
-    return { initialToken, initialRole, initialShiftScope, initialIsPro };
+    return { initialToken, initialRole, initialShiftScope, initialIsPro, initialAllowedPages };
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { initialToken, initialRole, initialShiftScope, initialIsPro } = getInitialState();
+    const { initialToken, initialRole, initialShiftScope, initialIsPro, initialAllowedPages } = getInitialState();
 
     const [token, setToken] = useState<string | null>(initialToken);
     const [role, setRole] = useState<string | null>(initialRole);
     const [shiftScope, setShiftScope] = useState<string | null>(initialShiftScope);
     const [isPro, setIsPro] = useState<boolean>(initialIsPro);
+    const [allowedPages, setAllowedPages] = useState<string[] | null>(initialAllowedPages);
 
     useEffect(() => {
         if (token) {
@@ -59,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setRole(decoded.role || 'viewer');
                     setShiftScope(decoded.shift_scope || null);
                     setIsPro(!!decoded.is_pro);
+                    setAllowedPages(decoded.allowed_pages || null);
                 }
             } catch (e) {
                 console.error("Invalid token", e);
@@ -69,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setRole('viewer');
             setShiftScope(null);
             setIsPro(false);
+            setAllowedPages(null);
         }
     }, [token]);
 
@@ -92,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRole('viewer');
         setShiftScope(null);
         setIsPro(false);
+        setAllowedPages(null);
         localStorage.removeItem('token');
     };
 
@@ -102,29 +109,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isViewer = !role || role === 'viewer'; // True if not logged in or explicitly viewer
 
     const canAccessPage = (path: string) => {
-        if (canEdit) return true; // Admins and managers access everything
+        // Admins always have full access
+        if (role === 'admin') return true;
+
+        // If user has explicit allowed_pages set, use those
+        if (allowedPages && allowedPages.length > 0) {
+            // Read-only pages are always accessible
+            const alwaysAllowed = ['/dashboard', '/production-board', '/analytics', '/leaderboard', '/operators', '/login'];
+            if (alwaysAllowed.includes(path)) return true;
+            return allowedPages.includes(path);
+        }
+
+        // Fallback: role-based defaults
+        if (canEdit) return true; // managers access everything
 
         switch (path) {
             case '/upload':
             case '/settings':
             case '/rates':
             case '/admin/users':
-                return false; // Viewers and Supervisors cannot access these pages
-            case '/reports':
-            case '/versions':
-            case '/analytics':
-            case '/leaderboard':
-            case '/operators':
-            case '/dashboard':
-            case '/production-board':
+                return false;
             default:
-                return true; // Everyone can see standard read-only views
+                return true;
         }
     };
 
     return (
         <AuthContext.Provider value={{
-            token, role, shiftScope, isPro,
+            token, role, shiftScope, isPro, allowedPages,
             login, logout,
             canEdit, canManage, isSupervisor, isViewer, canAccessPage
         }}>

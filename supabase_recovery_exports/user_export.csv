@@ -1,0 +1,5 @@
+id,email,hashed_password,role,shift_scope,is_pro,created_at,updated_at
+1,admin@example.com,$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW,admin,,False,2026-02-27 01:06:45.810533,2026-02-27 01:06:45.810706
+3,supervisor@oee.local,$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW,supervisor,1st Shift,False,2026-02-27 01:06:45.811562,2026-02-27 01:06:45.811688
+4,viewer@oee.local,$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW,viewer,,False,2026-02-27 01:06:45.811890,2026-02-27 01:06:45.812003
+2,manager@oee.local,$2b$12$XITC5FW6LLjGwQESosHcG.DBWXPQA3CCtqIwj8DRy2bw91G4YIdx6,manager,,False,2026-02-27 01:06:45.811224,2026-02-27 01:06:45.811348

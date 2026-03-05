@@ -1,0 +1,6 @@
+id,user_email,user_role,shift,action,machine_id,category_id,before_value,after_value,details,timestamp
+1,manager@oee.local,manager,,login,,,,,,2026-02-27 01:07:12.085128
+2,manager@oee.local,manager,,login,,,,,,2026-02-27 01:09:35.219157
+3,manager@oee.local,manager,,login,,,,,,2026-02-27 01:14:17.724259
+4,manager@oee.local,manager,,login,,,,,,2026-02-27 01:27:50.158107
+5,manager@oee.local,manager,,login,,,,,,2026-02-27 13:36:36.770794

@@ -29,8 +29,10 @@ export interface User {
     id?: number;
     email: string;
     role: string;
+    shift_scope?: string | null;
     is_active?: boolean;
     is_pro?: boolean;
+    allowed_pages?: string[] | null;
 }
 
 export const authService = {
@@ -64,6 +66,10 @@ export const authService = {
     },
     updateUser: async (userId: number, data: Partial<User> & { password?: string }) => {
         const response = await api.put<User>(`/auth/users/${userId}`, data);
+        return response.data;
+    },
+    deleteUser: async (userId: number) => {
+        const response = await api.delete(`/auth/users/${userId}`);
         return response.data;
     }
 };

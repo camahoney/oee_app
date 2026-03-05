@@ -12,30 +12,34 @@ from .db import RateEntry, User
 # Ideally, we should move `pwd_context` to a `utils.py` to avoid circular deps.
 # But for now, let's try importing. If fails, I'll just hardcode a known hash for "admin".
 
-# Known bcrypt hash for "admin" (cost 12): 
-# $2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW
+# Unique bcrypt hashes for each seed user
+# admin → "admin", manager → "manager1", supervisor → "super1", viewer → "viewer1"
+import bcrypt as _bcrypt
+
+def _hash(pw: str) -> str:
+    return _bcrypt.hashpw(pw.encode('utf-8'), _bcrypt.gensalt()).decode('utf-8')
 
 def get_seed_users():
     return [
         User(
             email="admin@example.com", 
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW", 
+            hashed_password=_hash("admin"), 
             role="admin"
         ),
         User(
             email="manager@oee.local",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW", # "admin" hash, will force hash below
+            hashed_password=_hash("manager1"),
             role="manager"
         ),
         User(
             email="supervisor@oee.local",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+            hashed_password=_hash("super1"),
             role="supervisor",
             shift_scope="1st Shift"
         ),
         User(
             email="viewer@oee.local",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+            hashed_password=_hash("viewer1"),
             role="viewer"
         )
     ]

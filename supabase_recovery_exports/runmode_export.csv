@@ -1,0 +1,5 @@
+id,name,description,active
+1,STANDARD,Standard Operation,True
+2,COMBO_1OP_2PRESS,1 Operator running 2 Presses,True
+3,COMBO_1OP_3PRESS,1 Operator running 3 Presses,True
+4,TEAM_2OP_4MOLDS,2 Operators running 4 Molds,True
