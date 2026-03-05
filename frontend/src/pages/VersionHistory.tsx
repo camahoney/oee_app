@@ -37,6 +37,24 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.6.0",
+        date: "2026-03-05",
+        description: (
+            <ul>
+                <li><strong>User Login System:</strong> Implemented role-based authentication with Admin and Manager roles, secure JWT tokens, and a login page to protect sensitive operations like rate editing and report uploads.</li>
+                <li><strong>Report Upload Fix:</strong> Resolved a <code>ForeignKeyViolation</code> crash that prevented production reports from being uploaded. The backend was hardcoding a non-existent user ID — now correctly allows uploads without requiring a linked user.</li>
+                <li><strong>Rate Editing Fix:</strong> Fixed a 500 Server Error when managers tried to save rate changes. A deprecated Pydantic field iteration (<code>RateEntry.__fields__</code>) was replaced with a stable dictionary-based update method.</li>
+                <li><strong>Database Recovery:</strong> Recovered full database schema and production data after an accidental deletion, restoring all historical reports and rate configurations.</li>
+                <li><strong>Codebase Audit:</strong> Secured the <code>SECRET_KEY</code> by moving it to environment variables, removed debug endpoints, and cleaned up redundant code paths.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 4,
+        icon: <SafetyCertificateOutlined />,
+        color: "red",
+        tags: ["Security", "Critical Fix", "Backend"]
+    },
+    {
         version: "v1.5.0",
         date: "2026-02-21",
         description: (
@@ -462,7 +480,7 @@ const VersionHistory: React.FC = () => {
                 </Card>
 
                 <div style={{ textAlign: 'center', marginTop: 40, color: '#bfbfbf' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.5.0</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>Vibracoustic OEE Analytics Platform • v1.6.0</Text>
                 </div>
             </div>
         </div>
