@@ -123,10 +123,8 @@ def update_rate(rate_id: int, updated: RateEntry, background_tasks: BackgroundTa
     changed_fields = set()
     user_id = 1  # Admin user for audit
     try:
-        for field in RateEntry.__fields__:
-            if field == "id":
-                continue
-            new_val = getattr(updated, field)
+        updated_data = updated.dict(exclude={"id"}, exclude_unset=True)
+        for field, new_val in updated_data.items():
             old_val = getattr(db_rate, field)
             if new_val != old_val:
                 changed_fields.add(field)
