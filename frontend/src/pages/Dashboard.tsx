@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
 
-            <Row gutter={[24, 24]}>
+            <Row gutter={[24, 24]} className="print-gauge-row">
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
                         <OeeGauge title="OEE Score" value={stats.oee} target={stats.targets?.oee} />
@@ -225,11 +225,11 @@ const Dashboard: React.FC = () => {
                 </Col>
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <OeeGauge title="Availability" value={stats.availability} target={stats.targets?.availability} />
+                        <OeeGauge title="Performance" value={stats.performance} target={stats.targets?.performance} />
                         <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={getTrendData('availability')}>
-                                    <Area type="monotone" dataKey="value" stroke="#52c41a" fill="#52c41a" fillOpacity={0.1} strokeWidth={2} />
+                                <AreaChart data={getTrendData('performance')}>
+                                    <Area type="monotone" dataKey="value" stroke="#1890ff" fill="#1890ff" fillOpacity={0.1} strokeWidth={2} />
                                     <RechartsTooltip formatter={(val: number) => (val * 100).toFixed(1) + '%'} labelFormatter={() => ''} contentStyle={{ fontSize: 12 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -239,11 +239,11 @@ const Dashboard: React.FC = () => {
                 </Col>
                 <Col span={6} xs={24} sm={12} lg={6}>
                     <Card hoverable bordered={false} style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', borderTop: `4px solid ${BRAND_BLUE}` }}>
-                        <OeeGauge title="Performance" value={stats.performance} target={stats.targets?.performance} />
+                        <OeeGauge title="Availability" value={stats.availability} target={stats.targets?.availability} />
                         <div style={{ height: 40, marginTop: 16 }} className="dashboard-sparkline">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={getTrendData('performance')}>
-                                    <Area type="monotone" dataKey="value" stroke="#1890ff" fill="#1890ff" fillOpacity={0.1} strokeWidth={2} />
+                                <AreaChart data={getTrendData('availability')}>
+                                    <Area type="monotone" dataKey="value" stroke="#52c41a" fill="#52c41a" fillOpacity={0.1} strokeWidth={2} />
                                     <RechartsTooltip formatter={(val: number) => (val * 100).toFixed(1) + '%'} labelFormatter={() => ''} contentStyle={{ fontSize: 12 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -320,8 +320,9 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
                         )}
+                        {/* On-screen paginated list (hidden during print) */}
                         <Card
-                            className={compactPrint ? 'no-print' : ''}
+                            className="no-print"
                             title={<Title level={4} style={{ margin: 0, color: BRAND_BLUE }}>{reportId ? 'Report Activity Log' : 'Recent Activity Log'}</Title>}
                             bordered={false}
                             style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
@@ -330,22 +331,18 @@ const Dashboard: React.FC = () => {
                                 itemLayout="vertical"
                                 size="large"
                                 pagination={{
-                                    pageSize: 10, // Optimized for performance (was 2000)
+                                    pageSize: 10,
                                     position: 'bottom',
                                     showSizeChanger: true
                                 }}
                                 dataSource={stats.recent_activity || []}
                                 renderItem={(item: any) => {
-                                    // 3. Metric Drivers Logic
                                     const metrics = [
                                         { name: 'A', val: item.availability || 0, label: 'Availability' },
                                         { name: 'P', val: item.performance || 0, label: 'Performance' },
                                         { name: 'Q', val: item.quality || 0, label: 'Quality' }
                                     ];
-                                    // Find lowest metric to highlight as the "Driver"
                                     const lowest = metrics.reduce((prev, curr) => prev.val < curr.val ? prev : curr);
-
-                                    // 2. Target vs Actual Logic
                                     const target = item.target_count || 0;
                                     const good = item.good_count || 0;
                                     const isOnTrack = target > 0 ? (good >= target * 0.9) : true;
@@ -514,6 +511,57 @@ const Dashboard: React.FC = () => {
                                 }}
                             />
                         </Card>
+
+                        {/* Non-compact print: full table of ALL employees (hidden on screen) */}
+                        {!compactPrint && (
+                            <div className="print-full-list">
+                                <table className="print-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Operator</th>
+                                            <th>Part</th>
+                                            <th>Machine</th>
+                                            <th>Shift</th>
+                                            <th>Date</th>
+                                            <th>OEE</th>
+                                            <th>Avail</th>
+                                            <th>Perf</th>
+                                            <th>Qual</th>
+                                            <th>Good</th>
+                                            <th>Target</th>
+                                            <th>Rejects</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(stats.recent_activity || []).map((item: any, idx: number) => {
+                                            const oeeVal = (item.oee || 0) * 100;
+                                            const oeeColor = oeeVal >= 85 ? '#52c41a' : oeeVal >= 60 ? '#faad14' : '#ff4d4f';
+                                            return (
+                                                <tr key={item.id || idx}>
+                                                    <td>{idx + 1}</td>
+                                                    <td><strong>{item.operator || 'Unknown'}</strong></td>
+                                                    <td>{item.part_number}</td>
+                                                    <td>{item.machine}</td>
+                                                    <td>{item.shift}</td>
+                                                    <td>{item.date}</td>
+                                                    <td style={{ color: oeeColor, fontWeight: 600 }}>{oeeVal.toFixed(1)}%</td>
+                                                    <td>{((item.availability || 0) * 100).toFixed(0)}%</td>
+                                                    <td>{((item.performance || 0) * 100).toFixed(0)}%</td>
+                                                    <td>{((item.quality || 0) * 100).toFixed(1)}%</td>
+                                                    <td>{item.good_count}</td>
+                                                    <td>{item.target_count > 0 ? item.target_count : '-'}</td>
+                                                    <td style={{ color: item.reject_count > 0 ? '#ff4d4f' : 'inherit' }}>{item.reject_count || 0}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                <div style={{ marginTop: 8, fontSize: 10, color: '#999', textAlign: 'right' }}>
+                                    Total: {(stats.recent_activity || []).length} operator entries
+                                </div>
+                            </div>
+                        )}
                     </Col>
                     {/* Right Column: Insights & Action Log */}
                     <Col xs={24} lg={8} className={compactPrint ? 'no-print' : ''}>

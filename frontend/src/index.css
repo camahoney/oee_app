@@ -119,13 +119,49 @@ code {
     background: #fafafa !important;
 }
 
+/* Non-compact full list (hidden on screen, visible in print) */
+.print-full-list {
+    display: none;
+}
+
 @media print {
     .print-table-wrap {
+        display: block !important;
+    }
+    .print-full-list {
         display: block !important;
     }
     .dashboard-sparkline {
         display: none !important;
     }
+
+    /* Compact gauge cards for print — fit all 4 on one row */
+    .print-gauge-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+        margin-bottom: 8px !important;
+    }
+    .print-gauge-row > .ant-col {
+        flex: 1 1 25% !important;
+        max-width: 25% !important;
+        width: 25% !important;
+        padding: 0 2px !important;
+    }
+    .print-gauge-row .ant-card {
+        border-top-width: 2px !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+    }
+    .print-gauge-row .ant-card-body {
+        padding: 4px !important;
+    }
+    /* Shrink gauge SVGs for print */
+    .print-gauge-row svg {
+        height: 80px !important;
+        max-height: 80px !important;
+    }
+
     .ant-card {
         margin-bottom: 8px !important;
         padding: 4px !important;
