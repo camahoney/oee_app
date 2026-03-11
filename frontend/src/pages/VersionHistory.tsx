@@ -37,6 +37,22 @@ interface VersionEntry {
 
 const HISTORY_DATA: VersionEntry[] = [
     {
+        version: "v1.6.1",
+        date: "2026-03-10",
+        description: (
+            <ul>
+                <li><strong>Non-Compact Print — Full Stats for All Employees:</strong> Fixed the non-compact print mode to display the full rich dashboard layout (operator, part/machine/date/shift, run/down times, performance, quality, actual vs target, OEE score, and analysis insight tags) for every employee — not just the first page. All operators now print across as many pages as needed.</li>
+                <li><strong>Production Board Auto-Suggest Fix:</strong> Resolved a bug where the operator auto-suggest would briefly appear then collapse when selecting a part number. Root cause was an unstable <code>assignedOperators</code> dependency that re-triggered the suggestion on every state change. Stabilized with ref tracking and a serialized dependency key.</li>
+                <li><strong>Auto-Apply Best Performer:</strong> The operator auto-suggest now automatically populates the best available operator when a part is selected (instead of requiring a manual "Apply" click). The suggestion still shows as informational if an operator was already manually assigned.</li>
+            </ul>
+        ),
+        author: "Dev Team",
+        hours: 1.5,
+        icon: <PrinterOutlined />,
+        color: "blue",
+        tags: ["Bug Fix", "Print", "Production Board"]
+    },
+    {
         version: "v1.6.0",
         date: "2026-03-05",
         description: (
