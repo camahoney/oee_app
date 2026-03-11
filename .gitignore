@@ -22,3 +22,4 @@ Thumbs.db
 # Logs
 *.log
 test_output.txt
+*dist/
