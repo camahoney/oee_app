@@ -321,7 +321,7 @@ def safe_float(val: str, default: float) -> float:
     except ValueError:
         return default
 
-@router.get("/metrics/stats") # Just a reference comment, keeping the decorator intact
+@router.get("/stats", response_model=Dict[str, Any])
 
 def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
     """Aggregate metrics for the dashboard. Default: Latest Report. Includes Sparklines & Insights."""
