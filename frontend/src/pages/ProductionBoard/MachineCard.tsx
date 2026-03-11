@@ -92,8 +92,18 @@ const MachineCard: React.FC<MachineCardProps> = ({
         return null;
     };
 
+    // Stable key for assigned operators — prevents re-triggering when state changes but same operators are assigned
+    const assignedKey = useMemo(() => JSON.stringify([...assignedOperators].sort()), [assignedOperators]);
+
+    // Track previous part to only fire API when part genuinely changes
+    const prevPartRef = React.useRef<string | undefined>(machine.part);
+
     // Fetch Auto-Suggest Operator when Part changes
     useEffect(() => {
+        // Only fire when part actually changes (not on every render)
+        if (machine.part === prevPartRef.current) return;
+        prevPartRef.current = machine.part;
+
         if (!machine.part || machine.part.trim() === '') {
             setSuggestedOperator(null);
             setSuggestStats(null);
@@ -109,6 +119,7 @@ const MachineCard: React.FC<MachineCardProps> = ({
                 if (isMounted) {
                     // Backend returns a ranked list of operators
                     const ranked = Array.isArray(res.data) ? res.data : [];
+                    const currentAssigned: string[] = JSON.parse(assignedKey);
 
                     // Find the best operator who is:
                     // 1. Matches someone in the current shift's employee list (fuzzy name match)
@@ -116,7 +127,11 @@ const MachineCard: React.FC<MachineCardProps> = ({
                     let foundMatch = false;
                     for (const r of ranked) {
                         const rosterName = matchesRoster(r.operator, availableOperators);
-                        if (rosterName && !assignedOperators.includes(rosterName)) {
+                        if (rosterName && !currentAssigned.includes(rosterName)) {
+                            // Auto-apply the best operator if no operator is currently set
+                            if (!machine.operator) {
+                                onStatusChange(categoryId, machine.id, machine.status, machine.notes, rosterName, machine.part);
+                            }
                             setSuggestedOperator(rosterName);
                             setSuggestStats({
                                 oee: r.avg_oee,
@@ -145,7 +160,8 @@ const MachineCard: React.FC<MachineCardProps> = ({
         fetchSuggestion();
 
         return () => { isMounted = false; };
-    }, [machine.part, machine.name, availableOperators, assignedOperators]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [machine.part, machine.name, availableOperators, assignedKey]);
 
     // Status options conforming strictly to the requested order
     const statusOptions: { label: string, value: MachineStatus }[] = [
