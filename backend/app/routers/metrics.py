@@ -156,7 +156,7 @@ def calculate_report_metrics_logic(report_id: int, session: Session):
     # Calculation Phase
     # Fetch Settings for Logic
     perf_threshold_setting = session.get(Setting, "performance_threshold")
-    perf_threshold_pct = float(perf_threshold_setting.value) if perf_threshold_setting else 25.0
+    perf_threshold_pct = safe_float(perf_threshold_setting.value, 25.0) if perf_threshold_setting else 25.0
     perf_threshold = perf_threshold_pct / 100.0
     
     # OEE > 100 Warning Flag
@@ -313,7 +313,16 @@ def get_metrics(report_id: int, session: Session = Depends(get_session)):
     metrics = session.exec(select(Oeemetric).where(Oeemetric.report_id == report_id)).all()
     return metrics
 
-@router.get("/stats", response_model=Dict[str, Any])
+def safe_float(val: str, default: float) -> float:
+    if not val or val == "undefined" or val == "null":
+        return default
+    try:
+        return float(val)
+    except ValueError:
+        return default
+
+@router.get("/metrics/stats") # Just a reference comment, keeping the decorator intact
+
 def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_session)):
     """Aggregate metrics for the dashboard. Default: Latest Report. Includes Sparklines & Insights."""
     stmt = select(Oeemetric)
@@ -394,17 +403,17 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
     # Insight: OEE Target
     # Fetch target from settings, default 0.85
     oee_target_setting = session.get(Setting, "oee_target")
-    oee_target = float(oee_target_setting.value) if oee_target_setting else 85.0
+    oee_target = safe_float(oee_target_setting.value, 85.0) if oee_target_setting else 85.0
     
     # Fetch other targets for Dashboard Gauges
     avail_target_setting = session.get(Setting, "availability_target")
-    avail_target = float(avail_target_setting.value) if avail_target_setting else 90.0
+    avail_target = safe_float(avail_target_setting.value, 90.0) if avail_target_setting else 90.0
     
     perf_target_setting = session.get(Setting, "performance_target")
-    perf_target = float(perf_target_setting.value) if perf_target_setting else 95.0
+    perf_target = safe_float(perf_target_setting.value, 95.0) if perf_target_setting else 95.0
     
     qual_target_setting = session.get(Setting, "quality_target")
-    qual_target = float(qual_target_setting.value) if qual_target_setting else 99.0
+    qual_target = safe_float(qual_target_setting.value, 99.0) if qual_target_setting else 99.0
 
     # Ensure OEE target is treated as percentage (0-100) or decimal (0-1) consistently
     # Based on existing insights logic: `((oee_target - avg_oee)*100)` implies oee_target is decimal (0.85) if avg_oee is decimal.
@@ -460,11 +469,11 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
         global_perf_map = {f"{r[0]}|{r[1]}": (r[2] or 0) for r in global_stats_results}
 
     # Fetch Threshold Settings
-    t_perf_low = float(session.get(Setting, "threshold_performance_low").value) if session.get(Setting, "threshold_performance_low") else 0.80
-    t_perf_high = float(session.get(Setting, "threshold_performance_high").value) if session.get(Setting, "threshold_performance_high") else 1.10
-    t_downtime = float(session.get(Setting, "threshold_downtime_min").value) if session.get(Setting, "threshold_downtime_min") else 20.0
-    t_scrap = float(session.get(Setting, "threshold_scrap_rate").value) if session.get(Setting, "threshold_scrap_rate") else 0.05
-    t_short_run = float(session.get(Setting, "threshold_short_run_min").value) if session.get(Setting, "threshold_short_run_min") else 60.0
+    t_perf_low = safe_float(session.get(Setting, "threshold_performance_low").value, 0.80) if session.get(Setting, "threshold_performance_low") else 0.80
+    t_perf_high = safe_float(session.get(Setting, "threshold_performance_high").value, 1.10) if session.get(Setting, "threshold_performance_high") else 1.10
+    t_downtime = safe_float(session.get(Setting, "threshold_downtime_min").value, 20.0) if session.get(Setting, "threshold_downtime_min") else 20.0
+    t_scrap = safe_float(session.get(Setting, "threshold_scrap_rate").value, 0.05) if session.get(Setting, "threshold_scrap_rate") else 0.05
+    t_short_run = safe_float(session.get(Setting, "threshold_short_run_min").value, 60.0) if session.get(Setting, "threshold_short_run_min") else 60.0
 
     for m in sorted_metrics:
         diag = {}
