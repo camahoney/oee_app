@@ -447,15 +447,17 @@ def get_dashboard_stats(report_id: int = None, session: Session = Depends(get_se
     # Calculate global average performance per part/machine
     # We use a trick: group by part_number and machine
     from sqlalchemy import func
-    global_stats_stmt = (
-        select(Oeemetric.part_number, Oeemetric.machine, func.avg(Oeemetric.performance))
-        .where(Oeemetric.part_number.in_(relevant_parts))
-        .group_by(Oeemetric.part_number, Oeemetric.machine)
-    )
-    global_stats_results = session.exec(global_stats_stmt).all()
-    
-    # Map (part, machine) -> avg_performance
-    global_perf_map = {f"{r[0]}|{r[1]}": (r[2] or 0) for r in global_stats_results}
+    global_perf_map = {}
+    if relevant_parts:
+        global_stats_stmt = (
+            select(Oeemetric.part_number, Oeemetric.machine, func.avg(Oeemetric.performance))
+            .where(Oeemetric.part_number.in_(relevant_parts))
+            .group_by(Oeemetric.part_number, Oeemetric.machine)
+        )
+        global_stats_results = session.exec(global_stats_stmt).all()
+        
+        # Map (part, machine) -> avg_performance
+        global_perf_map = {f"{r[0]}|{r[1]}": (r[2] or 0) for r in global_stats_results}
 
     # Fetch Threshold Settings
     t_perf_low = float(session.get(Setting, "threshold_performance_low").value) if session.get(Setting, "threshold_performance_low") else 0.80
